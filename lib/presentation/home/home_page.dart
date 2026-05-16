@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -141,33 +140,39 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 24),
-                _buildScanActions(),
-                const SizedBox(height: 16),
-                _buildNotificationBanner(),
-                const SizedBox(height: 24),
-                _buildServicesSection(badgeStream),
-                const SizedBox(height: 16),
-                _buildMissionBanner(),
-                const SizedBox(height: 100),
-              ],
+          // Interface scannable et fixe
+          SafeArea(
+            bottom: false,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 35), // Espace pour la barre attachée
+                  _buildScanActions(),
+                  const SizedBox(height: 14),
+                  _buildNotificationBanner(),
+                  const SizedBox(height: 18),
+                  _buildServicesSection(badgeStream),
+                  const SizedBox(height: 14),
+                  _buildMissionBanner(),
+                  const SizedBox(height: 100), // Empêche la bottom nav de cacher le contenu
+                ],
+              ),
             ),
           ),
+          // Navigation basse fixe
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: _buildBottomNavigationBar(),
           ),
+          // Indicateur de chargement plein écran
           if (_searching)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withOpacity(0.25),
                 child: const Center(
                   child: CircularProgressIndicator(
                     color: Color(0xFF1A52FF),
@@ -180,12 +185,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 1. HEADER INTEGRÉ AVEC BARRE DE RECHERCHE ATTACHÉE
   Widget _buildHeader(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Container(
-          height: 260,
+          height: 200,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -193,11 +199,11 @@ class _HomePageState extends State<HomePage> {
               colors: [Color(0xFF002DCC), Color(0xFF001C80)],
             ),
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(40),
-              bottomRight: Radius.circular(40),
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -210,9 +216,9 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.fingerprint, color: Colors.white, size: 28),
+                        child: const Icon(Icons.fingerprint, color: Colors.white, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -220,11 +226,11 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           const Text(
                             'THIX ID',
-                            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                           Text(
                             'Identité Sécurisée. Avenir de Confiance.',
-                            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11),
+                            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 10),
                           ),
                         ],
                       ),
@@ -234,51 +240,53 @@ class _HomePageState extends State<HomePage> {
                     onTap: _goProfile,
                     child: const CircleAvatar(
                       backgroundColor: Colors.white,
-                      radius: 22,
-                      child: Icon(Icons.person, color: Color(0xFF001C80), size: 26),
+                      radius: 18,
+                      child: Icon(Icons.person, color: Color(0xFF001C80), size: 22),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
               const Text(
                 'Bienvenue !',
-                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 'Que voulez-vous faire aujourd\'hui ?',
-                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
+                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
               ),
             ],
           ),
         ),
+        // Barre de recherche attachée et ajustée
         Positioned(
-          bottom: -24,
+          bottom: -22,
           left: 20,
           right: 20,
           child: Container(
-            height: 54,
+            height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(25),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0, 5)),
+                BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 4)),
               ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
               children: [
                 const SizedBox(width: 12),
-                const Icon(Icons.search, color: Colors.grey, size: 22),
+                const Icon(Icons.search, color: Colors.grey, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: _searchController,
                     enabled: !_searching,
+                    style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
                       hintText: 'Rechercher un THIX ID...',
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                      hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
                       border: InputBorder.none,
                     ),
                   ),
@@ -286,16 +294,16 @@ class _HomePageState extends State<HomePage> {
                 GestureDetector(
                   onTap: _searching ? null : _verify,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A52FF),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(
                       children: [
-                        Text('Vérifier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                        SizedBox(width: 6),
-                        Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                        Text('Vérifier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 12),
                       ],
                     ),
                   ),
@@ -308,26 +316,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 2. BOUTONS COMPACTS SCAN & NFC (BANDES RÉDUITES)
   Widget _buildScanActions() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           Expanded(
-            child: _buildScanCard(
+            child: _buildCompactScanCard(
               'Scanner un QR',
-              'Scannez un code\nen toute sécurité',
+              'Scannez en sécurité',
               Icons.qr_code_scanner,
               const Color(0xFFEBF0FF),
               const Color(0xFF1A52FF),
               onTap: () => ThixIdentitySheets.showQrScanSheet(context),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
-            child: _buildScanCard(
+            child: _buildCompactScanCard(
               'Lire via NFC',
-              'Approchez votre\nappareil',
+              'Approchez l\'appareil',
               Icons.nfc,
               const Color(0xFFEEFBF4),
               const Color(0xFF27AE60),
@@ -339,35 +348,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildScanCard(String title, String subtitle, IconData icon, Color iconBg, Color accentColor, {required VoidCallback onTap}) {
+  Widget _buildCompactScanCard(String title, String subtitle, IconData icon, Color iconBg, Color accentColor, {required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2))],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-              child: Icon(icon, color: accentColor, size: 24),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: accentColor, size: 18),
             ),
-            const SizedBox(height: 14),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
-            const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey, height: 1.3)),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: CircleAvatar(
-                radius: 12,
-                backgroundColor: accentColor,
-                child: const Icon(Icons.arrow_forward, color: Colors.white, size: 12),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black87)),
+                  Text(subtitle, style: const TextStyle(fontSize: 10, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
               ),
             ),
           ],
@@ -376,6 +381,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 3. BANNIÈRE DE NOTIFICATIONS
   Widget _buildNotificationBanner() {
     final auth = context.read<AuthController>();
     return GestureDetector(
@@ -389,11 +395,11 @@ class _HomePageState extends State<HomePage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2))],
           ),
           child: Row(
             children: [
@@ -401,37 +407,30 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   const CircleAvatar(
                     backgroundColor: Color(0xFF1A52FF),
-                    radius: 20,
-                    child: Icon(Icons.notifications, color: Colors.white, size: 20),
+                    radius: 16,
+                    child: Icon(Icons.notifications, color: Colors.white, size: 16),
                   ),
                   Positioned(
-                    right: 2,
-                    top: 2,
+                    right: 1,
+                    top: 1,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(3),
                       decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
-                    SizedBox(height: 2),
-                    Text('Restez informé de vos activités et mises à jour.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+                    Text('Restez informé de vos activités.', style: TextStyle(fontSize: 10, color: Colors.grey)),
                   ],
                 ),
               ),
-              Row(
-                children: const [
-                  Text('Voir tout', style: TextStyle(color: Color(0xFF001C80), fontSize: 12, fontWeight: FontWeight.bold)),
-                  SizedBox(width: 4),
-                  Icon(Icons.chevron_right, color: Color(0xFF001C80), size: 16),
-                ],
-              ),
+              const Icon(Icons.chevron_right, color: Color(0xFF001C80), size: 16),
             ],
           ),
         ),
@@ -439,6 +438,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 4. GRILLE OPTIMISÉE SANS OVERFLOW (BORDURES DE 20PX)
   Widget _buildServicesSection(Stream<SectionBadgeCounts> badgeStream) {
     final List<Map<String, dynamic>> services = [
       {'title': 'Demander un\nCompte', 'icon': Icons.person_add, 'color': const Color(0xFFEBF0FF), 'iconColor': const Color(0xFF1A52FF), 'tap': _requestAccount},
@@ -458,16 +458,19 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Nos services', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001C80))),
-              Row(
-                children: const [
-                  Text('Tout voir', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-                ],
+              const Text('Nos services', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF001C80))),
+              GestureDetector(
+                onTap: () {},
+                child: const Row(
+                  children: [
+                    Text('Tout voir', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Icon(Icons.chevron_right, size: 14, color: Colors.grey),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           StreamBuilder<SectionBadgeCounts>(
             stream: badgeStream,
             builder: (context, snap) {
@@ -480,8 +483,8 @@ class _HomePageState extends State<HomePage> {
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
                   crossAxisSpacing: 10,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.82,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.85,
                 ),
                 itemBuilder: (context, index) {
                   final s = services[index];
@@ -491,8 +494,8 @@ class _HomePageState extends State<HomePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 8, offset: const Offset(0, 2))],
+                        borderRadius: BorderRadius.circular(20), // Amélioré à 20px
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 4, offset: const Offset(0, 1))],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -502,8 +505,8 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               CircleAvatar(
                                 backgroundColor: s['color'],
-                                radius: 20,
-                                child: Icon(s['icon'], color: s['iconColor'], size: 18),
+                                radius: 18,
+                                child: Icon(s['icon'], color: s['iconColor'], size: 16),
                               ),
                               if (badge > 0)
                                 Positioned(
@@ -512,21 +515,21 @@ class _HomePageState extends State<HomePage> {
                                   child: Container(
                                     padding: const EdgeInsets.all(3),
                                     decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                    constraints: const BoxConstraints(minWidth: 12, minHeight: 12),
                                     child: Text(
                                       badge > 99 ? '99+' : '$badge',
-                                      style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                                      style: const TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             s['title'],
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87, height: 1.2),
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black87, height: 1.1),
                           ),
                         ],
                       ),
@@ -541,6 +544,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 5. BANNIÈRE MISSION COMPACTE
   Widget _buildMissionBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -550,31 +554,27 @@ class _HomePageState extends State<HomePage> {
           gradient: const LinearGradient(
             colors: [Color(0xFF002DCC), Color(0xFF001A7A)],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Expanded(
-              flex: 6,
+              flex: 7,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('NOTRE MISSION', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                  const SizedBox(height: 6),
-                  const Text('Construisons ensemble l\'avenir de la jeunesse.', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height: 1.3)),
-                  const SizedBox(height: 8),
-                  Text('Accédez à des opportunités, des ressources et un réseau engagé.', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11, height: 1.3)),
+                  const Text('NOTRE MISSION', style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const SizedBox(height: 4),
+                  const Text('Construisons l\'avenir de la jeunesse.', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('Accédez à des opportunités et un réseau engagé.', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 10)),
                 ],
               ),
             ),
-            Expanded(
-              flex: 4,
-              child: Container(
-                height: 90,
-                alignment: Alignment.centerRight,
-                child: const Icon(Icons.people_alt, size: 70, color: Colors.white24),
-              ),
+            const Expanded(
+              flex: 3,
+              child: Icon(Icons.people_alt, size: 50, color: Colors.white24),
             ),
           ],
         ),
@@ -582,31 +582,47 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 6. BOTTOM NAVIGATION BAR AVEC THIX MONEY AU CENTRE
   Widget _buildBottomNavigationBar() {
     return Container(
       height: 74,
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, -2))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(Icons.home, 'Accueil', true),
           _buildNavItem(Icons.grid_view, 'Services', false),
+          // BOUTON CENTRAL SUBTILEMENT ADAPTÉ POUR THIX MONEY
           Transform.translate(
-            offset: const Offset(0, -10),
+            offset: const Offset(0, -12),
             child: GestureDetector(
-              onTap: () => ThixIdentitySheets.showQrScanSheet(context),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1A52FF),
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Color(0x4D1A52FF), blurRadius: 12, offset: Offset(0, 4))],
-                ),
-                child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 26),
+              onTap: () {
+                // Insérer ici la route ou l'action financière THIX MONEY
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF002DCC), Color(0xFF1A52FF)],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Color(0x331A52FF), blurRadius: 8, offset: Offset(0, 4))],
+                    ),
+                    child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 22), // Icône Money style
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'THIX MONEY',
+                    style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF002DCC)),
+                  ),
+                ],
               ),
             ),
           ),
@@ -630,9 +646,9 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isActive ? const Color(0xFF1A52FF) : Colors.grey, size: 24),
+          Icon(icon, color: isActive ? const Color(0xFF1A52FF) : Colors.grey, size: 22),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 11, color: isActive ? const Color(0xFF1A52FF) : Colors.grey, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
+          Text(label, style: TextStyle(fontSize: 10, color: isActive ? const Color(0xFF1A52FF) : Colors.grey, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
           if (isActive) ...[
             const SizedBox(height: 2),
             Container(width: 4, height: 4, decoration: const BoxDecoration(color: Color(0xFF1A52FF), shape: BoxShape.circle)),
@@ -643,7 +659,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ===== CLASSES MANQUANTES =====
+// ===== CLASSES ET MODALS CONSERVÉS =====
 enum _AccountRequestChoice { personal, enterprise }
 
 class AccountRequestSheet extends StatelessWidget {
@@ -654,30 +670,30 @@ class AccountRequestSheet extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
-            const Text('Créer un compte', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
+            const Text('Créer un compte', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 20),
             _OptionButton(
               icon: Icons.person,
               title: 'Compte Personnel',
               subtitle: 'Pour un profil individuel',
               onTap: () => Navigator.pop(context, _AccountRequestChoice.personal),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _OptionButton(
               icon: Icons.business,
               title: 'Compte Entreprise',
               subtitle: 'Pour une organisation',
               onTap: () => Navigator.pop(context, _AccountRequestChoice.enterprise),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -696,30 +712,30 @@ class _OptionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFF1A52FF).withOpacity(0.2)),
-          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF1A52FF).withOpacity(0.15)),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: const Color(0xFF1A52FF).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-              child: Icon(icon, color: const Color(0xFF1A52FF)),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: const Color(0xFF1A52FF).withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: const Color(0xFF1A52FF), size: 20),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                  Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF1A52FF)),
+            const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF1A52FF)),
           ],
         ),
       ),
