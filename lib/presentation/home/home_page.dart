@@ -140,7 +140,6 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: Stack(
         children: [
-          // Interface scannable et fixe
           SafeArea(
             bottom: false,
             child: SingleChildScrollView(
@@ -148,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(context),
-                  const SizedBox(height: 35), // Espace pour la barre attachée
+                  const SizedBox(height: 35),
                   _buildScanActions(),
                   const SizedBox(height: 14),
                   _buildNotificationBanner(),
@@ -156,19 +155,17 @@ class _HomePageState extends State<HomePage> {
                   _buildServicesSection(badgeStream),
                   const SizedBox(height: 14),
                   _buildMissionBanner(),
-                  const SizedBox(height: 100), // Empêche la bottom nav de cacher le contenu
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
           ),
-          // Navigation basse fixe
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: _buildBottomNavigationBar(),
           ),
-          // Indicateur de chargement plein écran
           if (_searching)
             Positioned.fill(
               child: Container(
@@ -185,7 +182,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 1. HEADER INTEGRÉ AVEC BARRE DE RECHERCHE ATTACHÉE
   Widget _buildHeader(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
@@ -259,7 +255,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        // Barre de recherche attachée et ajustée
         Positioned(
           bottom: -22,
           left: 20,
@@ -316,7 +311,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 2. BOUTONS COMPACTS SCAN & NFC (BANDES RÉDUITES)
   Widget _buildScanActions() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -381,7 +375,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 3. BANNIÈRE DE NOTIFICATIONS
   Widget _buildNotificationBanner() {
     final auth = context.read<AuthController>();
     return GestureDetector(
@@ -438,7 +431,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 4. GRILLE OPTIMISÉE SANS OVERFLOW (BORDURES DE 20PX)
   Widget _buildServicesSection(Stream<SectionBadgeCounts> badgeStream) {
     final List<Map<String, dynamic>> services = [
       {'title': 'Demander un\nCompte', 'icon': Icons.person_add, 'color': const Color(0xFFEBF0FF), 'iconColor': const Color(0xFF1A52FF), 'tap': _requestAccount},
@@ -494,7 +486,7 @@ class _HomePageState extends State<HomePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(20), // Amélioré à 20px
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 4, offset: const Offset(0, 1))],
                       ),
                       child: Column(
@@ -544,7 +536,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 5. BANNIÈRE MISSION COMPACTE
   Widget _buildMissionBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -582,7 +573,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 6. BOTTOM NAVIGATION BAR AVEC THIX MONEY AU CENTRE
   Widget _buildBottomNavigationBar() {
     return Container(
       height: 74,
@@ -595,13 +585,10 @@ class _HomePageState extends State<HomePage> {
         children: [
           _buildNavItem(Icons.home, 'Accueil', true),
           _buildNavItem(Icons.grid_view, 'Services', false),
-          // BOUTON CENTRAL SUBTILEMENT ADAPTÉ POUR THIX MONEY
           Transform.translate(
             offset: const Offset(0, -12),
             child: GestureDetector(
-              onTap: () {
-                // Insérer ici la route ou l'action financière THIX MONEY
-              },
+              onTap: () {},
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -615,7 +602,7 @@ class _HomePageState extends State<HomePage> {
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Color(0x331A52FF), blurRadius: 8, offset: Offset(0, 4))],
                     ),
-                    child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 22), // Icône Money style
+                    child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 22),
                   ),
                   const SizedBox(height: 4),
                   const Text(
@@ -659,7 +646,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ===== CLASSES ET MODALS CONSERVÉS =====
+// ===== CLASSES ET MODALS EXTERNES (SORTIS DE LA CLASSE PRINCIPALE) =====
 enum _AccountRequestChoice { personal, enterprise }
 
 class AccountRequestSheet extends StatelessWidget {
