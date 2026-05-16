@@ -16,14 +16,14 @@ import 'package:thix_id/services/notification_service.dart';
 import 'package:thix_id/services/notification_counters_service.dart';
 import 'package:thix_id/services/thix_id_service.dart';
 
-class THIXIDHomePage extends StatefulWidget {
-  const THIXIDHomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<THIXIDHomePage> createState() => _THIXIDHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _THIXIDHomePageState extends State<THIXIDHomePage> {
+class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   bool _searching = false;
   final _notifications = NotificationService();
@@ -36,7 +36,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     super.dispose();
   }
 
-  // Recherche et vérification THIX ID
   Future<void> _verify() async {
     final raw = _searchController.text.trim();
     if (raw.isEmpty) {
@@ -95,7 +94,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     }
   }
 
-  // Navigation Profil
   void _goProfile() {
     final auth = context.read<AuthController>();
     if (auth.isAuthenticated) {
@@ -110,21 +108,20 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     }
   }
 
-  // Demande de compte
   Future<void> _requestAccount() async {
     final auth = context.read<AuthController>();
-    final choice = await showModalBottomSheet<_AccountChoice>(
+    final choice = await showModalBottomSheet<_AccountRequestChoice>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => const _AccountSheet(),
+      builder: (_) => const AccountRequestSheet(),
     );
     switch (choice) {
-      case _AccountChoice.personal:
+      case _AccountRequestChoice.personal:
         if (auth.isAuthenticated) await auth.signOut();
         if (context.mounted) context.push(AppRoutes.personalReg);
         break;
-      case _AccountChoice.enterprise:
+      case _AccountRequestChoice.enterprise:
         if (auth.isAuthenticated) await auth.signOut();
         if (context.mounted) context.push(AppRoutes.enterpriseReg);
         break;
@@ -161,7 +158,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
               ],
             ),
           ),
-          // Barre de navigation basse fixe
           Positioned(
             bottom: 0,
             left: 0,
@@ -184,7 +180,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  // 1. HEADER DIAGONAL AVEC RECHERCHE ATTACHÉE
   Widget _buildHeader(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
@@ -217,8 +212,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                           color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.fingerprint,
-                            color: Colors.white, size: 28),
+                        child: const Icon(Icons.fingerprint, color: Colors.white, size: 28),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -226,19 +220,11 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                         children: [
                           const Text(
                             'THIX ID',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
+                            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                           Text(
                             'Identité Sécurisée. Avenir de Confiance.',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 11,
-                            ),
+                            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11),
                           ),
                         ],
                       ),
@@ -249,8 +235,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                     child: const CircleAvatar(
                       backgroundColor: Colors.white,
                       radius: 22,
-                      child: Icon(Icons.person,
-                          color: Color(0xFF001C80), size: 26),
+                      child: Icon(Icons.person, color: Color(0xFF001C80), size: 26),
                     ),
                   ),
                 ],
@@ -258,24 +243,16 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
               const SizedBox(height: 32),
               const Text(
                 'Bienvenue !',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               Text(
                 'Que voulez-vous faire aujourd\'hui ?',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
               ),
             ],
           ),
         ),
-        // Barre de recherche flottante
         Positioned(
           bottom: -24,
           left: 20,
@@ -286,11 +263,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
+                BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 15, offset: const Offset(0, 5)),
               ],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -313,27 +286,16 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                 GestureDetector(
                   onTap: _searching ? null : _verify,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A52FF),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: const Row(
                       children: [
-                        Text(
-                          'Vérifier',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
+                        Text('Vérifier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                         SizedBox(width: 6),
-                        Icon(Icons.arrow_forward,
-                            color: Colors.white, size: 14),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 14),
                       ],
                     ),
                   ),
@@ -346,7 +308,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  // 2. CARTES QR / NFC
   Widget _buildScanActions() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -378,8 +339,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  Widget _buildScanCard(String title, String subtitle, IconData icon,
-      Color iconBg, Color accentColor, {required VoidCallback onTap}) {
+  Widget _buildScanCard(String title, String subtitle, IconData icon, Color iconBg, Color accentColor, {required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -387,51 +347,27 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: accentColor, size: 24),
             ),
             const SizedBox(height: 14),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.black87,
-              ),
-            ),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
             const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.grey,
-                height: 1.3,
-              ),
-            ),
+            Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey, height: 1.3)),
             const SizedBox(height: 4),
             Align(
               alignment: Alignment.bottomRight,
               child: CircleAvatar(
                 radius: 12,
                 backgroundColor: accentColor,
-                child: const Icon(Icons.arrow_forward,
-                    color: Colors.white, size: 12),
+                child: const Icon(Icons.arrow_forward, color: Colors.white, size: 12),
               ),
             ),
           ],
@@ -440,7 +376,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  // 3. NOTIFICATIONS BANNER
   Widget _buildNotificationBanner() {
     final auth = context.read<AuthController>();
     return GestureDetector(
@@ -458,13 +393,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
           ),
           child: Row(
             children: [
@@ -480,10 +409,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                     top: 2,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                     ),
                   ),
                 ],
@@ -493,35 +419,17 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Notifications',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                    ),
+                    Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
                     SizedBox(height: 2),
-                    Text(
-                      'Restez informé de vos activités et mises à jour.',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
+                    Text('Restez informé de vos activités et mises à jour.', style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
               Row(
                 children: const [
-                  Text(
-                    'Voir tout',
-                    style: TextStyle(
-                      color: Color(0xFF001C80),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text('Voir tout', style: TextStyle(color: Color(0xFF001C80), fontSize: 12, fontWeight: FontWeight.bold)),
                   SizedBox(width: 4),
-                  Icon(Icons.chevron_right,
-                      color: Color(0xFF001C80), size: 16),
+                  Icon(Icons.chevron_right, color: Color(0xFF001C80), size: 16),
                 ],
               ),
             ],
@@ -531,7 +439,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  // 4. GRILLE NOS SERVICES (4x2)
   Widget _buildServicesSection(Stream<SectionBadgeCounts> badgeStream) {
     final List<Map<String, dynamic>> services = [
       {'title': 'Demander un\nCompte', 'icon': Icons.person_add, 'color': const Color(0xFFEBF0FF), 'iconColor': const Color(0xFF1A52FF), 'tap': _requestAccount},
@@ -551,14 +458,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Nos services',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF001C80),
-                ),
-              ),
+              const Text('Nos services', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001C80))),
               Row(
                 children: const [
                   Text('Tout voir', style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -572,17 +472,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
             stream: badgeStream,
             builder: (context, snap) {
               final counts = snap.data ?? SectionBadgeCounts.zero;
-              // Associer les badges dynamiques aux services concernés
-              final badgeList = [
-                0, // Demander
-                0, // Mon compte
-                counts.formations, // Formations
-                counts.jobs, // Emplois
-                counts.info, // THIX INFO
-                counts.opportunities, // Opportunités
-                counts.events, // Événements
-                0, // Réseau Pro
-              ];
+              final badgeList = [0, 0, counts.formations, counts.jobs, counts.info, counts.opportunities, counts.events, 0];
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -602,13 +492,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.01),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 8, offset: const Offset(0, 2))],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -619,8 +503,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                               CircleAvatar(
                                 backgroundColor: s['color'],
                                 radius: 20,
-                                child: Icon(s['icon'],
-                                    color: s['iconColor'], size: 18),
+                                child: Icon(s['icon'], color: s['iconColor'], size: 18),
                               ),
                               if (badge > 0)
                                 Positioned(
@@ -628,21 +511,11 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                                   top: -4,
                                   child: Container(
                                     padding: const EdgeInsets.all(3),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    constraints: const BoxConstraints(
-                                      minWidth: 14,
-                                      minHeight: 14,
-                                    ),
+                                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
                                     child: Text(
                                       badge > 99 ? '99+' : '$badge',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -653,12 +526,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                           Text(
                             s['title'],
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                              height: 1.2,
-                            ),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87, height: 1.2),
                           ),
                         ],
                       ),
@@ -673,7 +541,6 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  // 5. BANNIÈRE MISSION
   Widget _buildMissionBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -693,34 +560,11 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'NOTRE MISSION',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
+                  const Text('NOTRE MISSION', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Construisons ensemble l\'avenir de la jeunesse.',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      height: 1.3,
-                    ),
-                  ),
+                  const Text('Construisons ensemble l\'avenir de la jeunesse.', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height: 1.3)),
                   const SizedBox(height: 8),
-                  Text(
-                    'Accédez à des opportunités, des ressources et un réseau engagé.',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 11,
-                      height: 1.3,
-                    ),
-                  ),
+                  Text('Accédez à des opportunités, des ressources et un réseau engagé.', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11, height: 1.3)),
                 ],
               ),
             ),
@@ -729,8 +573,7 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
               child: Container(
                 height: 90,
                 alignment: Alignment.centerRight,
-                child: const Icon(Icons.people_alt,
-                    size: 70, color: Colors.white24),
+                child: const Icon(Icons.people_alt, size: 70, color: Colors.white24),
               ),
             ),
           ],
@@ -739,19 +582,12 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
     );
   }
 
-  // 6. BOTTOM NAVIGATION BAR AVEC BOUTON SCAN CENTRAL
   Widget _buildBottomNavigationBar() {
     return Container(
       height: 74,
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, -4))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -768,21 +604,13 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
                 decoration: const BoxDecoration(
                   color: Color(0xFF1A52FF),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x4D1A52FF),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: Color(0x4D1A52FF), blurRadius: 12, offset: Offset(0, 4))],
                 ),
-                child: const Icon(Icons.qr_code_scanner,
-                    color: Colors.white, size: 26),
+                child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 26),
               ),
             ),
           ),
-          _buildNavItem(Icons.chat_bubble_outline, 'Messages', false,
-              onTap: () {
+          _buildNavItem(Icons.chat_bubble_outline, 'Messages', false, onTap: () {
             final auth = context.read<AuthController>();
             if (auth.isAuthenticated) {
               context.push(AppRoutes.chat);
@@ -790,44 +618,24 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
               context.push(AppRoutes.login);
             }
           }),
-          _buildNavItem(Icons.person_outline, 'Profil', false,
-              onTap: _goProfile),
+          _buildNavItem(Icons.person_outline, 'Profil', false, onTap: _goProfile),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive,
-      {VoidCallback? onTap}) {
+  Widget _buildNavItem(IconData icon, String label, bool isActive, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap ?? () {},
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFF1A52FF) : Colors.grey,
-            size: 24,
-          ),
+          Icon(icon, color: isActive ? const Color(0xFF1A52FF) : Colors.grey, size: 24),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isActive ? const Color(0xFF1A52FF) : Colors.grey,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 11, color: isActive ? const Color(0xFF1A52FF) : Colors.grey, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
           if (isActive) ...[
             const SizedBox(height: 2),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1A52FF),
-                shape: BoxShape.circle,
-              ),
-            ),
+            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Color(0xFF1A52FF), shape: BoxShape.circle)),
           ],
         ],
       ),
@@ -835,21 +643,18 @@ class _THIXIDHomePageState extends State<THIXIDHomePage> {
   }
 }
 
-// ===== COMPOSANT POUR LA FEUILLE DE DEMANDE DE COMPTE =====
-enum _AccountChoice { personal, enterprise }
+// ===== CLASSES MANQUANTES =====
+enum _AccountRequestChoice { personal, enterprise }
 
-class _AccountSheet extends StatelessWidget {
-  const _AccountSheet();
+class AccountRequestSheet extends StatelessWidget {
+  const AccountRequestSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
-        ),
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -857,23 +662,20 @@ class _AccountSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            const Text(
-              'Créer un compte',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
-            ),
+            const Text('Créer un compte', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
             const SizedBox(height: 24),
             _OptionButton(
               icon: Icons.person,
               title: 'Compte Personnel',
               subtitle: 'Pour un profil individuel',
-              onTap: () => Navigator.pop(context, _AccountChoice.personal),
+              onTap: () => Navigator.pop(context, _AccountRequestChoice.personal),
             ),
             const SizedBox(height: 16),
             _OptionButton(
               icon: Icons.business,
               title: 'Compte Entreprise',
               subtitle: 'Pour une organisation',
-              onTap: () => Navigator.pop(context, _AccountChoice.enterprise),
+              onTap: () => Navigator.pop(context, _AccountRequestChoice.enterprise),
             ),
             const SizedBox(height: 24),
           ],
@@ -887,12 +689,7 @@ class _OptionButton extends StatelessWidget {
   final IconData icon;
   final String title, subtitle;
   final VoidCallback onTap;
-  const _OptionButton({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
+  const _OptionButton({required this.icon, required this.title, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -901,9 +698,7 @@ class _OptionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: const Color(0xFF1A52FF).withOpacity(0.2),
-          ),
+          border: Border.all(color: const Color(0xFF1A52FF).withOpacity(0.2)),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -911,10 +706,7 @@ class _OptionButton extends StatelessWidget {
             Container(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A52FF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(color: const Color(0xFF1A52FF).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: const Color(0xFF1A52FF)),
             ),
             const SizedBox(width: 16),
@@ -922,22 +714,12 @@ class _OptionButton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 16, color: Color(0xFF1A52FF)),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF1A52FF)),
           ],
         ),
       ),
