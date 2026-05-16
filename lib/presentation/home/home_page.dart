@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -23,25 +22,18 @@ import 'package:thix_id/services/thix_id_service.dart';
 import 'package:thix_id/l10n/app_localizations.dart';
 import 'package:thix_id/l10n/locale_controller.dart';
 
-/// Premium color palette for THIX ID - Premium Startup 2026
+/// Premium color palette
 class ThixPremiumColors {
-  // Primary colors
   static const Color primaryDark = Color(0xFF071B8C);
   static const Color primaryElectric = Color(0xFF2E5BFF);
-  
-  // Neutral colors
   static const Color white = Color(0xFFFFFFFF);
   static const Color backgroundLight = Color(0xFFF6F8FC);
   static const Color grayDark = Color(0xFF1A1A2E);
   static const Color grayMedium = Color(0xFF6C6C7A);
   static const Color grayLight = Color(0xFF9AA0B5);
-  
-  // Accent colors
   static const Color mintLight = Color(0xFFCFF7E8);
   static const Color lavenderLight = Color(0xFFEEE7FF);
   static const Color peachLight = Color(0xFFFFE9D6);
-  
-  // Vibrant accents
   static const Color greenVibrant = Color(0xFF10B981);
   static const Color orangeVibrant = Color(0xFFF97316);
   static const Color purpleVibrant = Color(0xFFA78BFA);
@@ -50,19 +42,18 @@ class ThixPremiumColors {
 
 enum _AccountRequestChoice { personal, enterprise }
 
-class HomePagePremium extends StatefulWidget {
-  const HomePagePremium({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<HomePagePremium> createState() => _HomePagePremiumState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePagePremiumState extends State<HomePagePremium>
+class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   bool _searching = false;
   late AnimationController _animationController;
-  double _scrollOffset = 0;
 
   final _notifications = NotificationService();
   final _counters = NotificationCountersService();
@@ -87,7 +78,6 @@ class _HomePagePremiumState extends State<HomePagePremium>
 
   Future<void> _handleHomeSearchVerify() async {
     final raw = _searchController.text.trim();
-
     if (raw.isEmpty) {
       await FullScreenMessage.showError(
         context,
@@ -98,8 +88,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
     }
 
     final normalized = ThixIdService.normalize(raw);
-    final isThix = normalized.startsWith('THIX-') &&
-        ThixIdService.isValid(normalized);
+    final isThix = normalized.startsWith('THIX-') && ThixIdService.isValid(normalized);
     final isUid = _uidLikeRegex.hasMatch(raw);
 
     if (!isThix && !isUid) {
@@ -183,23 +172,13 @@ class _HomePagePremiumState extends State<HomePagePremium>
 
     switch (res) {
       case _AccountRequestChoice.personal:
-        if (auth.isAuthenticated) {
-          await auth.signOut();
-        }
-        if (context.mounted) {
-          context.push(AppRoutes.personalReg);
-        }
+        if (auth.isAuthenticated) await auth.signOut();
+        if (context.mounted) context.push(AppRoutes.personalReg);
         return;
-
       case _AccountRequestChoice.enterprise:
-        if (auth.isAuthenticated) {
-          await auth.signOut();
-        }
-        if (context.mounted) {
-          context.push(AppRoutes.enterpriseReg);
-        }
+        if (auth.isAuthenticated) await auth.signOut();
+        if (context.mounted) context.push(AppRoutes.enterpriseReg);
         return;
-
       case null:
         return;
     }
@@ -220,29 +199,14 @@ class _HomePagePremiumState extends State<HomePagePremium>
         children: [
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
-            onNotification: (notification) {
-              if (notification is ScrollUpdateNotification) {
-                setState(() {
-                  _scrollOffset = notification.metrics.pixels;
-                });
-              }
-              return false;
-            },
             slivers: [
-              /// Premium Header Section
               SliverToBoxAdapter(
                 child: _PremiumHeader(
                   safeTop: safeTop,
                   onProfileTap: _onProfileTap,
                 ),
               ),
-
-              /// Spacer
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 58),
-              ),
-
-              /// Quick Action Cards (QR & NFC)
+              const SliverToBoxAdapter(child: SizedBox(height: 58)),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
@@ -255,9 +219,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           icon: Icons.qr_code_scanner_rounded,
                           backgroundColor: ThixPremiumColors.lavenderLight,
                           iconColor: ThixPremiumColors.primaryElectric,
-                          onTap: () {
-                            ThixIdentitySheets.showQrScanSheet(context);
-                          },
+                          onTap: () => ThixIdentitySheets.showQrScanSheet(context),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -268,19 +230,14 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           icon: Icons.fingerprint_rounded,
                           backgroundColor: ThixPremiumColors.mintLight,
                           iconColor: ThixPremiumColors.greenVibrant,
-                          onTap: () {
-                            ThixIdentitySheets.showNfcScanSheet(context);
-                          },
+                          onTap: () => ThixIdentitySheets.showNfcScanSheet(context),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-              /// Notification Preview Card
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
@@ -295,10 +252,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                   ),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-              /// Services Section Header
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
@@ -329,17 +283,13 @@ class _HomePagePremiumState extends State<HomePagePremium>
                   ),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-              /// Services Grid (2x4)
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: StreamBuilder<SectionBadgeCounts>(
                   stream: badgeCountsStream,
                   builder: (context, snap) {
                     final counts = snap.data ?? SectionBadgeCounts.zero;
-
                     return SliverGrid(
                       delegate: SliverChildListDelegate([
                         _ServiceCard(
@@ -386,8 +336,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           iconBackgroundColor: const Color(0xFFFFF8E8),
                           iconColor: ThixPremiumColors.amberVibrant,
                           badgeCount: counts.opportunities,
-                          onTap: () =>
-                              context.push(AppRoutes.opportunities),
+                          onTap: () => context.push(AppRoutes.opportunities),
                         ),
                         _ServiceCard(
                           icon: Icons.event,
@@ -405,8 +354,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           onTap: () => context.push(AppRoutes.network),
                         ),
                       ]),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
@@ -416,22 +364,16 @@ class _HomePagePremiumState extends State<HomePagePremium>
                   },
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-              /// Mission Banner
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
                   child: _MissionBanner(),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           ),
-
-          /// Search Bar Overlay
           Positioned(
             top: safeTop + 125,
             left: 20,
@@ -442,8 +384,6 @@ class _HomePagePremiumState extends State<HomePagePremium>
               onVerify: _handleHomeSearchVerify,
             ),
           ),
-
-          /// Loading Overlay
           if (_searching)
             Positioned.fill(
               child: Container(
@@ -457,8 +397,6 @@ class _HomePagePremiumState extends State<HomePagePremium>
             ),
         ],
       ),
-
-      /// Floating Bottom Navigation
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: _FloatingBottomNav(
@@ -471,22 +409,18 @@ class _HomePagePremiumState extends State<HomePagePremium>
   }
 }
 
-/// Premium Header with gradient, decorative elements
+// ========== WIDGETS ==========
+
 class _PremiumHeader extends StatelessWidget {
   final double safeTop;
   final VoidCallback onProfileTap;
-
-  const _PremiumHeader({
-    required this.safeTop,
-    required this.onProfileTap,
-  });
+  const _PremiumHeader({required this.safeTop, required this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        /// Gradient Background
         Container(
           height: 280,
           width: double.infinity,
@@ -494,10 +428,7 @@ class _PremiumHeader extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                ThixPremiumColors.primaryDark,
-                ThixPremiumColors.primaryElectric,
-              ],
+              colors: [ThixPremiumColors.primaryDark, ThixPremiumColors.primaryElectric],
               stops: [0.0, 1.0],
             ),
             borderRadius: BorderRadius.only(
@@ -506,176 +437,82 @@ class _PremiumHeader extends StatelessWidget {
             ),
           ),
         ),
-
-        /// Decorative Circles
         Positioned(
           right: -80,
           top: 20,
           child: Container(
             width: 240,
             height: 240,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.07),
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.07)),
           ),
         ),
-
         Positioned(
           left: -60,
           bottom: -40,
           child: Container(
             width: 200,
             height: 200,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.05)),
           ),
         ),
-
-        /// Fingerprint Background Effect
         Positioned(
           right: -30,
           bottom: -20,
-          child: Icon(
-            Icons.fingerprint_rounded,
-            size: 200,
-            color: Colors.white.withOpacity(0.06),
-          ),
+          child: Icon(Icons.fingerprint_rounded, size: 200, color: Colors.white.withOpacity(0.06)),
         ),
-
-        /// Decorative Dots
         Positioned(
           right: 90,
           top: 80,
           child: Column(
-            children: List.generate(
-              10,
-              (index) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Container(
-                  width: 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.15),
-                  ),
-                ),
-              ),
-            ),
+            children: List.generate(10, (index) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Container(width: 5, height: 5, decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white24)),
+            )),
           ),
         ),
-
-        /// Content
         Padding(
           padding: EdgeInsets.fromLTRB(24, safeTop + 16, 24, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// Header Top: Logo + Profile
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  /// Logo Section
                   Row(
                     children: [
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 64, height: 64,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.7),
-                            width: 2,
-                          ),
+                          border: Border.all(color: Colors.white.withOpacity(0.7), width: 2),
                         ),
-                        child: const Icon(
-                          Icons.fingerprint_rounded,
-                          color: Colors.white,
-                          size: 38,
-                        ),
+                        child: const Icon(Icons.fingerprint_rounded, color: Colors.white, size: 38),
                       ),
                       const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'THIX ID',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
+                          const Text('THIX ID', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
                           const SizedBox(height: 4),
-                          Text(
-                            'Identité Sécurisée.\nAvenir de Confiance.',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.88),
-                              fontSize: 12,
-                              height: 1.3,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          Text('Identité Sécurisée.\nAvenir de Confiance.', style: TextStyle(color: Colors.white.withOpacity(0.88), fontSize: 12, height: 1.3, fontWeight: FontWeight.w500)),
                         ],
                       ),
                     ],
                   ),
-
-                  /// Profile Avatar
                   GestureDetector(
                     onTap: onProfileTap,
                     child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: ThixPremiumColors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: ThixPremiumColors.primaryDark,
-                        size: 32,
-                      ),
+                      width: 60, height: 60,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: ThixPremiumColors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 16, offset: const Offset(0, 8))]),
+                      child: const Icon(Icons.person, color: ThixPremiumColors.primaryDark, size: 32),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 40),
-
-              /// Hero Text
-              const Text(
-                'Bienvenue !',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 48,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1.2,
-                  height: 1.1,
-                ),
-              ),
-
+              const Text('Bienvenue !', style: TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.w800, letterSpacing: -1.2, height: 1.1)),
               const SizedBox(height: 10),
-
-              Text(
-                'Que voulez-vous faire aujourd\'hui ?',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.92),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  height: 1.4,
-                ),
-              ),
+              Text('Que voulez-vous faire aujourd\'hui ?', style: TextStyle(color: Colors.white.withOpacity(0.92), fontSize: 18, fontWeight: FontWeight.w500, height: 1.4)),
             ],
           ),
         ),
@@ -684,17 +521,11 @@ class _PremiumHeader extends StatelessWidget {
   }
 }
 
-/// Modern Search Bar with floating effect
 class _SearchBarOverlay extends StatefulWidget {
   final TextEditingController controller;
   final bool isSearching;
   final VoidCallback onVerify;
-
-  const _SearchBarOverlay({
-    required this.controller,
-    required this.isSearching,
-    required this.onVerify,
-  });
+  const _SearchBarOverlay({required this.controller, required this.isSearching, required this.onVerify});
 
   @override
   State<_SearchBarOverlay> createState() => _SearchBarOverlayState();
@@ -709,41 +540,19 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
       decoration: BoxDecoration(
         color: ThixPremiumColors.white,
         borderRadius: BorderRadius.circular(38),
-        boxShadow: [
-          BoxShadow(
-            color: ThixPremiumColors.primaryElectric.withOpacity(0.15),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: ThixPremiumColors.primaryElectric.withOpacity(0.15), blurRadius: 32, offset: const Offset(0, 12))],
       ),
       child: Row(
         children: [
           const SizedBox(width: 8),
-          const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF9AA0B5),
-            size: 28,
-          ),
+          const Icon(Icons.search_rounded, color: Color(0xFF9AA0B5), size: 28),
           const SizedBox(width: 14),
           Expanded(
             child: TextField(
               controller: widget.controller,
               enabled: !widget.isSearching,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Rechercher un THIX ID…',
-                hintStyle: TextStyle(
-                  color: Color(0xFFA8ADB8),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              style: const TextStyle(
-                color: ThixPremiumColors.grayDark,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
+              decoration: const InputDecoration(border: InputBorder.none, hintText: 'Rechercher un THIX ID…', hintStyle: TextStyle(color: Color(0xFFA8ADB8), fontSize: 15, fontWeight: FontWeight.w500)),
+              style: const TextStyle(color: ThixPremiumColors.grayDark, fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(width: 8),
@@ -754,36 +563,14 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(32),
-                gradient: const LinearGradient(
-                  colors: [
-                    ThixPremiumColors.primaryElectric,
-                    ThixPremiumColors.primaryDark,
-                  ],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: ThixPremiumColors.primaryElectric.withOpacity(0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                gradient: const LinearGradient(colors: [ThixPremiumColors.primaryElectric, ThixPremiumColors.primaryDark]),
+                boxShadow: [BoxShadow(color: ThixPremiumColors.primaryElectric.withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
               ),
               child: const Row(
                 children: [
-                  Text(
-                    'Vérifier',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
+                  Text('Vérifier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
                   SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                 ],
               ),
             ),
@@ -794,43 +581,26 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
   }
 }
 
-/// Quick Action Card (QR & NFC)
 class _QuickActionCard extends StatefulWidget {
-  final String title;
-  final String subtitle;
+  final String title, subtitle;
   final IconData icon;
-  final Color backgroundColor;
-  final Color iconColor;
+  final Color backgroundColor, iconColor;
   final VoidCallback onTap;
-
-  const _QuickActionCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.backgroundColor,
-    required this.iconColor,
-    required this.onTap,
-  });
+  const _QuickActionCard({required this.title, required this.subtitle, required this.icon, required this.backgroundColor, required this.iconColor, required this.onTap});
 
   @override
   State<_QuickActionCard> createState() => _QuickActionCardState();
 }
 
-class _QuickActionCardState extends State<_QuickActionCard>
-    with SingleTickerProviderStateMixin {
+class _QuickActionCardState extends State<_QuickActionCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -839,18 +609,9 @@ class _QuickActionCardState extends State<_QuickActionCard>
     super.dispose();
   }
 
-  void _onTapDown(_) {
-    _controller.forward();
-  }
-
-  void _onTapUp(_) {
-    _controller.reverse();
-    widget.onTap();
-  }
-
-  void _onTapCancel() {
-    _controller.reverse();
-  }
+  void _onTapDown(_) => _controller.forward();
+  void _onTapUp(_) { _controller.reverse(); widget.onTap(); }
+  void _onTapCancel() => _controller.reverse();
 
   @override
   Widget build(BuildContext context) {
@@ -865,49 +626,20 @@ class _QuickActionCardState extends State<_QuickActionCard>
           decoration: BoxDecoration(
             color: widget.backgroundColor,
             borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 6))],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  widget.icon,
-                  color: widget.iconColor,
-                  size: 32,
-                ),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(16)),
+                child: Icon(widget.icon, color: widget.iconColor, size: 32),
               ),
               const SizedBox(height: 14),
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ThixPremiumColors.grayDark,
-                  height: 1.2,
-                ),
-              ),
+              Text(widget.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThixPremiumColors.grayDark, height: 1.2)),
               const SizedBox(height: 6),
-              Text(
-                widget.subtitle,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: ThixPremiumColors.grayMedium,
-                  height: 1.3,
-                ),
-              ),
+              Text(widget.subtitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: ThixPremiumColors.grayMedium, height: 1.3)),
             ],
           ),
         ),
@@ -916,10 +648,8 @@ class _QuickActionCardState extends State<_QuickActionCard>
   }
 }
 
-/// Notification Preview Card
 class _NotificationPreviewCard extends StatelessWidget {
   final VoidCallback onTap;
-
   const _NotificationPreviewCard({required this.onTap});
 
   @override
@@ -931,64 +661,27 @@ class _NotificationPreviewCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 16, offset: const Offset(0, 6))],
         ),
         child: Row(
           children: [
             Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [
-                    ThixPremiumColors.primaryElectric,
-                    ThixPremiumColors.primaryDark,
-                  ],
-                ),
-              ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: Colors.white,
-                size: 26,
-              ),
+              width: 52, height: 52,
+              decoration: const BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [ThixPremiumColors.primaryElectric, ThixPremiumColors.primaryDark])),
+              child: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Notifications',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
-                    ),
-                  ),
+                  const Text('Notifications', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThixPremiumColors.grayDark)),
                   const SizedBox(height: 4),
-                  Text(
-                    'Vous avez de nouvelles mises à jour',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: ThixPremiumColors.grayMedium,
-                    ),
-                  ),
+                  Text('Vous avez de nouvelles mises à jour', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: ThixPremiumColors.grayMedium)),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: ThixPremiumColors.primaryElectric,
-            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: ThixPremiumColors.primaryElectric),
           ],
         ),
       ),
@@ -996,43 +689,27 @@ class _NotificationPreviewCard extends StatelessWidget {
   }
 }
 
-/// Service Card (2x4 Grid)
 class _ServiceCard extends StatefulWidget {
   final IconData icon;
   final String title;
-  final Color iconBackgroundColor;
-  final Color iconColor;
+  final Color iconBackgroundColor, iconColor;
   final int? badgeCount;
   final VoidCallback onTap;
-
-  const _ServiceCard({
-    required this.icon,
-    required this.title,
-    required this.iconBackgroundColor,
-    required this.iconColor,
-    this.badgeCount,
-    required this.onTap,
-  });
+  const _ServiceCard({required this.icon, required this.title, required this.iconBackgroundColor, required this.iconColor, this.badgeCount, required this.onTap});
 
   @override
   State<_ServiceCard> createState() => _ServiceCardState();
 }
 
-class _ServiceCardState extends State<_ServiceCard>
-    with SingleTickerProviderStateMixin {
+class _ServiceCardState extends State<_ServiceCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.94).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _controller = AnimationController(duration: const Duration(milliseconds: 150), vsync: this);
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.94).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -1041,18 +718,9 @@ class _ServiceCardState extends State<_ServiceCard>
     super.dispose();
   }
 
-  void _onTapDown(_) {
-    _controller.forward();
-  }
-
-  void _onTapUp(_) {
-    _controller.reverse();
-    widget.onTap();
-  }
-
-  void _onTapCancel() {
-    _controller.reverse();
-  }
+  void _onTapDown(_) => _controller.forward();
+  void _onTapUp(_) { _controller.reverse(); widget.onTap(); }
+  void _onTapCancel() => _controller.reverse();
 
   @override
   Widget build(BuildContext context) {
@@ -1067,13 +735,7 @@ class _ServiceCardState extends State<_ServiceCard>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(26),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
           ),
           child: Stack(
             children: [
@@ -1081,51 +743,21 @@ class _ServiceCardState extends State<_ServiceCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: widget.iconBackgroundColor,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      widget.icon,
-                      color: widget.iconColor,
-                      size: 24,
-                    ),
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(color: widget.iconBackgroundColor, borderRadius: BorderRadius.circular(14)),
+                    child: Icon(widget.icon, color: widget.iconColor, size: 24),
                   ),
                   const Spacer(),
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
-                      height: 1.2,
-                    ),
-                  ),
+                  Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: ThixPremiumColors.grayDark, height: 1.2)),
                 ],
               ),
               if (widget.badgeCount != null && widget.badgeCount! > 0)
                 Positioned(
-                  top: 0,
-                  right: 0,
+                  top: 0, right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ThixPremiumColors.primaryElectric,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${widget.badgeCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: ThixPremiumColors.primaryElectric, borderRadius: BorderRadius.circular(12)),
+                    child: Text('${widget.badgeCount}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                   ),
                 ),
             ],
@@ -1136,7 +768,6 @@ class _ServiceCardState extends State<_ServiceCard>
   }
 }
 
-/// Mission Banner (CORRIGÉ : apostrophe échappée)
 class _MissionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -1145,39 +776,15 @@ class _MissionBanner extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            ThixPremiumColors.primaryDark,
-            ThixPremiumColors.primaryElectric,
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: ThixPremiumColors.primaryElectric.withOpacity(0.2),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
-          ),
-        ],
+        gradient: const LinearGradient(colors: [ThixPremiumColors.primaryDark, ThixPremiumColors.primaryElectric]),
+        boxShadow: [BoxShadow(color: ThixPremiumColors.primaryElectric.withOpacity(0.2), blurRadius: 32, offset: const Offset(0, 12))],
       ),
       child: Stack(
         children: [
-          /// Decorative Element
           Positioned(
-            top: -20,
-            right: -20,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.08),
-              ),
-            ),
+            top: -20, right: -20,
+            child: Container(width: 160, height: 160, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.08))),
           ),
-
-          /// Content
           Row(
             children: [
               Expanded(
@@ -1185,45 +792,16 @@ class _MissionBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'NOTRE MISSION',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.75),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.3,
-                      ),
-                    ),
+                    Text('NOTRE MISSION', style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.3)),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Construisons ensemble\nl\'avenir de la jeunesse.',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
+                    const Text('Construisons ensemble\nl\'avenir de la jeunesse.', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800, height: 1.15, letterSpacing: -0.5)),
                     const SizedBox(height: 12),
-                    Text(
-                      'Accédez à des opportunités,\ndes ressources et un réseau engagé.',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.92),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        height: 1.5,
-                      ),
-                    ),
+                    Text('Accédez à des opportunités,\ndes ressources et un réseau engagé.', style: TextStyle(color: Colors.white.withOpacity(0.92), fontSize: 14, fontWeight: FontWeight.w500, height: 1.5)),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(
-                Icons.groups_rounded,
-                size: 100,
-                color: Colors.white.withOpacity(0.9),
-              ),
+              Icon(Icons.groups_rounded, size: 100, color: Colors.white.withOpacity(0.9)),
             ],
           ),
         ],
@@ -1232,10 +810,8 @@ class _MissionBanner extends StatelessWidget {
   }
 }
 
-/// Floating Bottom Navigation
 class _FloatingBottomNav extends StatelessWidget {
   final VoidCallback onScanTap;
-
   const _FloatingBottomNav({required this.onScanTap});
 
   @override
@@ -1249,71 +825,28 @@ class _FloatingBottomNav extends StatelessWidget {
           decoration: BoxDecoration(
             color: ThixPremiumColors.white.withOpacity(0.93),
             borderRadius: BorderRadius.circular(40),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.5),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
+            border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 32, offset: const Offset(0, 12))],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(
-                icon: Icons.home_filled,
-                label: 'Accueil',
-                active: true,
-                onTap: () {},
-              ),
-              _NavItem(
-                icon: Icons.grid_view_rounded,
-                label: 'Services',
-                onTap: () {},
-              ),
+              _NavItem(icon: Icons.home_filled, label: 'Accueil', active: true, onTap: () {}),
+              _NavItem(icon: Icons.grid_view_rounded, label: 'Services', onTap: () {}),
               GestureDetector(
                 onTap: onScanTap,
                 child: Container(
-                  width: 64,
-                  height: 64,
+                  width: 64, height: 64,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [
-                        ThixPremiumColors.primaryElectric,
-                        ThixPremiumColors.primaryDark,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            ThixPremiumColors.primaryElectric.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+                    gradient: const LinearGradient(colors: [ThixPremiumColors.primaryElectric, ThixPremiumColors.primaryDark]),
+                    boxShadow: [BoxShadow(color: ThixPremiumColors.primaryElectric.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
                   ),
-                  child: const Icon(
-                    Icons.qr_code_scanner_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+                  child: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
                 ),
               ),
-              _NavItem(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: 'Messages',
-                onTap: () {},
-              ),
-              _NavItem(
-                icon: Icons.person_outline_rounded,
-                label: 'Profil',
-                onTap: () {},
-              ),
+              _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'Messages', onTap: () {}),
+              _NavItem(icon: Icons.person_outline_rounded, label: 'Profil', onTap: () {}),
             ],
           ),
         ),
@@ -1322,19 +855,12 @@ class _FloatingBottomNav extends StatelessWidget {
   }
 }
 
-/// Bottom Navigation Item
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-    required this.onTap,
-  });
+  const _NavItem({required this.icon, required this.label, this.active = false, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1343,76 +869,33 @@ class _NavItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: active
-                ? ThixPremiumColors.primaryElectric
-                : ThixPremiumColors.grayMedium,
-            size: 24,
-          ),
+          Icon(icon, color: active ? ThixPremiumColors.primaryElectric : ThixPremiumColors.grayMedium, size: 24),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: active
-                  ? ThixPremiumColors.primaryElectric
-                  : ThixPremiumColors.grayMedium,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: active ? ThixPremiumColors.primaryElectric : ThixPremiumColors.grayMedium)),
         ],
       ),
     );
   }
 }
 
-/// Account Request Bottom Sheet
 class AccountRequestSheet extends StatelessWidget {
   const AccountRequestSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: ThixPremiumColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
-        ),
-      ),
+      decoration: const BoxDecoration(color: ThixPremiumColors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32))),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            const Text(
-              'Créer un compte',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: ThixPremiumColors.grayDark,
-              ),
-            ),
+            const Text('Créer un compte', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: ThixPremiumColors.grayDark)),
             const SizedBox(height: 24),
-            _OptionButton(
-              icon: Icons.person,
-              title: 'Compte Personnel',
-              subtitle: 'Pour un profil individuel',
-              onTap: () {
-                Navigator.pop(context, _AccountRequestChoice.personal);
-              },
-            ),
+            _OptionButton(icon: Icons.person, title: 'Compte Personnel', subtitle: 'Pour un profil individuel', onTap: () => Navigator.pop(context, _AccountRequestChoice.personal)),
             const SizedBox(height: 16),
-            _OptionButton(
-              icon: Icons.business,
-              title: 'Compte Entreprise',
-              subtitle: 'Pour une organisation',
-              onTap: () {
-                Navigator.pop(context, _AccountRequestChoice.enterprise);
-              },
-            ),
+            _OptionButton(icon: Icons.business, title: 'Compte Entreprise', subtitle: 'Pour une organisation', onTap: () => Navigator.pop(context, _AccountRequestChoice.enterprise)),
             const SizedBox(height: 24),
           ],
         ),
@@ -1423,16 +906,9 @@ class AccountRequestSheet extends StatelessWidget {
 
 class _OptionButton extends StatelessWidget {
   final IconData icon;
-  final String title;
-  final String subtitle;
+  final String title, subtitle;
   final VoidCallback onTap;
-
-  const _OptionButton({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
+  const _OptionButton({required this.icon, required this.title, required this.subtitle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1440,55 +916,21 @@ class _OptionButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: ThixPremiumColors.primaryElectric.withOpacity(0.2),
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
+        decoration: BoxDecoration(border: Border.all(color: ThixPremiumColors.primaryElectric.withOpacity(0.2)), borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: ThixPremiumColors.primaryElectric.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: ThixPremiumColors.primaryElectric,
-              ),
-            ),
+            Container(width: 48, height: 48, decoration: BoxDecoration(color: ThixPremiumColors.primaryElectric.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: ThixPremiumColors.primaryElectric)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: ThixPremiumColors.grayMedium,
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: ThixPremiumColors.grayDark)),
+                  Text(subtitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: ThixPremiumColors.grayMedium)),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: ThixPremiumColors.primaryElectric,
-            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: ThixPremiumColors.primaryElectric),
           ],
         ),
       ),
