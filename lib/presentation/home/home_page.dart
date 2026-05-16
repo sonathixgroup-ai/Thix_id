@@ -1027,10 +1027,10 @@ class _ServiceCardState extends State<_ServiceCard>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.94).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -1063,71 +1063,79 @@ class _ServiceCardState extends State<_ServiceCard>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-          child: Stack(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Stack(
+                alignment: Alignment.center,
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
                       color: widget.iconBackgroundColor,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
                       widget.icon,
                       color: widget.iconColor,
-                      size: 24,
+                      size: 32,
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
-                      height: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-              if (widget.badgeCount != null && widget.badgeCount! > 0)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ThixPremiumColors.primaryElectric,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${widget.badgeCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                  if (widget.badgeCount != null && widget.badgeCount! > 0)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: ThixPremiumColors.primaryElectric,
+                          boxShadow: [
+                            BoxShadow(
+                              color: ThixPremiumColors.primaryElectric
+                                  .withOpacity(0.4),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.badgeCount! > 99 ? '99+' : '${widget.badgeCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: ThixPremiumColors.grayDark,
+                  height: 1.3,
                 ),
+              ),
             ],
           ),
         ),
@@ -1141,90 +1149,46 @@ class _MissionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            ThixPremiumColors.primaryDark,
             ThixPremiumColors.primaryElectric,
+            ThixPremiumColors.primaryDark,
           ],
         ),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
             color: ThixPremiumColors.primaryElectric.withOpacity(0.2),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Decorative Element
-          Positioned(
-            top: -20,
-            right: -20,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.08),
-              ),
+          const Text(
+            'Notre Mission',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
             ),
           ),
-
-          /// Content
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'NOTRE MISSION',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.75),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Construisons ensemble\nl'avenir de la jeunesse.',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Accédez à des opportunités,\ndes ressources et un réseau engagé.',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.92),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Icon(
-                Icons.groups_rounded,
-                size: 100,
-                color: Colors.white.withOpacity(0.9),
-              ),
-            ],
+          const SizedBox(height: 12),
+          Text(
+            'Sécuriser votre identité numérique avec des technologies innovantes et fiables.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -1240,125 +1204,58 @@ class _FloatingBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(40),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          height: 88,
-          decoration: BoxDecoration(
-            color: ThixPremiumColors.white.withOpacity(0.93),
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.5),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_filled,
-                label: 'Accueil',
-                active: true,
-                onTap: () {},
-              ),
-              _NavItem(
-                icon: Icons.grid_view_rounded,
-                label: 'Services',
-                onTap: () {},
-              ),
-              GestureDetector(
-                onTap: onScanTap,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [
-                        ThixPremiumColors.primaryElectric,
-                        ThixPremiumColors.primaryDark,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            ThixPremiumColors.primaryElectric.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.qr_code_scanner_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          IconButton(
+            onPressed: () => context.go(AppRoutes.home),
+            icon: const Icon(
+              Icons.home_rounded,
+              color: ThixPremiumColors.primaryElectric,
+              size: 28,
+            ),
+          ),
+          IconButton(
+            onPressed: onScanTap,
+            icon: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [
+                    ThixPremiumColors.primaryElectric,
+                    ThixPremiumColors.primaryDark,
+                  ],
                 ),
               ),
-              _NavItem(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: 'Messages',
-                onTap: () {},
+              child: const Icon(
+                Icons.qr_code_scanner_rounded,
+                color: Colors.white,
+                size: 24,
               ),
-              _NavItem(
-                icon: Icons.person_outline_rounded,
-                label: 'Profil',
-                onTap: () {},
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bottom Navigation Item
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: active
-                ? ThixPremiumColors.primaryElectric
-                : ThixPremiumColors.grayMedium,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: active
-                  ? ThixPremiumColors.primaryElectric
-                  : ThixPremiumColors.grayMedium,
+          IconButton(
+            onPressed: () => context.push(AppRoutes.userDashboard),
+            icon: const Icon(
+              Icons.person_rounded,
+              color: ThixPremiumColors.grayMedium,
+              size: 28,
             ),
           ),
         ],
@@ -1367,70 +1264,71 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/// Account Request Bottom Sheet
+/// Account Request Sheet
 class AccountRequestSheet extends StatelessWidget {
-  const AccountRequestSheet({super.key});
+  const AccountRequestSheet();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: ThixPremiumColors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(32),
           topRight: Radius.circular(32),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            const Text(
-              'Créer un compte',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: ThixPremiumColors.grayDark,
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Quel type de compte ?',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: ThixPremiumColors.grayDark,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _AccountOption(
+                  title: 'Compte Personnel',
+                  description: 'Pour les individus',
+                  icon: Icons.person_outline_rounded,
+                  onTap: () => Navigator.pop(context, _AccountRequestChoice.personal),
+                ),
+                const SizedBox(height: 16),
+                _AccountOption(
+                  title: 'Compte Entreprise',
+                  description: 'Pour les organisations',
+                  icon: Icons.business_outlined,
+                  onTap: () => Navigator.pop(context, _AccountRequestChoice.enterprise),
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
-            const SizedBox(height: 24),
-            _OptionButton(
-              icon: Icons.person,
-              title: 'Compte Personnel',
-              subtitle: 'Pour un profil individuel',
-              onTap: () {
-                Navigator.pop(context, _AccountRequestChoice.personal);
-              },
-            ),
-            const SizedBox(height: 16),
-            _OptionButton(
-              icon: Icons.business,
-              title: 'Compte Entreprise',
-              subtitle: 'Pour une organisation',
-              onTap: () {
-                Navigator.pop(context, _AccountRequestChoice.enterprise);
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _OptionButton extends StatelessWidget {
-  final IconData icon;
+/// Account Option Widget
+class _AccountOption extends StatelessWidget {
   final String title;
-  final String subtitle;
+  final String description;
+  final IconData icon;
   final VoidCallback onTap;
 
-  const _OptionButton({
-    required this.icon,
+  const _AccountOption({
     required this.title,
-    required this.subtitle,
+    required this.description,
+    required this.icon,
     required this.onTap,
   });
 
@@ -1439,25 +1337,27 @@ class _OptionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           border: Border.all(
             color: ThixPremiumColors.primaryElectric.withOpacity(0.2),
+            width: 2,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: ThixPremiumColors.primaryElectric.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: ThixPremiumColors.lavenderLight,
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
                 icon,
                 color: ThixPremiumColors.primaryElectric,
+                size: 28,
               ),
             ),
             const SizedBox(width: 16),
@@ -1473,9 +1373,10 @@ class _OptionButton extends StatelessWidget {
                       color: ThixPremiumColors.grayDark,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    subtitle,
-                    style: const TextStyle(
+                    description,
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: ThixPremiumColors.grayMedium,
@@ -1486,8 +1387,8 @@ class _OptionButton extends StatelessWidget {
             ),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 16,
               color: ThixPremiumColors.primaryElectric,
+              size: 18,
             ),
           ],
         ),
