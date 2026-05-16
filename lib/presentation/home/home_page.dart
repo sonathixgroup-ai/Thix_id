@@ -15,19 +15,20 @@ import 'package:thix_id/services/notification_service.dart';
 import 'package:thix_id/services/notification_counters_service.dart';
 import 'package:thix_id/services/thix_id_service.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+enum _AccountRequestChoice { personal, enterprise }
+
+class HomePagePremium extends StatefulWidget {
+  const HomePagePremium({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePagePremium> createState() => _HomePagePremiumState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePagePremiumState extends State<HomePagePremium> {
   final TextEditingController _searchController = TextEditingController();
   bool _searching = false;
-  final _notifications = NotificationService();
   final _counters = NotificationCountersService();
-  final _uidRegex = RegExp(r'^[A-Za-z0-9_-]{20,}$');
+  static final RegExp _uidLikeRegex = RegExp(r'^[A-Za-z0-9_-]{20,}$');
 
   @override
   void dispose() {
@@ -35,43 +36,53 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  Future<void> _verify() async {
+  Future<void> _handleHomeSearchVerify() async {
     final raw = _searchController.text.trim();
     if (raw.isEmpty) {
       await FullScreenMessage.showError(
         context,
         title: 'Identifiant requis',
-        message: 'Saisissez un THIX ID ou un UID.',
+        message: "Saisissez un THIX ID puis appuyez sur Vérifier.",
       );
       return;
     }
+
     final normalized = ThixIdService.normalize(raw);
     final isThix = normalized.startsWith('THIX-') && ThixIdService.isValid(normalized);
-    final isUid = _uidRegex.hasMatch(raw);
+    final isUid = _uidLikeRegex.hasMatch(raw);
+
     if (!isThix && !isUid) {
       await FullScreenMessage.showError(
         context,
-        title: 'Format invalide',
-        message: 'THIX ID ou UID incorrect.',
+        title: 'Identifiant invalide',
+        message: 'Format THIX ID incorrect.',
       );
       return;
     }
 
     setState(() => _searching = true);
+
     try {
-      final service = FirestoreUserService();
-      final user = isThix
-          ? await service.fetchUserByThixId(normalized)
-          : await service.fetchUserByUid(raw);
+      final userService = FirestoreUserService();
+      AppUser? user;
+
+      if (isThix) {
+        user = await userService.fetchUserByThixId(normalized);
+      } else {
+        user = await userService.fetchUserByUid(raw);
+      }
+
       if (!mounted) return;
+
       if (user == null) {
         await FullScreenMessage.showError(
           context,
           title: 'Profil introuvable',
-          message: 'Aucun utilisateur trouvé.',
+          message: "Aucun profil trouvé.",
         );
         return;
       }
+
       final thix = user.thixId.trim().toUpperCase();
       if (thix.isNotEmpty && ThixIdService.isValid(thix)) {
         context.push('${AppRoutes.publicProfile}?thixId=$thix');
@@ -81,19 +92,19 @@ class _HomePageState extends State<HomePage> {
           initialUidOrThixId: user.id,
         );
       }
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       await FullScreenMessage.showError(
         context,
         title: 'Erreur',
-        message: 'Vérification impossible.',
+        message: "Impossible d'effectuer la vérification.",
       );
-    } finally {
+    } final {
       if (mounted) setState(() => _searching = false);
     }
   }
 
-  void _goProfile() {
+  void _onProfileTap() {
     final auth = context.read<AuthController>();
     if (auth.isAuthenticated) {
       final t = auth.currentUser?.accountType;
@@ -107,32 +118,33 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _requestAccount() async {
+  Future<void> _handleRequestAccount(BuildContext context) async {
     final auth = context.read<AuthController>();
-    final choice = await showModalBottomSheet<_AccountRequestChoice>(
+    final res = await showModalBottomSheet<_AccountRequestChoice>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => const AccountRequestSheet(),
     );
-    switch (choice) {
+
+    switch (res) {
       case _AccountRequestChoice.personal:
         if (auth.isAuthenticated) await auth.signOut();
         if (context.mounted) context.push(AppRoutes.personalReg);
-        break;
+        return;
       case _AccountRequestChoice.enterprise:
         if (auth.isAuthenticated) await auth.signOut();
         if (context.mounted) context.push(AppRoutes.enterpriseReg);
-        break;
-      default:
-        break;
+        return;
+      case null:
+        return;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
-    final badgeStream = auth.currentUser == null
+    final badgeCountsStream = auth.currentUser == null
         ? Stream.value(SectionBadgeCounts.zero)
         : _counters.streamCounts(auth.currentUser!.id);
 
@@ -140,31 +152,29 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: Stack(
         children: [
-          SafeArea(
-            bottom: false,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context),
-                  const SizedBox(height: 35),
-                  _buildScanActions(),
-                  const SizedBox(height: 14),
-                  _buildNotificationBanner(),
-                  const SizedBox(height: 18),
-                  _buildServicesSection(badgeStream),
-                  const SizedBox(height: 14),
-                  _buildMissionBanner(),
-                  const SizedBox(height: 100),
-                ],
-              ),
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 35),
+                _buildScanActions(),
+                const SizedBox(height: 14),
+                _buildNotificationBanner(auth),
+                const SizedBox(height: 18),
+                _buildServicesSection(badgeCountsStream),
+                const SizedBox(height: 14),
+                _buildMissionBanner(),
+                const SizedBox(height: 100), 
+              ],
             ),
           ),
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: _buildBottomNavigationBar(),
+            child: _buildBottomNavigationBar(auth),
           ),
           if (_searching)
             Positioned.fill(
@@ -182,6 +192,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 1. HEADER EXACTEMENT COMME SUR LA PHOTO
   Widget _buildHeader(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
@@ -199,7 +210,7 @@ class _HomePageState extends State<HomePage> {
               bottomRight: Radius.circular(32),
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -233,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   GestureDetector(
-                    onTap: _goProfile,
+                    onTap: _onProfileTap,
                     child: const CircleAvatar(
                       backgroundColor: Colors.white,
                       radius: 18,
@@ -287,7 +298,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: _searching ? null : _verify,
+                  onTap: _searching ? null : _handleHomeSearchVerify,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
@@ -311,6 +322,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 2. BLOC SCAN ACTIONS (QR & NFC COMPACTS)
   Widget _buildScanActions() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -375,8 +387,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNotificationBanner() {
-    final auth = context.read<AuthController>();
+  // 3. BANNIÈRE NOTIFICATIONS LOGIQUE ET COMPACTE
+  Widget _buildNotificationBanner(AuthController auth) {
     return GestureDetector(
       onTap: () {
         if (!auth.isAuthenticated) {
@@ -431,10 +443,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 4. NOS SERVICES (GRILLE SUR UN PLAN DE 4 COLONNES AVEC BADGES DE FLUX)
   Widget _buildServicesSection(Stream<SectionBadgeCounts> badgeStream) {
     final List<Map<String, dynamic>> services = [
-      {'title': 'Demander un\nCompte', 'icon': Icons.person_add, 'color': const Color(0xFFEBF0FF), 'iconColor': const Color(0xFF1A52FF), 'tap': _requestAccount},
-      {'title': 'Mon\nCompte', 'icon': Icons.person, 'color': const Color(0xFFF3E8FF), 'iconColor': const Color(0xFF9333EA), 'tap': _goProfile},
+      {'title': 'Demander un\nCompte', 'icon': Icons.person_add, 'color': const Color(0xFFEBF0FF), 'iconColor': const Color(0xFF1A52FF), 'tap': () => _handleRequestAccount(context)},
+      {'title': 'Mon\nCompte', 'icon': Icons.person, 'color': const Color(0xFFF3E8FF), 'iconColor': const Color(0xFF9333EA), 'tap': _onProfileTap},
       {'title': 'Formations', 'icon': Icons.school, 'color': const Color(0xFFEEFBF4), 'iconColor': const Color(0xFF27AE60), 'tap': () => context.push(AppRoutes.trainingHome)},
       {'title': 'Emplois', 'icon': Icons.work, 'color': const Color(0xFFFFF2E6), 'iconColor': const Color(0xFFF97316), 'tap': () => context.push(AppRoutes.jobs)},
       {'title': 'THIX\nINFO', 'icon': Icons.assignment, 'color': const Color(0xFFE6F7FF), 'iconColor': const Color(0xFF0369A1), 'tap': () => AlertInfoSheet.show(context)},
@@ -468,6 +481,7 @@ class _HomePageState extends State<HomePage> {
             builder: (context, snap) {
               final counts = snap.data ?? SectionBadgeCounts.zero;
               final badgeList = [0, 0, counts.formations, counts.jobs, counts.info, counts.opportunities, counts.events, 0];
+
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -536,6 +550,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 5. BANNIÈRE MISSION NETTOYÉE
   Widget _buildMissionBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -573,7 +588,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
+  // 6. BOTTOM NAVIGATION FIXE EXACTEMENT COMME SUR LA PHOTO DE L'INTERFACE
+  Widget _buildBottomNavigationBar(AuthController auth) {
     return Container(
       height: 74,
       decoration: BoxDecoration(
@@ -585,10 +601,14 @@ class _HomePageState extends State<HomePage> {
         children: [
           _buildNavItem(Icons.home, 'Accueil', true),
           _buildNavItem(Icons.grid_view, 'Services', false),
+          
+          // BOUTON FLOTTANT CENTRAL SURÉLEVÉ : THIX MONEY AVEC STYLE BLEU ET OR MÉTALLIQUE
           Transform.translate(
             offset: const Offset(0, -12),
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {
+                // Lien ou action THIX MONEY
+              },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -613,15 +633,15 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          
           _buildNavItem(Icons.chat_bubble_outline, 'Messages', false, onTap: () {
-            final auth = context.read<AuthController>();
             if (auth.isAuthenticated) {
               context.push(AppRoutes.chat);
             } else {
               context.push(AppRoutes.login);
             }
           }),
-          _buildNavItem(Icons.person_outline, 'Profil', false, onTap: _goProfile),
+          _buildNavItem(Icons.person_outline, 'Profil', false, onTap: _onProfileTap),
         ],
       ),
     );
@@ -646,9 +666,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ===== CLASSES ET MODALS EXTERNES (SORTIS DE LA CLASSE PRINCIPALE) =====
-enum _AccountRequestChoice { personal, enterprise }
-
+// ===== DIALOGUE ET BOTTOM SHEETS EXTERNES TOTALEMENT SÉCURISÉS =====
 class AccountRequestSheet extends StatelessWidget {
   const AccountRequestSheet({super.key});
 
