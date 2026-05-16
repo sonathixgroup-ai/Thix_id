@@ -208,7 +208,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
         ? Stream.value(SectionBadgeCounts.zero)
         : _counters.streamCounts(auth.currentUser!.id);
 
-        return Scaffold(
+    return Scaffold(
       backgroundColor: ThixPremiumColors.backgroundLight,
       extendBody: true,
       body: Stack(
@@ -274,168 +274,172 @@ class _HomePagePremiumState extends State<HomePagePremium>
                   ),
                 ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              /// Notification Preview Card - Clean Institutional Polish
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: _NotificationPreviewCard(
-                    onTap: () {
-                      if (!auth.isAuthenticated) {
-                        context.push(AppRoutes.login);
-                        return;
-                      }
-                      NotificationsSheet.show(context);
-                    },
+                /// Notification Preview Card - Clean Institutional Polish
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: _NotificationPreviewCard(
+                      onTap: () {
+                        if (!auth.isAuthenticated) {
+                          context.push(AppRoutes.login);
+                          return;
+                        }
+                        NotificationsSheet.show(context);
+                      },
+                    ),
                   ),
                 ),
-              ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-              /// Services Section Header
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Nos services',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: ThixPremiumColors.primaryDark,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          'Tout voir',
+                /// Services Section Header
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Nos services',
                           style: TextStyle(
-                            color: ThixPremiumColors.goldDark,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: ThixPremiumColors.primaryDark,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                      ),
-                    ],
+                        GestureDetector(
+                          onTap: () {},
+                          child: const Text(
+                            'Tout voir',
+                            style: TextStyle(
+                              color: ThixPremiumColors.goldDark,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-              /// Services Grid (2x4) - Golden accents on crisp high-end layouts
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: StreamBuilder<SectionBadgeCounts>(
-                  stream: badgeCountsStream,
-                  builder: (context, snap) {
-                    final counts = snap.data ?? SectionBadgeCounts.zero;
+                /// Services Grid (2x4) - Golden accents on crisp high-end layouts
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: StreamBuilder<SectionBadgeCounts>(
+                      stream: badgeCountsStream,
+                      builder: (context, snap) {
+                        final counts = snap.data ?? SectionBadgeCounts.zero;
 
-                    return SliverGrid(
-                      delegate: SliverChildListDelegate([
-                        _ServiceCard(
-                          icon: Icons.person_add_alt_1,
-                          title: 'Demander un\nCompte',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.primaryDark,
-                          onTap: () => _handleRequestAccount(context),
-                        ),
-                        _ServiceCard(
-                          icon: Icons.account_circle,
-                          title: 'Mon\nCompte',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.goldDark,
-                          onTap: _onProfileTap,
-                        ),
-                        _ServiceCard(
-                          icon: Icons.school,
-                          title: 'Formations',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.primaryDark,
-                          badgeCount: counts.formations,
-                          onTap: () => context.push(AppRoutes.trainingHome),
-                        ),
-                        _ServiceCard(
-                          icon: Icons.work,
-                          title: 'Emplois',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.primaryDark,
-                          badgeCount: counts.jobs,
-                          onTap: () => context.push(AppRoutes.jobs),
-                        ),
-                        _ServiceCard(
-                          icon: Icons.newspaper,
-                          title: 'THIX\nINFO',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.goldDark,
-                          badgeCount: counts.info,
-                          onTap: () => AlertInfoSheet.show(context),
-                        ),
-                        _ServiceCard(
-                          icon: Icons.lightbulb_rounded,
-                          title: 'Opportunités',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.primaryDark,
-                          badgeCount: counts.opportunities,
-                          onTap: () =>
-                              context.push(AppRoutes.opportunities),
-                        ),
-                        _ServiceCard(
-                          icon: Icons.event,
-                          title: 'Événements',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.primaryDark,
-                          badgeCount: counts.events,
-                          onTap: () => context.push(AppRoutes.events),
-                        ),
-                        _ServiceCard(
-                          icon: Icons.groups,
-                          title: 'Réseau\nPro',
-                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
-                          iconColor: ThixPremiumColors.goldDark,
-                          onTap: () => context.push(AppRoutes.network),
-                        ),
-                      ]),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.9,
-                      ),
-                    );
-                  },
+                        return GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.9,
+                          children: [
+                            _ServiceCard(
+                              icon: Icons.person_add_alt_1,
+                              title: 'Demander un\nCompte',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.primaryDark,
+                              onTap: () => _handleRequestAccount(context),
+                            ),
+                            _ServiceCard(
+                              icon: Icons.account_circle,
+                              title: 'Mon\nCompte',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.goldDark,
+                              onTap: _onProfileTap,
+                            ),
+                            _ServiceCard(
+                              icon: Icons.school,
+                              title: 'Formations',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.primaryDark,
+                              badgeCount: counts.formations,
+                              onTap: () => context.push(AppRoutes.trainingHome),
+                            ),
+                            _ServiceCard(
+                              icon: Icons.work,
+                              title: 'Emplois',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.primaryDark,
+                              badgeCount: counts.jobs,
+                              onTap: () => context.push(AppRoutes.jobs),
+                            ),
+                            _ServiceCard(
+                              icon: Icons.newspaper,
+                              title: 'THIX\nINFO',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.goldDark,
+                              badgeCount: counts.info,
+                              onTap: () => AlertInfoSheet.show(context),
+                            ),
+                            _ServiceCard(
+                              icon: Icons.lightbulb_rounded,
+                              title: 'Opportunités',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.primaryDark,
+                              badgeCount: counts.events, // Protection fallback
+                              onTap: () => context.push(AppRoutes.opportunities),
+                            ),
+                            _ServiceCard(
+                              icon: Icons.event,
+                              title: 'Événements',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.primaryDark,
+                              badgeCount: counts.events,
+                              onTap: () => context.push(AppRoutes.events),
+                            ),
+                            _ServiceCard(
+                              icon: Icons.groups,
+                              title: 'Réseau\nPro',
+                              iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                              iconColor: ThixPremiumColors.goldDark,
+                              onTap: () => context.push(AppRoutes.network),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-              /// Mission Banner - Stunning Deep Blue & Real Gold Gradient
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: _MissionBanner(),
+                /// Mission Banner - Stunning Deep Blue & Real Gold Gradient
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: _MissionBanner(),
+                  ),
                 ),
-              ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 120)),
-            ],
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              ],
+            ),
           ),
 
-          /// Search Bar Overlay - Premium Gold Accent Lines
+          /// Search Bar Overlay - Premium Gold Accent Lines (Clamped on Scroll)
           Positioned(
-            top: safeTop + 125,
+            top: (safeTop + 215 - _scrollOffset).clamp(safeTop + 12, safeTop + 215),
             left: 20,
             right: 20,
-            child: _SearchBarOverlay(
-              controller: _searchController,
-              isSearching: _searching,
-              onVerify: _handleHomeSearchVerify,
+            child: Opacity(
+              opacity: (1.0 - (_scrollOffset / 120)).clamp(0.0, 1.0),
+              child: _SearchBarOverlay(
+                controller: _searchController,
+                isSearching: _searching,
+                onVerify: _handleHomeSearchVerify,
+              ),
             ),
           ),
 
