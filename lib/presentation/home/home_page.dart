@@ -23,29 +23,24 @@ import 'package:thix_id/services/thix_id_service.dart';
 import 'package:thix_id/l10n/app_localizations.dart';
 import 'package:thix_id/l10n/locale_controller.dart';
 
-/// Premium color palette for THIX ID - Premium Startup 2026
+/// Palette Ultra-Premium Institutionnelle - THIX ID 2026
 class ThixPremiumColors {
-  // Primary colors
-  static const Color primaryDark = Color(0xFF071B8C);
-  static const Color primaryElectric = Color(0xFF2E5BFF);
+  // Deep Institutional Blues
+  static const Color primaryDark = Color(0xFF0A1128);       // Bleu Nuit Profond
+  static const Color primaryElectric = Color(0xFF1C2541);   // Bleu Saphir Sombre
+  static const Color accentBlue = Color(0xFF001F54);        // Bleu Byzantin
+
+  // Premium Metallic Golds
+  static const Color goldPrimary = Color(0xFFD4AF37);       // Or Classique
+  static const Color goldLight = Color(0xFFF3E5AB);         // Éclat d'Or Douce
+  static const Color goldDark = Color(0xFFAA7C11);          // Or Sombre Réaliste
   
-  // Neutral colors
+  // Neutrals & Surfaces (Glassmorphic Base)
   static const Color white = Color(0xFFFFFFFF);
-  static const Color backgroundLight = Color(0xFFF6F8FC);
-  static const Color grayDark = Color(0xFF1A1A2E);
-  static const Color grayMedium = Color(0xFF6C6C7A);
-  static const Color grayLight = Color(0xFF9AA0B5);
-  
-  // Accent colors
-  static const Color mintLight = Color(0xFFCFF7E8);
-  static const Color lavenderLight = Color(0xFFEEE7FF);
-  static const Color peachLight = Color(0xFFFFE9D6);
-  
-  // Vibrant accents
-  static const Color greenVibrant = Color(0xFF10B981);
-  static const Color orangeVibrant = Color(0xFFF97316);
-  static const Color purpleVibrant = Color(0xFFA78BFA);
-  static const Color amberVibrant = Color(0xFFFCD34D);
+  static const Color backgroundLight = Color(0xFFF4F6F9);   // Fond Institutionnel épuré
+  static const Color grayDark = Color(0xFF111827);          // Texte Principal
+  static const Color grayMedium = Color(0xFF4B5563);        // Texte Secondaire
+  static const Color grayLight = Color(0xFFE5E7EB);         // Bordures subtiles
 }
 
 enum _AccountRequestChoice { personal, enterprise }
@@ -229,7 +224,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
               return false;
             },
             slivers: [
-              /// Premium Header Section
+              /// Premium Header Section (Deep Luxury Blue Background)
               SliverToBoxAdapter(
                 child: _PremiumHeader(
                   safeTop: safeTop,
@@ -237,12 +232,12 @@ class _HomePagePremiumState extends State<HomePagePremium>
                 ),
               ),
 
-              /// Spacer
+              /// Spacer adjusted for floating look
               const SliverToBoxAdapter(
-                child: SizedBox(height: 58),
+                child: SizedBox(height: 54),
               ),
 
-              /// Quick Action Cards (QR & NFC)
+              /// Quick Action Cards (QR & NFC) - Upgraded with premium textures
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
@@ -253,8 +248,8 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           title: 'Scanner un QR',
                           subtitle: 'Scannez un code\nen toute sécurité',
                           icon: Icons.qr_code_scanner_rounded,
-                          backgroundColor: ThixPremiumColors.lavenderLight,
-                          iconColor: ThixPremiumColors.primaryElectric,
+                          backgroundColor: Colors.white,
+                          iconColor: ThixPremiumColors.goldPrimary,
                           onTap: () {
                             ThixIdentitySheets.showQrScanSheet(context);
                           },
@@ -266,8 +261,8 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           title: 'Lire via NFC',
                           subtitle: 'Approchez votre\nappareil',
                           icon: Icons.fingerprint_rounded,
-                          backgroundColor: ThixPremiumColors.mintLight,
-                          iconColor: ThixPremiumColors.greenVibrant,
+                          backgroundColor: Colors.white,
+                          iconColor: ThixPremiumColors.primaryDark,
                           onTap: () {
                             ThixIdentitySheets.showNfcScanSheet(context);
                           },
@@ -280,7 +275,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
 
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-              /// Notification Preview Card
+              /// Notification Preview Card - Clean Institutional Polish
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
@@ -308,9 +303,9 @@ class _HomePagePremiumState extends State<HomePagePremium>
                       const Text(
                         'Nos services',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: ThixPremiumColors.grayDark,
+                          color: ThixPremiumColors.primaryDark,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -319,8 +314,8 @@ class _HomePagePremiumState extends State<HomePagePremium>
                         child: const Text(
                           'Tout voir',
                           style: TextStyle(
-                            color: ThixPremiumColors.primaryElectric,
-                            fontWeight: FontWeight.w600,
+                            color: ThixPremiumColors.goldDark,
+                            fontWeight: FontWeight.w700,
                             fontSize: 14,
                           ),
                         ),
@@ -332,7 +327,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
 
               const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-              /// Services Grid (2x4)
+              /// Services Grid (2x4) - Golden accents on crisp high-end layouts
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: StreamBuilder<SectionBadgeCounts>(
@@ -345,46 +340,46 @@ class _HomePagePremiumState extends State<HomePagePremium>
                         _ServiceCard(
                           icon: Icons.person_add_alt_1,
                           title: 'Demander un\nCompte',
-                          iconBackgroundColor: const Color(0xFFF0F4FF),
-                          iconColor: ThixPremiumColors.primaryElectric,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.primaryDark,
                           onTap: () => _handleRequestAccount(context),
                         ),
                         _ServiceCard(
                           icon: Icons.account_circle,
                           title: 'Mon\nCompte',
-                          iconBackgroundColor: const Color(0xFFF5ECFF),
-                          iconColor: ThixPremiumColors.purpleVibrant,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.goldDark,
                           onTap: _onProfileTap,
                         ),
                         _ServiceCard(
                           icon: Icons.school,
                           title: 'Formations',
-                          iconBackgroundColor: const Color(0xFFE8FFF5),
-                          iconColor: ThixPremiumColors.greenVibrant,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.primaryDark,
                           badgeCount: counts.formations,
                           onTap: () => context.push(AppRoutes.trainingHome),
                         ),
                         _ServiceCard(
                           icon: Icons.work,
                           title: 'Emplois',
-                          iconBackgroundColor: const Color(0xFFFFF4E9),
-                          iconColor: ThixPremiumColors.orangeVibrant,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.primaryDark,
                           badgeCount: counts.jobs,
                           onTap: () => context.push(AppRoutes.jobs),
                         ),
                         _ServiceCard(
                           icon: Icons.newspaper,
                           title: 'THIX\nINFO',
-                          iconBackgroundColor: const Color(0xFFEFF3FF),
-                          iconColor: ThixPremiumColors.primaryElectric,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.goldDark,
                           badgeCount: counts.info,
                           onTap: () => AlertInfoSheet.show(context),
                         ),
                         _ServiceCard(
                           icon: Icons.lightbulb_rounded,
                           title: 'Opportunités',
-                          iconBackgroundColor: const Color(0xFFFFF8E8),
-                          iconColor: ThixPremiumColors.amberVibrant,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.primaryDark,
                           badgeCount: counts.opportunities,
                           onTap: () =>
                               context.push(AppRoutes.opportunities),
@@ -392,16 +387,16 @@ class _HomePagePremiumState extends State<HomePagePremium>
                         _ServiceCard(
                           icon: Icons.event,
                           title: 'Événements',
-                          iconBackgroundColor: const Color(0xFFF8ECFF),
-                          iconColor: ThixPremiumColors.purpleVibrant,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.primaryDark,
                           badgeCount: counts.events,
                           onTap: () => context.push(AppRoutes.events),
                         ),
                         _ServiceCard(
                           icon: Icons.groups,
                           title: 'Réseau\nPro',
-                          iconBackgroundColor: const Color(0xFFFFEEF5),
-                          iconColor: Colors.pink,
+                          iconBackgroundColor: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                          iconColor: ThixPremiumColors.goldDark,
                           onTap: () => context.push(AppRoutes.network),
                         ),
                       ]),
@@ -410,7 +405,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: 0.9,
                       ),
                     );
                   },
@@ -419,7 +414,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
 
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-              /// Mission Banner
+              /// Mission Banner - Stunning Deep Blue & Real Gold Gradient
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
@@ -431,7 +426,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
             ],
           ),
 
-          /// Search Bar Overlay
+          /// Search Bar Overlay - Premium Gold Accent Lines
           Positioned(
             top: safeTop + 125,
             left: 20,
@@ -447,10 +442,10 @@ class _HomePagePremiumState extends State<HomePagePremium>
           if (_searching)
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.2),
+                color: ThixPremiumColors.primaryDark.withOpacity(0.4),
                 child: const Center(
                   child: CircularProgressIndicator(
-                    color: ThixPremiumColors.primaryElectric,
+                    color: ThixPremiumColors.goldPrimary,
                   ),
                 ),
               ),
@@ -458,9 +453,9 @@ class _HomePagePremiumState extends State<HomePagePremium>
         ],
       ),
 
-      /// Floating Bottom Navigation
+      /// Floating Bottom Navigation - Glassmorphism UI
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         child: _FloatingBottomNav(
           onScanTap: () {
             ThixIdentitySheets.showQrScanSheet(context);
@@ -471,7 +466,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
   }
 }
 
-/// Premium Header with gradient, decorative elements
+/// Premium Header with rich Deep Blue to Black-Blue Gradient and Subtle Gold Borders
 class _PremiumHeader extends StatelessWidget {
   final double safeTop;
   final VoidCallback onProfileTap;
@@ -486,9 +481,9 @@ class _PremiumHeader extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        /// Gradient Background
+        /// Gradient Background (Deep Institutional Luxury)
         Container(
-          height: 280,
+          height: 270,
           width: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -498,76 +493,43 @@ class _PremiumHeader extends StatelessWidget {
                 ThixPremiumColors.primaryDark,
                 ThixPremiumColors.primaryElectric,
               ],
-              stops: [0.0, 1.0],
             ),
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(48),
-              bottomRight: Radius.circular(48),
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
             ),
           ),
         ),
 
-        /// Decorative Circles
+        /// High-end geometric background rings instead of colorful circles
         Positioned(
-          right: -80,
-          top: 20,
-          child: Container(
-            width: 240,
-            height: 240,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.07),
-            ),
-          ),
-        ),
-
-        Positioned(
-          left: -60,
-          bottom: -40,
+          right: -40,
+          top: -20,
           child: Container(
             width: 200,
             height: 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-            ),
-          ),
-        ),
-
-        /// Fingerprint Background Effect
-        Positioned(
-          right: -30,
-          bottom: -20,
-          child: Icon(
-            Icons.fingerprint_rounded,
-            size: 200,
-            color: Colors.white.withOpacity(0.06),
-          ),
-        ),
-
-        /// Decorative Dots
-        Positioned(
-          right: 90,
-          top: 80,
-          child: Column(
-            children: List.generate(
-              10,
-              (index) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Container(
-                  width: 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.15),
-                  ),
-                ),
+              border: Border.all(
+                color: ThixPremiumColors.goldPrimary.withOpacity(0.05),
+                width: 1.5,
               ),
             ),
           ),
         ),
 
-        /// Content
+        /// Cryptographic/Biometric Backdrop Effect
+        Positioned(
+          right: -20,
+          bottom: -10,
+          child: Icon(
+            Icons.fingerprint_rounded,
+            size: 180,
+            color: ThixPremiumColors.goldPrimary.withOpacity(0.04),
+          ),
+        ),
+
+        /// Content Structure
         Padding(
           padding: EdgeInsets.fromLTRB(24, safeTop + 16, 24, 0),
           child: Column(
@@ -581,22 +543,33 @@ class _PremiumHeader extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 58,
+                        height: 58,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.7),
-                            width: 2,
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [ThixPremiumColors.goldDark, ThixPremiumColors.goldLight],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.fingerprint_rounded,
-                          color: Colors.white,
-                          size: 38,
+                        child: const Padding(
+                          padding: EdgeInsets.all(1.5),
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            color: ThixPremiumColors.primaryDark,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(15)),
+                            ),
+                            child: Icon(
+                              Icons.fingerprint_rounded,
+                              color: ThixPremiumColors.goldPrimary,
+                              size: 32,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -604,17 +577,17 @@ class _PremiumHeader extends StatelessWidget {
                             'THIX ID',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.2,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             'Identité Sécurisée.\nAvenir de Confiance.',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.88),
-                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.75),
+                              fontSize: 11,
                               height: 1.3,
                               fontWeight: FontWeight.w500,
                             ),
@@ -628,52 +601,55 @@ class _PremiumHeader extends StatelessWidget {
                   GestureDetector(
                     onTap: onProfileTap,
                     child: Container(
-                      width: 60,
-                      height: 60,
+                      width: 54,
+                      height: 54,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: ThixPremiumColors.white,
+                        border: Border.all(
+                          color: ThixPremiumColors.goldPrimary.withOpacity(0.6),
+                          width: 1.5,
+                        ),
+                        color: ThixPremiumColors.primaryDark,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: const Icon(
-                        Icons.person,
-                        color: ThixPremiumColors.primaryDark,
-                        size: 32,
+                        Icons.person_outline_rounded,
+                        color: ThixPremiumColors.goldPrimary,
+                        size: 26,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 36),
 
               /// Hero Text
               const Text(
                 'Bienvenue !',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 48,
+                  fontSize: 40,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -1.2,
+                  letterSpacing: -1.0,
                   height: 1.1,
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               Text(
-                'Que voulez-vous faire aujourd'hui ?',
+                'Que voulez-vous faire aujourd\'hui ?',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.92),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  height: 1.4,
+                  color: Colors.white.withOpacity(0.85),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -684,7 +660,7 @@ class _PremiumHeader extends StatelessWidget {
   }
 }
 
-/// Modern Search Bar with floating effect
+/// Modern Search Bar with gold gradient button accent
 class _SearchBarOverlay extends StatefulWidget {
   final TextEditingController controller;
   final bool isSearching;
@@ -704,16 +680,20 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 76,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 70,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: ThixPremiumColors.white,
-        borderRadius: BorderRadius.circular(38),
+        borderRadius: BorderRadius.circular(35),
+        border: Border.all(
+          color: ThixPremiumColors.grayLight,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: ThixPremiumColors.primaryElectric.withOpacity(0.15),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
+            color: ThixPremiumColors.primaryDark.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -722,10 +702,10 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
           const SizedBox(width: 8),
           const Icon(
             Icons.search_rounded,
-            color: Color(0xFF9AA0B5),
-            size: 28,
+            color: ThixPremiumColors.grayMedium,
+            size: 24,
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: widget.controller,
@@ -734,37 +714,37 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
                 border: InputBorder.none,
                 hintText: 'Rechercher un THIX ID…',
                 hintStyle: TextStyle(
-                  color: Color(0xFFA8ADB8),
+                  color: Color(0xFF9CA3AF),
                   fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
               style: const TextStyle(
-                color: ThixPremiumColors.grayDark,
+                color: ThixPremiumColors.primaryDark,
                 fontSize: 15,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           GestureDetector(
             onTap: widget.isSearching ? null : widget.onVerify,
             child: Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 22),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(26),
                 gradient: const LinearGradient(
                   colors: [
-                    ThixPremiumColors.primaryElectric,
-                    ThixPremiumColors.primaryDark,
+                    ThixPremiumColors.goldDark,
+                    ThixPremiumColors.goldPrimary,
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: ThixPremiumColors.primaryElectric.withOpacity(0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+                    color: ThixPremiumColors.goldDark.withOpacity(0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -773,16 +753,16 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
                   Text(
                     'Vérifier',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
+                      color: ThixPremiumColors.primaryDark,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
                     ),
                   ),
-                  SizedBox(width: 8),
+                  SizedBox(width: 6),
                   Icon(
                     Icons.arrow_forward_rounded,
-                    color: Colors.white,
-                    size: 18,
+                    color: ThixPremiumColors.primaryDark,
+                    size: 16,
                   ),
                 ],
               ),
@@ -794,7 +774,7 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
   }
 }
 
-/// Quick Action Card (QR & NFC)
+/// Quick Action Card (QR & NFC) - Clean, Minimalist institutional boxes
 class _QuickActionCard extends StatefulWidget {
   final String title;
   final String subtitle;
@@ -828,7 +808,7 @@ class _QuickActionCardState extends State<_QuickActionCard>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -839,18 +819,12 @@ class _QuickActionCardState extends State<_QuickActionCard>
     super.dispose();
   }
 
-  void _onTapDown(_) {
-    _controller.forward();
-  }
-
+  void _onTapDown(_) => _controller.forward();
   void _onTapUp(_) {
     _controller.reverse();
     widget.onTap();
   }
-
-  void _onTapCancel() {
-    _controller.reverse();
-  }
+  void _onTapCancel() => _controller.reverse();
 
   @override
   Widget build(BuildContext context) {
@@ -864,12 +838,16 @@ class _QuickActionCardState extends State<_QuickActionCard>
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: widget.backgroundColor,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: ThixPremiumColors.grayLight,
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -877,32 +855,32 @@ class _QuickActionCardState extends State<_QuickActionCard>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(16),
+                  color: ThixPremiumColors.primaryDark.withOpacity(0.04),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   widget.icon,
                   color: widget.iconColor,
-                  size: 32,
+                  size: 28,
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Text(
                 widget.title,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ThixPremiumColors.grayDark,
-                  height: 1.2,
+                  fontWeight: FontWeight.w800,
+                  color: ThixPremiumColors.primaryDark,
+                  letterSpacing: -0.2,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 widget.subtitle,
-                style: TextStyle(
-                  fontSize: 13,
+                style: const TextStyle(
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: ThixPremiumColors.grayMedium,
                   height: 1.3,
@@ -927,56 +905,55 @@ class _NotificationPreviewCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: ThixPremiumColors.grayLight,
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 52,
-              height: 52,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [
-                    ThixPremiumColors.primaryElectric,
-                    ThixPremiumColors.primaryDark,
-                  ],
-                ),
+                color: ThixPremiumColors.primaryDark.withOpacity(0.06),
               ),
               child: const Icon(
                 Icons.notifications_none_rounded,
-                color: Colors.white,
-                size: 26,
+                color: ThixPremiumColors.primaryDark,
+                size: 22,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            const SizedBox(width: 14),
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Notifications',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: ThixPremiumColors.primaryDark,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 2),
                   Text(
                     'Vous avez de nouvelles mises à jour',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: ThixPremiumColors.grayMedium,
                     ),
@@ -986,8 +963,8 @@ class _NotificationPreviewCard extends StatelessWidget {
             ),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: ThixPremiumColors.primaryElectric,
+              size: 14,
+              color: ThixPremiumColors.goldDark,
             ),
           ],
         ),
@@ -996,7 +973,7 @@ class _NotificationPreviewCard extends StatelessWidget {
   }
 }
 
-/// Service Card (2x4 Grid)
+/// Service Card (2x4 Grid) - Beautiful solid minimalist panels
 class _ServiceCard extends StatefulWidget {
   final IconData icon;
   final String title;
@@ -1030,7 +1007,7 @@ class _ServiceCardState extends State<_ServiceCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.94).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -1041,18 +1018,12 @@ class _ServiceCardState extends State<_ServiceCard>
     super.dispose();
   }
 
-  void _onTapDown(_) {
-    _controller.forward();
-  }
-
-  void _onTapUp(_) {
+  void _onTapDown(TapDownDetails details) => _controller.forward();
+  void _onTapUp(TapUpDetails details) {
     _controller.reverse();
     widget.onTap();
   }
-
-  void _onTapCancel() {
-    _controller.reverse();
-  }
+  void _onTapCancel() => _controller.reverse();
 
   @override
   Widget build(BuildContext context) {
@@ -1066,12 +1037,16 @@ class _ServiceCardState extends State<_ServiceCard>
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: ThixPremiumColors.grayLight,
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -1085,22 +1060,22 @@ class _ServiceCardState extends State<_ServiceCard>
                     height: 44,
                     decoration: BoxDecoration(
                       color: widget.iconBackgroundColor,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       widget.icon,
                       color: widget.iconColor,
-                      size: 24,
+                      size: 22,
                     ),
                   ),
                   const Spacer(),
                   Text(
                     widget.title,
                     style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
-                      height: 1.2,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: ThixPremiumColors.primaryDark,
+                      height: 1.25,
                     ),
                   ),
                 ],
@@ -1111,19 +1086,21 @@ class _ServiceCardState extends State<_ServiceCard>
                   right: 0,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
+                      horizontal: 7,
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: ThixPremiumColors.primaryElectric,
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: const LinearGradient(
+                        colors: [ThixPremiumColors.goldDark, ThixPremiumColors.goldPrimary],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '${widget.badgeCount}',
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        color: ThixPremiumColors.primaryDark,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -1136,48 +1113,49 @@ class _ServiceCardState extends State<_ServiceCard>
   }
 }
 
-/// Mission Banner
+/// Mission Banner - Majestic Institutional Blue and Real Gold Highlights
 class _MissionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
-      padding: const EdgeInsets.all(24),
+      height: 190,
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             ThixPremiumColors.primaryDark,
-            ThixPremiumColors.primaryElectric,
+            ThixPremiumColors.accentBlue,
           ],
+        ),
+        border: Border.all(
+          color: ThixPremiumColors.goldPrimary.withOpacity(0.3),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: ThixPremiumColors.primaryElectric.withOpacity(0.2),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
+            color: ThixPremiumColors.primaryDark.withOpacity(0.15),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Stack(
         children: [
-          /// Decorative Element
           Positioned(
-            top: -20,
-            right: -20,
+            top: -30,
+            right: -30,
             child: Container(
-              width: 160,
-              height: 160,
+              width: 140,
+              height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.08),
+                color: ThixPremiumColors.goldPrimary.withOpacity(0.03),
               ),
             ),
           ),
-
-          /// Content
           Row(
             children: [
               Expanded(
@@ -1185,44 +1163,49 @@ class _MissionBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'NOTRE MISSION',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.75),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.3,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: ThixPremiumColors.goldPrimary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'NOTRE MISSION',
+                        style: TextStyle(
+                          color: ThixPremiumColors.goldLight,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Construisons ensemble\nl'avenir de la jeunesse.',
+                      'Construisons ensemble\nl\'avenir de la jeunesse.',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 28,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        height: 1.15,
-                        letterSpacing: -0.5,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'Accédez à des opportunités,\ndes ressources et un réseau engagé.',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.92),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        height: 1.5,
+                        color: Colors.white.withOpacity(0.75),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Icon(
-                Icons.groups_rounded,
-                size: 100,
-                color: Colors.white.withOpacity(0.9),
+                Icons.shield_outlined,
+                size: 80,
+                color: ThixPremiumColors.goldPrimary.withOpacity(0.2),
               ),
             ],
           ),
@@ -1232,7 +1215,7 @@ class _MissionBanner extends StatelessWidget {
   }
 }
 
-/// Floating Bottom Navigation
+/// Floating Bottom Navigation - Frosted Glassmorphism Polish
 class _FloatingBottomNav extends StatelessWidget {
   final VoidCallback onScanTap;
 
@@ -1241,23 +1224,23 @@ class _FloatingBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(40),
+      borderRadius: BorderRadius.circular(35),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          height: 88,
+          height: 80,
           decoration: BoxDecoration(
-            color: ThixPremiumColors.white.withOpacity(0.93),
-            borderRadius: BorderRadius.circular(40),
+            color: ThixPremiumColors.white.withOpacity(0.88),
+            borderRadius: BorderRadius.circular(35),
             border: Border.all(
-              color: Colors.white.withOpacity(0.5),
-              width: 1,
+              color: Colors.white.withOpacity(0.6),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
+                color: ThixPremiumColors.primaryDark.withOpacity(0.06),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -1278,29 +1261,32 @@ class _FloatingBottomNav extends StatelessWidget {
               GestureDetector(
                 onTap: onScanTap,
                 child: Container(
-                  width: 64,
-                  height: 64,
+                  width: 58,
+                  height: 58,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
                       colors: [
-                        ThixPremiumColors.primaryElectric,
                         ThixPremiumColors.primaryDark,
+                        ThixPremiumColors.accentBlue,
                       ],
+                    ),
+                    border: Border.all(
+                      color: ThixPremiumColors.goldPrimary.withOpacity(0.5),
+                      width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            ThixPremiumColors.primaryElectric.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        color: ThixPremiumColors.primaryDark.withOpacity(0.3),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: const Icon(
                     Icons.qr_code_scanner_rounded,
-                    color: Colors.white,
-                    size: 28,
+                    color: ThixPremiumColors.goldPrimary,
+                    size: 26,
                   ),
                 ),
               ),
@@ -1346,18 +1332,18 @@ class _NavItem extends StatelessWidget {
           Icon(
             icon,
             color: active
-                ? ThixPremiumColors.primaryElectric
+                ? ThixPremiumColors.primaryDark
                 : ThixPremiumColors.grayMedium,
-            size: 24,
+            size: 22,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontSize: 10,
+              fontWeight: active ? FontWeight.w800 : FontWeight.w500,
               color: active
-                  ? ThixPremiumColors.primaryElectric
+                  ? ThixPremiumColors.primaryDark
                   : ThixPremiumColors.grayMedium,
             ),
           ),
@@ -1367,7 +1353,7 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/// Account Request Bottom Sheet
+/// Account Request Bottom Sheet - Polished Institutional Styling
 class AccountRequestSheet extends StatelessWidget {
   const AccountRequestSheet({super.key});
 
@@ -1377,8 +1363,8 @@ class AccountRequestSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: ThixPremiumColors.white,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
       ),
       child: Padding(
@@ -1386,18 +1372,26 @@ class AccountRequestSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: ThixPremiumColors.grayLight,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
             const Text(
               'Créer un compte',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: ThixPremiumColors.grayDark,
+                color: ThixPremiumColors.primaryDark,
               ),
             ),
             const SizedBox(height: 24),
             _OptionButton(
-              icon: Icons.person,
+              icon: Icons.person_outline,
               title: 'Compte Personnel',
               subtitle: 'Pour un profil individuel',
               onTap: () {
@@ -1406,14 +1400,14 @@ class AccountRequestSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _OptionButton(
-              icon: Icons.business,
+              icon: Icons.business_outlined,
               title: 'Compte Entreprise',
               subtitle: 'Pour une organisation',
               onTap: () {
                 Navigator.pop(context, _AccountRequestChoice.enterprise);
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -1442,22 +1436,23 @@ class _OptionButton extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: ThixPremiumColors.primaryElectric.withOpacity(0.2),
+            color: ThixPremiumColors.grayLight,
           ),
           borderRadius: BorderRadius.circular(16),
+          color: ThixPremiumColors.backgroundLight.withOpacity(0.5),
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: ThixPremiumColors.primaryElectric.withOpacity(0.1),
+                color: ThixPremiumColors.primaryDark.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: ThixPremiumColors.primaryElectric,
+                color: ThixPremiumColors.primaryDark,
               ),
             ),
             const SizedBox(width: 16),
@@ -1468,15 +1463,15 @@ class _OptionButton extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ThixPremiumColors.grayDark,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: ThixPremiumColors.primaryDark,
                     ),
                   ),
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: ThixPremiumColors.grayMedium,
                     ),
@@ -1486,8 +1481,8 @@ class _OptionButton extends StatelessWidget {
             ),
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: ThixPremiumColors.primaryElectric,
+              size: 14,
+              color: ThixPremiumColors.goldDark,
             ),
           ],
         ),
