@@ -1322,6 +1322,19 @@ class AccountRequestSheet extends StatelessWidget {
     );
   }
 }
+class AccountRequestSheet extends StatelessWidget {
+  const AccountRequestSheet({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 250,
+      child: Center(
+        child: Text('Demande de compte THIX ID'),
+      ),
+    );
+  }
+}
 
 class _OptionButton extends StatelessWidget {
   final IconData icon;
@@ -1395,4 +1408,6 @@ class _OptionButton extends StatelessWidget {
       ),
     );
   }
+}
+}
 }
