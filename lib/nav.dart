@@ -71,13 +71,8 @@ class AppRouter {
         if (!isLoggedIn && isProtected) return AppRoutes.login;
 
         // Admin area: authenticated + RBAC role required.
-        // NOTE: We also enforce this at UI level (AdminPage), but keeping a router
-        // redirect avoids exposing admin shells to unauthorized sessions.
         if (isAdmin) {
           if (!isLoggedIn) return AppRoutes.login;
-          // Best-effort synchronous guard: if role is not cached yet, UI will
-          // show a protected screen. For hard security, rely on Supabase RLS.
-          // We do not block navigation here with async calls.
         }
 
         // Payment-gated activation: block protected areas until UID is assigned.
@@ -86,8 +81,6 @@ class AppRouter {
           final isActivated = (u?.hasRealThixId ?? false);
           final hasActiveTrial = (u?.hasActiveTrial ?? false);
           final isPaymentOrReceipt = location == AppRoutes.payment || location == AppRoutes.activationReceipt;
-          // Allow users to access their dashboard(s) before activation to review
-          // their submitted information. Keep other protected areas gated.
           final isDashboard = location == AppRoutes.userDashboard || location == AppRoutes.enterpriseDashboard;
           if (!isActivated && !hasActiveTrial && !isAuthPage && !isPublic && !isPaymentOrReceipt && !isDashboard) {
             final receiptReturn = Uri.encodeComponent(AppRoutes.activationReceipt);
@@ -107,8 +100,6 @@ class AppRouter {
           return t == AccountType.enterprise ? AppRoutes.enterpriseDashboard : AppRoutes.userDashboard;
         }
 
-        // Enterprise portal: allow unauthenticated access (verification portal flow).
-        // Actual enforcement happens in pages with hard web+host guards + RBAC.
         if (isEnterprisePortal) return null;
         return null;
       },
@@ -116,7 +107,7 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        pageBuilder: (context, state) => const NoTransitionPage(
+        pageBuilder: (context, state) => NoTransitionPage(
           child: HomePage(),
         ),
       ),
@@ -190,9 +181,6 @@ class AppRouter {
         ),
       ),
 
-      // Convenience entrypoint used by shared links.
-      // Note: the public web verification portal uses /company/:slug.
-      // /enterprise is meant to land authenticated users into their enterprise space.
       GoRoute(
         path: AppRoutes.enterprise,
         name: 'enterpriseEntry',
@@ -203,15 +191,10 @@ class AppRouter {
           final t = auth.currentUser?.accountType;
           if (t == AccountType.enterprise) return AppRoutes.enterpriseDashboard;
 
-          // If a personal account opens this link, send them to the web-only enterprise registration.
           return AppRoutes.enterpriseReg;
         },
       ),
 
-      // ==============================================================
-      // THIX ID Web Verification Portal (Enterprise entrypoint)
-      // Example: https://verify.thixid.com/company/company-name
-      // ==============================================================
       GoRoute(
         path: '/entreprise/:slug',
         name: 'enterprisePortalAliasFr',
@@ -379,7 +362,6 @@ class AppRouter {
         ),
       ),
 
-      // Ultra-premium THIX Learning ecosystem
       GoRoute(
         path: AppRoutes.trainingHome,
         name: 'trainingHome',
@@ -407,7 +389,6 @@ class AppRouter {
         },
       ),
 
-       // Admin web portal (RBAC enforced at page + RLS at DB).
        GoRoute(
          path: '${AppRoutes.admin}/:module',
          name: 'admin',
@@ -424,7 +405,6 @@ class AppRouter {
       ],
     );
   }
-
 }
 
 class AppRoutes {
@@ -459,7 +439,6 @@ class AppRoutes {
 }
 
 extension GoRouterBackHelpers on BuildContext {
-  /// Pops if possible; otherwise navigates to [fallbackLocation].
   void popOrGo(String fallbackLocation) {
     final router = GoRouter.of(this);
     if (router.canPop()) {
