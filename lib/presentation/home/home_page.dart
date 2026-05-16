@@ -208,14 +208,13 @@ class _HomePagePremiumState extends State<HomePagePremium>
         ? Stream.value(SectionBadgeCounts.zero)
         : _counters.streamCounts(auth.currentUser!.id);
 
-    return Scaffold(
+        return Scaffold(
       backgroundColor: ThixPremiumColors.backgroundLight,
       extendBody: true,
       body: Stack(
         children: [
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            onNotification: (notification) {
+          NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification notification) {
               if (notification is ScrollUpdateNotification) {
                 setState(() {
                   _scrollOffset = notification.metrics.pixels;
@@ -223,55 +222,57 @@ class _HomePagePremiumState extends State<HomePagePremium>
               }
               return false;
             },
-            slivers: [
-              /// Premium Header Section (Deep Luxury Blue Background)
-              SliverToBoxAdapter(
-                child: _PremiumHeader(
-                  safeTop: safeTop,
-                  onProfileTap: _onProfileTap,
-                ),
-              ),
-
-              /// Spacer adjusted for floating look
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 54),
-              ),
-
-              /// Quick Action Cards (QR & NFC) - Upgraded with premium textures
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Scanner un QR',
-                          subtitle: 'Scannez un code\nen toute sécurité',
-                          icon: Icons.qr_code_scanner_rounded,
-                          backgroundColor: Colors.white,
-                          iconColor: ThixPremiumColors.goldPrimary,
-                          onTap: () {
-                            ThixIdentitySheets.showQrScanSheet(context);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _QuickActionCard(
-                          title: 'Lire via NFC',
-                          subtitle: 'Approchez votre\nappareil',
-                          icon: Icons.fingerprint_rounded,
-                          backgroundColor: Colors.white,
-                          iconColor: ThixPremiumColors.primaryDark,
-                          onTap: () {
-                            ThixIdentitySheets.showNfcScanSheet(context);
-                          },
-                        ),
-                      ),
-                    ],
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                /// Premium Header Section (Deep Luxury Blue Background)
+                SliverToBoxAdapter(
+                  child: _PremiumHeader(
+                    safeTop: safeTop,
+                    onProfileTap: _onProfileTap,
                   ),
                 ),
-              ),
+
+                /// Spacer adjusted for floating look
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 54),
+                ),
+
+                /// Quick Action Cards (QR & NFC) - Upgraded with premium design
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _QuickActionCard(
+                            title: 'Scanner un QR',
+                            subtitle: 'Scannez un code\nen toute sécurité',
+                            icon: Icons.qr_code_scanner_rounded,
+                            backgroundColor: Colors.white,
+                            iconColor: ThixPremiumColors.goldPrimary,
+                            onTap: () {
+                              ThixIdentitySheets.showQrScanSheet(context);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _QuickActionCard(
+                            title: 'Lire via NFC',
+                            subtitle: 'Approchez votre\nappareil',
+                            icon: Icons.fingerprint_rounded,
+                            backgroundColor: Colors.white,
+                            iconColor: ThixPremiumColors.primaryDark,
+                            onTap: () {
+                              ThixIdentitySheets.showNfcScanSheet(context);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
