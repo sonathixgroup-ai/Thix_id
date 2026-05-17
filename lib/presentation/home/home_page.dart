@@ -37,7 +37,7 @@ class ThixPremiumColors {
   
   // Neutrals & Surfaces (Glassmorphic Base)
   static const Color white = Color(0xFFFFFFFF);
-  static const Color backgroundLight = Color(0xFFF4F6F9);   // Fond Institutionnel épuré
+  static const Color backgroundLight = Color(0xFFF8FAFC);   // Fond Institutionnel épuré
   static const Color grayDark = Color(0xFF111827);          // Texte Principal
   static const Color grayMedium = Color(0xFF4B5563);        // Texte Secondaire
   static const Color grayLight = Color(0xFFE5E7EB);         // Bordures subtiles
