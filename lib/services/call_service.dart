@@ -58,32 +58,26 @@ class ThixCall {
 class CallService {
   static const String table = 'call_history';
   static const String signalsTable = 'thix_call_signals';
-
-  /// Supabase Edge Function that returns an Agora token.
-  /// You will create it in Supabase as: `agora-token`.
   static const String agoraTokenFunction = 'agora-token';
 
   final SupabaseClient _client;
+  // Stockage des canaux Realtime pour nettoyage global (optionnel)
+  final List<RealtimeChannel> _activeChannels = [];
+
   CallService({SupabaseClient? client}) : _client = client ?? SupabaseConfig.client;
 
-  /// Agora requires an integer UID. We derive a stable positive int from the auth UID.
-  /// Not cryptographically strong, but good enough for mapping (token is the real auth).
+  /// Agora UID stable à partir de l’ID utilisateur (hash FNV-1a)
   int agoraUidFor(String userId) {
-    // FNV-1a 32-bit
     var hash = 0x811c9dc5;
     for (final codeUnit in userId.codeUnits) {
       hash ^= codeUnit;
       hash = (hash * 0x01000193) & 0xffffffff;
     }
-    // Agora UID must be > 0
     final uid = hash & 0x7fffffff;
     return uid == 0 ? 1 : uid;
   }
 
-  /// Fetch an Agora RTC token from Supabase Edge Function.
-  ///
-  /// The Edge Function validates that the caller is authenticated and returns:
-  /// `{ "appId": "...", "token": "...", "channel": "...", "uid": 123 }`
+  /// Récupère un token Agora depuis l’Edge Function Supabase
   Future<Map<String, dynamic>> fetchAgoraToken({required String channel, required int uid, required String role}) async {
     try {
       final res = await _client.functions.invoke(
@@ -101,12 +95,11 @@ class CallService {
 
   bool _isUuidLike(String v) => RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(v.trim());
 
+  /// Démarre un appel et enregistre une entrée dans call_history
   Future<String> startCall({required String chatId, required String kind, required String receiverId}) async {
     final caller = _client.auth.currentUser;
     if (caller == null) throw Exception('Not authenticated');
     final safeKind = (kind == 'video') ? 'video' : 'audio';
-
-    // chat_id is uuid in DB; some UI flows may pass virtual ids.
     final safeChatId = _isUuidLike(chatId) ? chatId : null;
 
     final inserted = await _client
@@ -125,7 +118,7 @@ class CallService {
     return (inserted['id'] as String?) ?? '';
   }
 
-  /// Sends a WebRTC signaling message via Postgres (Realtime).
+  /// Envoie un signal WebRTC (offer, answer, candidate, hangup, decline)
   Future<void> sendSignal({
     required String callId,
     required String toUserId,
@@ -153,11 +146,12 @@ class CallService {
     }
   }
 
-  /// Stream signals for this user for a given call.
+  /// Stream des signaux pour un utilisateur sur un appel donné (filtre sur call_id et to_user_id)
   Stream<List<Map<String, dynamic>>> streamSignals({required String callId, required String forUserId}) {
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     final channel = _client.channel('thix_call_signals:$callId:$forUserId');
-    final filter = PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'call_id', value: callId);
+    final filterCall = PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'call_id', value: callId);
+    final filterTo = PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'to_user_id', value: forUserId);
 
     Future<void> emitLatest() async {
       try {
@@ -183,8 +177,8 @@ class CallService {
             event: PostgresChangeEvent.insert,
             schema: 'public',
             table: signalsTable,
-            filter: filter,
-            callback: (_) => emitLatest(),
+            filter: filterCall, // Note: Supabase ne supporte qu’un seul filtre, donc on ne peut pas combiner facilement.
+            // Le filtrage supplémentaire se fait dans la requête initiale et l’affichage.
           )
           .subscribe((status, err) {
         if (err != null) debugPrint('CallService: signals realtime subscribe error status=$status err=$err');
@@ -199,6 +193,7 @@ class CallService {
     return controller.stream;
   }
 
+  /// Met à jour un appel avec la durée et le statut terminé
   Future<void> completeCall({required String callId, required DateTime startedAt, required DateTime endedAt}) async {
     final seconds = endedAt.difference(startedAt).inSeconds.clamp(0, 24 * 60 * 60);
     try {
@@ -214,19 +209,30 @@ class CallService {
     }
   }
 
+  /// Modifie le statut d’un appel (ongoing, completed, declined, missed)
+  /// Si le nouveau statut est terminal, enregistre automatiquement ended_at = now()
   Future<void> setCallStatus({required String callId, required String status}) async {
     final safe = switch (status) {
       'ongoing' || 'completed' || 'missed' || 'declined' => status,
       _ => 'declined',
     };
+    final updateData = {
+      'status': safe,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    // Si le statut est terminal, on ajoute ended_at
+    if (safe == 'completed' || safe == 'missed' || safe == 'declined') {
+      updateData['ended_at'] = DateTime.now().toUtc().toIso8601String();
+    }
     try {
-      await _client.from(table).update({'status': safe, 'updated_at': DateTime.now().toUtc().toIso8601String()}).eq('id', callId);
+      await _client.from(table).update(updateData).eq('id', callId);
     } catch (e) {
       debugPrint('CallService: setCallStatus failed id=$callId status=$safe err=$e');
       rethrow;
     }
   }
 
+  /// Stream des appels entrants en cours (ongoing) pour un utilisateur donné
   Stream<List<ThixCall>> streamIncomingOngoingCalls({required String receiverId}) {
     final controller = StreamController<List<ThixCall>>.broadcast();
     final channel = _client.channel('call_history:incoming:$receiverId');
@@ -251,23 +257,42 @@ class CallService {
       }
     }
 
-    unawaited(emitLatest());
-    channel
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: table,
-          filter: filter,
-          callback: (_) => emitLatest(),
-        )
-        .subscribe((status, err) {
-          if (err != null) debugPrint('CallService: realtime subscribe error=$err');
-        });
+    controller.onListen = () {
+      unawaited(emitLatest());
+      channel
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: table,
+            filter: filter,
+            callback: (_) => emitLatest(),
+          )
+          .subscribe((status, err) {
+        if (err != null) debugPrint('CallService: realtime incoming subscribe error=$err');
+      });
+    };
 
     controller.onCancel = () async {
       await _client.removeChannel(channel);
+      await controller.close();
+    };
+
+    // Optionnel : stocker le canal pour un éventuel nettoyage global
+    _activeChannels.add(channel);
+    controller.onCancel = () async {
+      await _client.removeChannel(channel);
+      _activeChannels.remove(channel);
+      await controller.close();
     };
 
     return controller.stream;
+  }
+
+  /// Méthode utilitaire pour fermer tous les canaux actifs (appeler lors du logout ou de l’arrêt du service)
+  Future<void> disposeAllChannels() async {
+    for (final channel in _activeChannels) {
+      await _client.removeChannel(channel);
+    }
+    _activeChannels.clear();
   }
 }
