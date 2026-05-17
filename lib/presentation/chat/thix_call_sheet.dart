@@ -79,7 +79,7 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
       await _local.initialize();
       await _remote.initialize();
 
-      // 3. Configuration ICE avec TURN (si disponible)
+      // 3. Configuration ICE avec TURN (fallback STUN uniquement pour l’instant)
       final iceServers = await _getIceServers();
 
       // 4. Créer la connexion
@@ -102,18 +102,10 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
     }
   }
 
-  /// Récupère les serveurs ICE (STUN + TURN) depuis [CallService] ou fallback.
+  /// Récupère les serveurs ICE (STUN + TURN) – fallback STUN seulement
   Future<List<Map<String, dynamic>>> _getIceServers() async {
-    // Essayer d'obtenir la configuration depuis le backend (ex: Supabase Edge Function)
-    try {
-      final config = await widget.calls.fetchIceServers();
-      if (config != null && config['iceServers'] is List) {
-        return List<Map<String, dynamic>>.from(config['iceServers']);
-      }
-    } catch (e) {
-      debugPrint('ThixCallSheet: fetchIceServers failed, using fallback STUN. err=$e');
-    }
-    // Fallback STUN (Google)
+    // Pour l’instant, on n’appelle pas widget.calls.fetchIceServers (inexistant)
+    // On utilise des serveurs STUN publics.
     return [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
@@ -341,7 +333,11 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
                       ],
                     ),
                   ),
-                  _Action(icon: Icons.close_rounded, tooltip: 'Fermer', onTap: _ending ? null : () => _end(reason: 'closed')),
+                  _Action(
+                    icon: Icons.close_rounded,
+                    tooltip: 'Fermer',
+                    onTap: _ending ? null : () { unawaited(_end(reason: 'closed')); },
+                  ),
                 ],
               ),
             ),
@@ -393,17 +389,17 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
                   _Pill(
                     icon: _micOn ? Icons.mic_rounded : Icons.mic_off_rounded,
                     label: _micOn ? 'Micro' : 'Muet',
-                    onTap: _ending ? null : _toggleMic,
+                    onTap: _ending ? null : () { unawaited(_toggleMic()); },
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   if (_isVideo)
                     _Pill(
                       icon: _camOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
                       label: _camOn ? 'Cam' : 'Cam off',
-                      onTap: _ending ? null : _toggleCam,
+                      onTap: _ending ? null : () { unawaited(_toggleCam()); },
                     ),
                   if (_isVideo) const SizedBox(width: AppSpacing.sm),
-                  _Hangup(onTap: _ending ? null : () => _end(reason: 'hangup')),
+                  _Hangup(onTap: _ending ? null : () { unawaited(_end(reason: 'hangup')); }),
                 ],
               ),
             ),
@@ -417,8 +413,8 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
 class _Action extends StatelessWidget {
   final IconData icon;
   final String tooltip;
-  final VoidCallback onTap;
-  const _Action({required this.icon, required this.tooltip, required this.onTap});
+  final VoidCallback? onTap; // ← maintenant nullable
+  const _Action({required this.icon, required this.tooltip, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -447,8 +443,8 @@ class _Action extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Future<void> Function()? onTap;
-  const _Pill({required this.icon, required this.label, required this.onTap});
+  final VoidCallback? onTap; // ← maintenant nullable, type synchrone
+  const _Pill({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -462,7 +458,7 @@ class _Pill extends StatelessWidget {
           side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.8)),
         ),
         child: InkWell(
-          onTap: onTap == null ? null : () => unawaited(onTap!.call()),
+          onTap: onTap,
           borderRadius: BorderRadius.circular(AppRadius.full),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
