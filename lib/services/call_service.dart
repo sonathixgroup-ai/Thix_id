@@ -7,8 +7,8 @@ import 'package:thix_id/supabase/supabase_config.dart';
 class ThixCall {
   final String id;
   final String? chatId;
-  final String kind; // audio|video
-  final String status; // ongoing|completed|missed|declined
+  final String kind;
+  final String status;
   final String callerId;
   final String receiverId;
   final DateTime startedAt;
@@ -61,12 +61,10 @@ class CallService {
   static const String agoraTokenFunction = 'agora-token';
 
   final SupabaseClient _client;
-  // Stockage des canaux Realtime pour nettoyage global (optionnel)
   final List<RealtimeChannel> _activeChannels = [];
 
   CallService({SupabaseClient? client}) : _client = client ?? SupabaseConfig.client;
 
-  /// Agora UID stable à partir de l’ID utilisateur (hash FNV-1a)
   int agoraUidFor(String userId) {
     var hash = 0x811c9dc5;
     for (final codeUnit in userId.codeUnits) {
@@ -77,7 +75,6 @@ class CallService {
     return uid == 0 ? 1 : uid;
   }
 
-  /// Récupère un token Agora depuis l’Edge Function Supabase
   Future<Map<String, dynamic>> fetchAgoraToken({required String channel, required int uid, required String role}) async {
     try {
       final res = await _client.functions.invoke(
@@ -95,7 +92,6 @@ class CallService {
 
   bool _isUuidLike(String v) => RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(v.trim());
 
-  /// Démarre un appel et enregistre une entrée dans call_history
   Future<String> startCall({required String chatId, required String kind, required String receiverId}) async {
     final caller = _client.auth.currentUser;
     if (caller == null) throw Exception('Not authenticated');
@@ -118,7 +114,6 @@ class CallService {
     return (inserted['id'] as String?) ?? '';
   }
 
-  /// Envoie un signal WebRTC (offer, answer, candidate, hangup, decline)
   Future<void> sendSignal({
     required String callId,
     required String toUserId,
@@ -146,12 +141,10 @@ class CallService {
     }
   }
 
-  /// Stream des signaux pour un utilisateur sur un appel donné (filtre sur call_id et to_user_id)
   Stream<List<Map<String, dynamic>>> streamSignals({required String callId, required String forUserId}) {
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
     final channel = _client.channel('thix_call_signals:$callId:$forUserId');
     final filterCall = PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'call_id', value: callId);
-    final filterTo = PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'to_user_id', value: forUserId);
 
     Future<void> emitLatest() async {
       try {
@@ -177,12 +170,12 @@ class CallService {
             event: PostgresChangeEvent.insert,
             schema: 'public',
             table: signalsTable,
-            filter: filterCall, // Note: Supabase ne supporte qu’un seul filtre, donc on ne peut pas combiner facilement.
-            // Le filtrage supplémentaire se fait dans la requête initiale et l’affichage.
+            filter: filterCall,
+            callback: (_) => unawaited(emitLatest()), // ✅ correction : callback requis
           )
           .subscribe((status, err) {
-        if (err != null) debugPrint('CallService: signals realtime subscribe error status=$status err=$err');
-      });
+            if (err != null) debugPrint('CallService: signals realtime subscribe error status=$status err=$err');
+          });
     };
 
     controller.onCancel = () async {
@@ -193,7 +186,6 @@ class CallService {
     return controller.stream;
   }
 
-  /// Met à jour un appel avec la durée et le statut terminé
   Future<void> completeCall({required String callId, required DateTime startedAt, required DateTime endedAt}) async {
     final seconds = endedAt.difference(startedAt).inSeconds.clamp(0, 24 * 60 * 60);
     try {
@@ -209,8 +201,6 @@ class CallService {
     }
   }
 
-  /// Modifie le statut d’un appel (ongoing, completed, declined, missed)
-  /// Si le nouveau statut est terminal, enregistre automatiquement ended_at = now()
   Future<void> setCallStatus({required String callId, required String status}) async {
     final safe = switch (status) {
       'ongoing' || 'completed' || 'missed' || 'declined' => status,
@@ -220,7 +210,6 @@ class CallService {
       'status': safe,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
-    // Si le statut est terminal, on ajoute ended_at
     if (safe == 'completed' || safe == 'missed' || safe == 'declined') {
       updateData['ended_at'] = DateTime.now().toUtc().toIso8601String();
     }
@@ -232,7 +221,6 @@ class CallService {
     }
   }
 
-  /// Stream des appels entrants en cours (ongoing) pour un utilisateur donné
   Stream<List<ThixCall>> streamIncomingOngoingCalls({required String receiverId}) {
     final controller = StreamController<List<ThixCall>>.broadcast();
     final channel = _client.channel('call_history:incoming:$receiverId');
@@ -265,30 +253,23 @@ class CallService {
             schema: 'public',
             table: table,
             filter: filter,
-            callback: (_) => emitLatest(),
+            callback: (_) => unawaited(emitLatest()), // ✅ correction : callback requis
           )
           .subscribe((status, err) {
-        if (err != null) debugPrint('CallService: realtime incoming subscribe error=$err');
-      });
+            if (err != null) debugPrint('CallService: realtime incoming subscribe error=$err');
+          });
     };
 
-    controller.onCancel = () async {
-      await _client.removeChannel(channel);
-      await controller.close();
-    };
-
-    // Optionnel : stocker le canal pour un éventuel nettoyage global
-    _activeChannels.add(channel);
     controller.onCancel = () async {
       await _client.removeChannel(channel);
       _activeChannels.remove(channel);
       await controller.close();
     };
 
+    _activeChannels.add(channel);
     return controller.stream;
   }
 
-  /// Méthode utilitaire pour fermer tous les canaux actifs (appeler lors du logout ou de l’arrêt du service)
   Future<void> disposeAllChannels() async {
     for (final channel in _activeChannels) {
       await _client.removeChannel(channel);
