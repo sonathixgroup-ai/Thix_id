@@ -33,7 +33,7 @@ class AppPremiumGradients {
 }
 
 // ============================================================================
-// NOUVELLE PAGE THIX CHAT (UI PREMIUM)
+// PAGE PRINCIPALE THIX CHAT (UI PREMIUM)
 // ============================================================================
 class ThixChatPage extends StatefulWidget {
   const ThixChatPage({super.key});
@@ -455,7 +455,7 @@ class _ThixChatPageState extends State<ThixChatPage> with SingleTickerProviderSt
           const SizedBox(height: 20),
           Expanded(
             child: StreamBuilder<List<ThixCall>>(
-              stream: _calls.streamUserCalls(me.id),
+              stream: _calls.streamUserCallHistory(me.id),
               builder: (context, snap) {
                 final calls = snap.data ?? [];
                 if (calls.isEmpty) return const Center(child: Text("Aucun appel récent"));
@@ -504,7 +504,7 @@ class _ThixChatPageState extends State<ThixChatPage> with SingleTickerProviderSt
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _navItem(Icons.home_filled, "Accueil", onTap: () => context.go(AppRoutes.home)),
-                _navItem(Icons.grid_view_rounded, "Services", onTap: () => context.go(AppRoutes.servicesHome)),
+                _navItem(Icons.grid_view_rounded, "Services", onTap: () => context.go(AppRoutes.services)),
                 Container(
                   width: 68,
                   height: 68,
@@ -515,7 +515,7 @@ class _ThixChatPageState extends State<ThixChatPage> with SingleTickerProviderSt
                   child: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFFD4AF37), size: 30),
                 ),
                 _navItem(Icons.chat_bubble_rounded, "Messages", active: true, onTap: () {}),
-                _navItem(Icons.person_outline, "Profil", onTap: () => context.go(AppRoutes.profile)),
+                _navItem(Icons.person_outline, "Profil", onTap: () => context.go(AppRoutes.userDashboard)),
               ],
             ),
           ),
@@ -540,8 +540,9 @@ class _ThixChatPageState extends State<ThixChatPage> with SingleTickerProviderSt
 }
 
 // ============================================================================
-// TOUS LES AUTRES WIDGETS (inchangés)
+// TOUS LES AUTRES WIDGETS (inchangés – copie intégrale)
 // ============================================================================
+
 class ThixChatTemplateHeader extends StatelessWidget {
   final VoidCallback onSearch;
   final VoidCallback onSettings;
@@ -3293,4 +3294,3 @@ class _ThixMoneyComposerSheetState extends State<ThixMoneyComposerSheet> {
     );
   }
 }
-
