@@ -1,35 +1,145 @@
-/// =======================================================
-/// THIX CHAT - PREMIUM INSTITUTIONAL UI 2026
-/// Ultra Premium Messaging Interface
-/// =======================================================
-
+Voici l'intégralité du code fusionné et corrigé, prêt à être collé directement dans votre fichier thix_chat_page.dart.
+La logique applicative complète (gestion des appels Agora, synchronisation de la présence en ligne, écoute en temps réel via Supabase/Services, contrôleurs d'onglets, authentification, etc.) a été conservée et intégrée de manière invisible au sein de la nouvelle interface graphique Premium.
+```dart
+import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
-import 'package:flutter/material.dart';
 
-class ThixChatPage extends StatelessWidget {
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:thix_id/auth/auth_controller.dart';
+import 'package:thix_id/models/app_user.dart';
+import 'package:thix_id/services/call_service.dart';
+import 'package:thix_id/services/chat_service.dart';
+import 'package:thix_id/services/presence_service.dart';
+import 'package:thix_id/services/status_service.dart';
+import 'package:thix_id/services/thix_id_service.dart';
+import 'package:thix_id/theme.dart';
+import 'package:thix_id/nav.dart';
+
+import 'package:thix_id/presentation/chat/thix_agora_call_sheet.dart';
+
+/// THIX CHAT — Premium rebuild with Institutional Interface
+class ThixChatPage extends StatefulWidget {
   const ThixChatPage({super.key});
 
-  static const Color bg = Color(0xFFF4F5F9);
-  static const Color navy = Color(0xFF07122A);
-  static const Color navy2 = Color(0xFF001B5E);
-  static const Color gold = Color(0xFFD4AF37);
-  static const Color goldDark = Color(0xFFB8860B);
+  @override
+  State<ThixChatPage> createState() => _ThixChatPageState();
+}
+
+class _ThixChatPageState extends State<ThixChatPage> with SingleTickerProviderStateMixin {
+  late final TabController _tabs;
+  final _chat = ChatService();
+  final _status = StatusService();
+  final _calls = CallService();
+  final _presence = PresenceService();
+
+  StreamSubscription<List<ThixCall>>? _incomingCallsSub;
+  String? _incomingForUid;
+  bool _incomingSheetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabs = TabController(length: 3, vsync: this);
+    unawaited(_presence.setOnline(true));
+    _presence.startHeartbeat();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_incomingCallsSub?.cancel());
+    _presence.stopHeartbeat();
+    unawaited(_presence.setOnline(false));
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  void _ensureIncomingCallListener(AppUser me) {
+    if (_incomingForUid == me.id) return;
+    _incomingForUid = me.id;
+    unawaited(_incomingCallsSub?.cancel());
+    _incomingCallsSub = _calls.streamIncomingOngoingCalls(receiverId: me.id).listen((calls) {
+      if (!mounted) return;
+      if (calls.isEmpty) return;
+      if (_incomingSheetOpen) return;
+      final c = calls.first;
+      _incomingSheetOpen = true;
+      unawaited(_showIncomingCallSheet(me: me, call: c));
+    });
+  }
+
+  Future<void> _showIncomingCallSheet({required AppUser me, required ThixCall call}) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => _IncomingCallSheet(
+        kind: call.kind,
+        callerId: call.callerId,
+        onDecline: () async {
+          try {
+            await _calls.setCallStatus(callId: call.id, status: 'declined');
+          } catch (e) {
+            debugPrint('IncomingCall: decline failed err=$e');
+          }
+          if (context.mounted) context.pop();
+        },
+        onAccept: () async {
+          if (!context.mounted) return;
+          context.pop();
+          await showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            useSafeArea: true,
+            builder: (_) => ThixAgoraCallSheet(
+              callId: call.id,
+              otherUserId: call.callerId,
+              kind: call.kind,
+              isCaller: false,
+              calls: _calls,
+            ),
+          );
+        },
+      ),
+    );
+    _incomingSheetOpen = false;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bg,
+    debugPrint('ThixChatPage: build route=/chat');
+    final me = context.watch<AuthController>().currentUser;
 
-      /// =========================
-      /// BODY
-      /// =========================
+    if (me == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF4F5F9),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'Veuillez vous connecter pour accéder à THIX CHAT.',
+              style: const TextStyle(color: Color(0xFF07122A), fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    _ensureIncomingCallListener(me);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F5F9),
       body: SafeArea(
         child: Column(
           children: [
-
-            /// =================================================
-            /// HEADER
-            /// =================================================
+            /// HEADER PREMIUM INSTITUTIONNEL
             Container(
               padding: const EdgeInsets.fromLTRB(22, 18, 22, 34),
               decoration: const BoxDecoration(
@@ -41,49 +151,39 @@ class ThixChatPage extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    navy,
-                    navy2,
+                    Color(0xFF07122A),
+                    Color(0xFF001B5E),
                   ],
                 ),
               ),
               child: Column(
                 children: [
-
                   /// TOP BAR
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-
-                      /// LOGO
                       Row(
                         children: [
-
                           Container(
                             width: 58,
                             height: 58,
                             decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: gold,
+                                color: const Color(0xFFD4AF37),
                                 width: 1.2,
                               ),
                             ),
                             child: const Icon(
                               Icons.fingerprint_rounded,
-                              color: gold,
+                              color: Color(0xFFD4AF37),
                               size: 30,
                             ),
                           ),
-
                           const SizedBox(width: 14),
-
                           Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
-
                               Row(
                                 children: [
                                   Text(
@@ -91,26 +191,22 @@ class ThixChatPage extends StatelessWidget {
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 28,
-                                      fontWeight:
-                                          FontWeight.w800,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                   Text(
                                     "CHAT",
                                     style: TextStyle(
-                                      color: gold,
+                                      color: Color(0xFFD4AF37),
                                       fontSize: 28,
-                                      fontWeight:
-                                          FontWeight.w800,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ],
                               ),
-
                               SizedBox(height: 2),
-
                               Text(
-                                "Messagerie sécurisée premium.",
+                                "Échangez en toute confiance.",
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
@@ -120,99 +216,102 @@ class ThixChatPage extends StatelessWidget {
                           ),
                         ],
                       ),
-
-                      /// ACTIONS
                       Row(
                         children: [
-                          _topIcon(Icons.search_rounded),
+                          InkWell(
+                            onTap: () => _openSearch(context, me),
+                            child: _topIcon(Icons.search_rounded),
+                          ),
                           const SizedBox(width: 10),
-                          _topIcon(Icons.more_vert_rounded),
+                          InkWell(
+                            onTap: () => context.push(AppRoutes.settings),
+                            child: _topIcon(Icons.more_vert_rounded),
+                          ),
                         ],
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 26),
 
-                  /// TABS
-                  Row(
-                    children: [
-                      _tab("Discussions", true),
-                      const SizedBox(width: 36),
-                      _tab("Groupes", false),
-                      const SizedBox(width: 36),
-                      _tab("Appels", false),
+                  /// TABS LIÉES DIRECTEMENT AU TABCONTROLLER LOGIQUE
+                  TabBar(
+                    controller: _tabs,
+                    dividerHeight: 0,
+                    indicatorColor: const Color(0xFFD4AF37),
+                    indicatorSize: TabBarIndicatorSize.label,
+                    labelColor: const Color(0xFFD4AF37),
+                    unselectedLabelColor: Colors.white,
+                    labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    unselectedLabelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    tabs: const [
+                      Tab(text: "Discussions"),
+                      Tab(text: "Statut"),
+                      Tab(text: "Contacts"),
                     ],
                   ),
                 ],
               ),
             ),
 
-            /// =================================================
-            /// SEARCH BAR
-            /// =================================================
+            /// ZONE RECHERCHE & ACTION FLOTTANTE
             Transform.translate(
               offset: const Offset(0, -26),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
-                  height: 70,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18),
+                  height: 68,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(35),
+                    borderRadius: BorderRadius.circular(34),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            Colors.black.withOpacity(0.08),
-                        blurRadius: 20,
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 18,
                         offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: Row(
                     children: [
-
                       const Icon(
                         Icons.search_rounded,
                         color: Colors.grey,
                         size: 28,
                       ),
-
                       const SizedBox(width: 14),
-
-                      const Expanded(
+                      Expanded(
                         child: TextField(
-                          decoration: InputDecoration(
+                          onTap: () => _openSearch(context, me),
+                          readOnly: true,
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
-                            hintText:
-                                "Rechercher une discussion...",
+                            hintText: "Rechercher un contact ou message...",
                             hintStyle: TextStyle(
                               color: Color(0xFF9CA3AF),
-                              fontSize: 15,
+                              fontSize: 16,
                             ),
                           ),
                         ),
                       ),
-
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              goldDark,
-                              gold,
-                            ],
+                      GestureDetector(
+                        onTap: () => _openStartByThixId(context, me),
+                        child: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0xFFB8860B),
+                                Color(0xFFD4AF37),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: const Icon(
-                          Icons.edit_rounded,
-                          color: Colors.white,
+                          child: const Icon(
+                            Icons.edit_rounded,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -221,115 +320,37 @@ class ThixChatPage extends StatelessWidget {
               ),
             ),
 
-            /// =================================================
-            /// CHAT LIST
-            /// =================================================
+            /// CONTENU DYNAMIQUE BRANCHÉ SUR VOS SERVICES APPLICATIFS (ZÉRO ÉCRAN BLANC)
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  0,
-                  20,
-                  20,
-                ),
+              child: TabBarView(
+                controller: _tabs,
                 children: [
-
-                  /// ACTIVE CONTACTS
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(26),
+                  // Onglet Discussions réel branché sur ChatService
+                  ThixChatsTab(
+                    me: me,
+                    chat: _chat,
+                    onOpenThread: (chatId, otherUid, otherName) => _openThreadSheet(
+                      context,
+                      me: me,
+                      chatId: chatId,
+                      otherUid: otherUid,
+                      otherName: otherName,
                     ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                      children: [
-
-                        _storyItem(
-                          icon: Icons.add,
-                          label: "Ajouter",
-                          border: true,
-                        ),
-
-                        _storyItem(
-                          image:
-                              "https://i.pravatar.cc/150?img=47",
-                          label: "Aïcha",
-                          online: true,
-                        ),
-
-                        _storyItem(
-                          image:
-                              "https://i.pravatar.cc/150?img=33",
-                          label: "Marc",
-                          online: true,
-                        ),
-
-                        _storyItem(
-                          image:
-                              "https://i.pravatar.cc/150?img=48",
-                          label: "Fatou",
-                          online: true,
-                        ),
-
-                        _storyItem(
-                          icon: Icons.groups_rounded,
-                          label: "Équipe",
-                        ),
-                      ],
+                    onStartByThixId: () => _openStartByThixId(context, me),
+                  ),
+                  // Onglet Statut réel branché sur StatusService
+                  ThixStatusTab(me: me, status: _status),
+                  // Onglet Contacts réel branché sur ChatService
+                  ThixContactsTab(
+                    me: me,
+                    chat: _chat,
+                    onOpenThread: (chatId, otherUid, otherName) => _openThreadSheet(
+                      context,
+                      me: me,
+                      chatId: chatId,
+                      otherUid: otherUid,
+                      otherName: otherName,
                     ),
-                  ),
-
-                  const SizedBox(height: 22),
-
-                  /// CHAT TILES
-                  _chatTile(
-                    name: "Aïcha Koné",
-                    message:
-                        "Bonjour ! As-tu vu le nouveau document ?",
-                    time: "11:24",
-                    unread: 2,
-                    image:
-                        "https://i.pravatar.cc/150?img=47",
-                  ),
-
-                  _chatTile(
-                    name: "Marc Diallo",
-                    message:
-                        "Parfait, merci beaucoup 🙌",
-                    time: "10:58",
-                    unread: 1,
-                    image:
-                        "https://i.pravatar.cc/150?img=33",
-                  ),
-
-                  _chatTile(
-                    name: "Équipe Projet THIX",
-                    message:
-                        "Réunion prévue demain à 10h.",
-                    time: "09:30",
-                    unread: 5,
-                    group: true,
-                  ),
-
-                  _chatTile(
-                    name: "Support THIX",
-                    message:
-                        "Votre demande a été validée.",
-                    time: "Hier",
-                    unread: 1,
-                    support: true,
-                  ),
-
-                  _chatTile(
-                    name: "Fatou S.",
-                    message:
-                        "D’accord, à plus tard !",
-                    time: "Lun.",
-                    image:
-                        "https://i.pravatar.cc/150?img=48",
                   ),
                 ],
               ),
@@ -338,71 +359,50 @@ class ThixChatPage extends StatelessWidget {
         ),
       ),
 
-      /// =================================================
-      /// BOTTOM NAVIGATION
-      /// =================================================
+      /// BOTTOM NAV PREMIUM SEMI-TRANSPARENT
       bottomNavigationBar: Padding(
-        padding:
-            const EdgeInsets.fromLTRB(18, 0, 18, 18),
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(34),
           child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 20,
-              sigmaY: 20,
-            ),
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               height: 84,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.92),
-                borderRadius:
-                    BorderRadius.circular(34),
+                borderRadius: BorderRadius.circular(34),
               ),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  _navItem(Icons.home_filled, "Accueil", onTap: () => context.go('/')),
+                  _navItem(Icons.grid_view_rounded, "Services", onTap: () => context.push(AppRoutes.vault)),
 
-                  _navItem(
-                    Icons.home_filled,
-                    "Accueil",
-                  ),
-
-                  _navItem(
-                    Icons.grid_view_rounded,
-                    "Services",
-                  ),
-
-                  /// CENTER BUTTON
-                  Container(
-                    width: 68,
-                    height: 68,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          navy,
-                          navy2,
-                        ],
+                  /// BOUTON CENTRAL : REJOINDRE OU CRÉER GROUPE / APPEL CONTROLLÉ
+                  GestureDetector(
+                    onTap: () => _openGroups(context, me),
+                    child: Container(
+                      width: 68,
+                      height: 68,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF07122A),
+                            Color(0xFF001B5E),
+                          ],
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.qr_code_scanner_rounded,
+                        color: Color(0xFFD4AF37),
+                        size: 30,
                       ),
                     ),
-                    child: const Icon(
-                      Icons.qr_code_scanner_rounded,
-                      color: gold,
-                      size: 30,
-                    ),
                   ),
 
-                  _navItem(
-                    Icons.chat_bubble_rounded,
-                    "Messages",
-                    active: true,
-                  ),
-
-                  _navItem(
-                    Icons.person_outline,
-                    "Profil",
-                  ),
+                  _navItem(Icons.chat_bubble_rounded, "Messages", active: true),
+                  _navItem(Icons.person_outline, "Profil", onTap: () => context.push(AppRoutes.settings)),
                 ],
               ),
             ),
@@ -412,315 +412,176 @@ class ThixChatPage extends StatelessWidget {
     );
   }
 
-  /// =======================================================
-  /// TOP ICON
-  /// =======================================================
+  /// COMPONENTS DE STYLE REMPLACÉS SANS PERTE DE LOGIQUE
   static Widget _topIcon(IconData icon) {
     return Container(
       width: 52,
       height: 52,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white24,
-        ),
+        border: Border.all(color: Colors.white24),
       ),
-      child: Icon(
-        icon,
-        color: gold,
-      ),
+      child: Icon(icon, color: const Color(0xFFD4AF37)),
     );
   }
 
-  /// =======================================================
-  /// TAB
-  /// =======================================================
-  static Widget _tab(
-    String title,
-    bool active,
-  ) {
-    return Column(
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color:
-                active ? gold : Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        if (active)
-          Container(
-            width: 80,
-            height: 3,
-            decoration: BoxDecoration(
-              color: gold,
-              borderRadius:
-                  BorderRadius.circular(2),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// =======================================================
-  /// STORY ITEM
-  /// =======================================================
-  static Widget _storyItem({
-    String? image,
-    IconData? icon,
-    required String label,
-    bool online = false,
-    bool border = false,
-  }) {
-    return Column(
-      children: [
-
-        Stack(
-          children: [
-
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color:
-                      border ? gold : Colors.transparent,
-                  width: 1.5,
-                ),
-                image: image != null
-                    ? DecorationImage(
-                        image:
-                            NetworkImage(image),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-                color:
-                    const Color(0xFFF3F4F6),
-              ),
-              child: image == null
-                  ? Icon(
-                      icon,
-                      color: gold,
-                    )
-                  : null,
-            ),
-
-            if (online)
-              Positioned(
-                right: 2,
-                bottom: 2,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// =======================================================
-  /// CHAT TILE
-  /// =======================================================
-  static Widget _chatTile({
-    required String name,
-    required String message,
-    required String time,
-    int unread = 0,
-    String? image,
-    bool group = false,
-    bool support = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(24),
-      ),
-      child: Row(
+  Widget _navItem(IconData icon, String label, {bool active = false, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
-          /// AVATAR
-          Stack(
-            children: [
-
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: image != null
-                      ? DecorationImage(
-                          image:
-                              NetworkImage(image),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                  color:
-                      const Color(0xFFF3F4F6),
-                ),
-                child: image == null
-                    ? Icon(
-                        group
-                            ? Icons.groups_rounded
-                            : Icons.verified_user_rounded,
-                        color: gold,
-                      )
-                    : null,
-              ),
-
-              if (image != null)
-                Positioned(
-                  right: 1,
-                  bottom: 1,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          Icon(
+            icon,
+            color: active ? const Color(0xFFD4AF37) : Colors.grey,
           ),
-
-          const SizedBox(width: 14),
-
-          /// CONTENT
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-
-                Row(
-                  children: [
-
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight:
-                              FontWeight.w800,
-                        ),
-                      ),
-                    ),
-
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  message,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: active ? const Color(0xFFD4AF37) : Colors.grey,
+              fontWeight: FontWeight.w600,
           ),
-
-          /// UNREAD
-          if (unread > 0)
-            Container(
-              margin:
-                  const EdgeInsets.only(left: 10),
-              width: 24,
-              height: 24,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: gold,
-              ),
-              child: Center(
-                child: Text(
-                  unread.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight:
-                        FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
+          ),
         ],
       ),
     );
   }
 
-  /// =======================================================
-  /// NAV ITEM
-  /// =======================================================
-  static Widget _navItem(
-    IconData icon,
-    String label, {
-    bool active = false,
-  }) {
-    return Column(
-      mainAxisAlignment:
-          MainAxisAlignment.center,
-      children: [
+  /// METHODES PRIVÉES RECONNECTÉES AUX PANNEAUX APPLICATIFS REELS
+  Future<void> _openGroups(BuildContext context, AppUser me) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => ThixGroupComposerSheet(me: me, chat: _chat),
+    );
+  }
 
-        Icon(
-          icon,
-          color:
-              active ? gold : Colors.grey,
-        ),
+  Future<void> _openCalls(BuildContext context, AppUser me) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => ThixCallLauncherSheet(me: me, chat: _chat, calls: _calls),
+    );
+  }
 
-        const SizedBox(height: 4),
+  Future<void> _openThreadSheet(BuildContext context, {
+    required AppUser me,
+    required String? chatId,
+    required String otherUid,
+    required String otherName,
+  }) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => ThixChatThreadSheet(
+        me: me,
+        chatId: chatId,
+        otherUid: otherUid,
+        otherName: otherName,
+        chat: _chat,
+        calls: _calls,
+      ),
+    );
+  }
 
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color:
-                active ? gold : Colors.grey,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+  Future<void> _openStartByThixId(BuildContext context, AppUser me) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => ThixStartChatByThixIdSheet(
+        me: me,
+        chat: _chat,
+        onOpenThread: (chatId, otherUid, otherName) {
+          context.pop();
+          unawaited(_openThreadSheet(context, me: me, chatId: chatId, otherUid: otherUid, otherName: otherName));
+        },
+      ),
+    );
+  }
+
+  Future<void> _openSearch(BuildContext context, AppUser me) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => ThixChatSearchSheet(
+        me: me,
+        chat: _chat,
+        onOpenThread: (chatId, otherUid, otherName) {
+          context.pop();
+          unawaited(_openThreadSheet(context, me: me, chatId: chatId, otherUid: otherUid, otherName: otherName));
+        },
+      ),
     );
   }
 }
+
+/// ============================================================================
+/// PANNEAU INTERNE TEMPORAIRE EN CAS D'APPEL ENTRANT (COMPACT LOGIQUE REUSE)
+/// ============================================================================
+class _IncomingCallSheet extends StatelessWidget {
+  final String kind;
+  final String callerId;
+  final VoidCallback onDecline;
+  final VoidCallback onAccept;
+
+  const _IncomingCallSheet({
+    required this.kind,
+    required this.callerId,
+    required this.onDecline,
+    required this.onAccept,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            kind == 'video' ? 'Appel vidéo entrant...' : 'Appel vocal entrant...',
+            style: context.textStyles.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text('ID de l\'appelant: $callerId', style: context.textStyles.bodyMedium),
+          const SizedBox(height: AppSpacing.xl),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              FilledButton.icon(
+                onPressed: onDecline,
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                icon: const Icon(Icons.call_end_rounded),
+                label: const Text('Décliner'),
+              ),
+              FilledButton.icon(
+                onPressed: onAccept,
+                style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                icon: const Icon(Icons.call_rounded),
+                label: const Text('Accepter'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
