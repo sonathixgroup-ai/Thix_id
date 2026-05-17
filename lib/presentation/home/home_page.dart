@@ -435,9 +435,9 @@ class _HomePagePremiumState extends State<HomePagePremium>
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   sliver: SliverToBoxAdapter(
                     child: StreamBuilder<SectionBadgeCounts>(
                       stream: badgeCountsStream,
@@ -447,9 +447,9 @@ class _HomePagePremiumState extends State<HomePagePremium>
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: 4,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                          childAspectRatio: 0.78,
+                          crossAxisSpacing: 5,
+                          mainAxisSpacing: 5,
+                          childAspectRatio: 0.92,
                           children: [
                             _ServiceCard(
                               icon: Icons.rocket_launch_rounded,
@@ -600,7 +600,7 @@ class _PremiumHeader extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          height: 140,
+          height: 150,
           width: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -1081,8 +1081,8 @@ class _ServiceCardState extends State<_ServiceCard>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 32,
-                      height: 32,
+                      width:  24,
+                      height: 24,
                       decoration: BoxDecoration(
                         color: widget.iconBackgroundColor,
                         borderRadius: BorderRadius.circular(8),
