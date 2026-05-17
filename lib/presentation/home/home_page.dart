@@ -354,7 +354,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                     onProfileTap: _onProfileTap,
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 50)),
+                const SliverToBoxAdapter(child: SizedBox(height: 52)),
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverToBoxAdapter(
