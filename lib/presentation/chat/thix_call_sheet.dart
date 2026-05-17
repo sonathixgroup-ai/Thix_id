@@ -43,7 +43,7 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
   bool _camOn = true;
   bool _connected = false;
   bool _ending = false;
-  bool _isLoadingMedia = false; // Indicateur de chargement
+  bool _isLoadingMedia = false;
   DateTime? _startedAt;
   String _errorMsg = '';
 
@@ -128,7 +128,6 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
   }
 
   Future<List<Map<String, dynamic>>> _getIceServers() async {
-    // Pour l’instant, serveurs STUN publics (à remplacer par TURN plus tard)
     return [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
@@ -220,18 +219,25 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
     _currentCameraId = nextDevice.deviceId;
 
     // Remplacer la piste vidéo
-    final videoTrack = _localStream!.getVideoTracks().firstOrNull;
-    if (videoTrack != null) {
+    final videoTracks = _localStream!.getVideoTracks();
+    if (videoTracks.isNotEmpty) {
+      final videoTrack = videoTracks.first;
       final newStream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
         'video': {'deviceId': {'exact': nextDevice.deviceId}},
       });
-      final newVideoTrack = newStream.getVideoTracks().first;
+      final newVideoTracks = newStream.getVideoTracks();
+      if (newVideoTracks.isEmpty) return;
+      final newVideoTrack = newVideoTracks.first;
       await _localStream!.removeTrack(videoTrack);
       await _localStream!.addTrack(newVideoTrack);
       await videoTrack.stop();
-      await _pc!.getSenders().firstWhere((s) => s.track?.kind == 'video').replaceTrack(newVideoTrack);
-      setState(() {}); // rafraîchir l’affichage
+
+      // CORRECTION : attendre la liste des senders avant d'appeler firstWhere
+      final senders = await _pc!.getSenders();
+      final videoSender = senders.firstWhere((s) => s.track?.kind == 'video');
+      await videoSender.replaceTrack(newVideoTrack);
+      setState(() {});
     }
   }
 
@@ -335,7 +341,6 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
   Future<void> _end({required String reason}) async {
     if (_ending) return;
     setState(() => _ending = true);
-    // Notifier le distant (best-effort)
     try {
       await widget.calls.sendSignal(
         callId: widget.callId,
