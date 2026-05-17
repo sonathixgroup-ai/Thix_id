@@ -43,8 +43,14 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
   bool _camOn = true;
   bool _connected = false;
   bool _ending = false;
+  bool _isLoadingMedia = false; // Indicateur de chargement
   DateTime? _startedAt;
   String _errorMsg = '';
+
+  // Pour le swap de caméra
+  String? _currentCameraId;
+  List<MediaDeviceInfo>? _cameras;
+  bool _isFrontCamera = true;
 
   bool get _isVideo => widget.kind == 'video';
 
@@ -67,11 +73,11 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
     try {
       // 1. Permissions (mobile uniquement)
       if (!kIsWeb) {
-        final mic = await Permission.microphone.request();
-        if (!mic.isGranted) throw Exception('Permission microphone refusée');
+        final micGranted = await _requestPermission(Permission.microphone, 'microphone');
+        if (!micGranted) throw Exception('Permission microphone refusée');
         if (_isVideo) {
-          final cam = await Permission.camera.request();
-          if (!cam.isGranted) throw Exception('Permission caméra refusée');
+          final camGranted = await _requestPermission(Permission.camera, 'caméra');
+          if (!camGranted) throw Exception('Permission caméra refusée');
         }
       }
 
@@ -79,10 +85,11 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
       await _local.initialize();
       await _remote.initialize();
 
-      // 3. Configuration ICE avec TURN (fallback STUN uniquement pour l’instant)
+      // 3. Configuration ICE (STUN + TURN via serveurs publics pour l’instant)
       final iceServers = await _getIceServers();
 
-      // 4. Créer la connexion
+      // 4. Créer la connexion et obtenir les médias
+      setState(() => _isLoadingMedia = true);
       await _preparePeer(iceServers);
       await _startSignalListener();
 
@@ -93,19 +100,35 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
     } catch (e) {
       debugPrint('ThixCallSheet: init failed err=$e');
       if (mounted) {
-        setState(() => _errorMsg = e.toString());
+        setState(() {
+          _errorMsg = e.toString();
+          _isLoadingMedia = false;
+        });
         _snack('Impossible de démarrer l’appel: $e');
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) context.pop();
         });
       }
+    } finally {
+      if (mounted) setState(() => _isLoadingMedia = false);
     }
   }
 
-  /// Récupère les serveurs ICE (STUN + TURN) – fallback STUN seulement
+  /// Demande une permission avec gestion du refus définitif
+  Future<bool> _requestPermission(Permission permission, String name) async {
+    final status = await permission.status;
+    if (status.isGranted) return true;
+    if (status.isPermanentlyDenied) {
+      _snack('Permission $name définitivement refusée. Activez-la dans les paramètres.');
+      openAppSettings();
+      return false;
+    }
+    final result = await permission.request();
+    return result.isGranted;
+  }
+
   Future<List<Map<String, dynamic>>> _getIceServers() async {
-    // Pour l’instant, on n’appelle pas widget.calls.fetchIceServers (inexistant)
-    // On utilise des serveurs STUN publics.
+    // Pour l’instant, serveurs STUN publics (à remplacer par TURN plus tard)
     return [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
@@ -159,7 +182,7 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
       if (mounted) setState(() {});
     };
 
-    // Demander les médias
+    // Obtenir les médias
     final constraints = {
       'audio': true,
       'video': _isVideo,
@@ -168,8 +191,47 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
     _localStream = media;
     _local.srcObject = media;
 
+    // Récupérer la liste des caméras pour le swap (si vidéo)
+    if (_isVideo) {
+      _cameras = await navigator.mediaDevices.enumerateDevices();
+      final videoDevices = _cameras!.where((d) => d.kind == 'videoinput').toList();
+      if (videoDevices.isNotEmpty) {
+        _currentCameraId = videoDevices.first.deviceId;
+        _isFrontCamera = !videoDevices.any((d) => d.label.toLowerCase().contains('back'));
+      }
+    }
+
     for (final t in media.getTracks()) {
       await _pc!.addTrack(t, media);
+    }
+  }
+
+  Future<void> _swapCamera() async {
+    if (!_isVideo || _localStream == null) return;
+    final videoDevices = _cameras?.where((d) => d.kind == 'videoinput').toList() ?? [];
+    if (videoDevices.length < 2) {
+      _snack('Une seule caméra disponible');
+      return;
+    }
+    // Basculer vers l’autre caméra
+    final index = videoDevices.indexWhere((d) => d.deviceId == _currentCameraId);
+    final nextIndex = (index + 1) % videoDevices.length;
+    final nextDevice = videoDevices[nextIndex];
+    _currentCameraId = nextDevice.deviceId;
+
+    // Remplacer la piste vidéo
+    final videoTrack = _localStream!.getVideoTracks().firstOrNull;
+    if (videoTrack != null) {
+      final newStream = await navigator.mediaDevices.getUserMedia({
+        'audio': false,
+        'video': {'deviceId': {'exact': nextDevice.deviceId}},
+      });
+      final newVideoTrack = newStream.getVideoTracks().first;
+      await _localStream!.removeTrack(videoTrack);
+      await _localStream!.addTrack(newVideoTrack);
+      await videoTrack.stop();
+      await _pc!.getSenders().firstWhere((s) => s.track?.kind == 'video').replaceTrack(newVideoTrack);
+      setState(() {}); // rafraîchir l’affichage
     }
   }
 
@@ -348,35 +410,37 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                   child: DecoratedBox(
                     decoration: BoxDecoration(color: scheme.surfaceContainerHighest.withValues(alpha: 0.35)),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (_isVideo)
-                          RTCVideoView(_remote, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
-                        else
-                          Center(
-                            child: Icon(Icons.graphic_eq_rounded, size: 64, color: scheme.primary.withValues(alpha: 0.65)),
-                          ),
-                        if (_isVideo)
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppSpacing.sm),
-                              child: SizedBox(
-                                width: 120,
-                                height: 160,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7))),
-                                    child: RTCVideoView(_local, mirror: true, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover),
+                    child: _isLoadingMedia
+                        ? const Center(child: CircularProgressIndicator())
+                        : Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (_isVideo)
+                                RTCVideoView(_remote, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
+                              else
+                                Center(
+                                  child: Icon(Icons.graphic_eq_rounded, size: 64, color: scheme.primary.withValues(alpha: 0.65)),
+                                ),
+                              if (_isVideo)
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(AppSpacing.sm),
+                                    child: SizedBox(
+                                      width: 120,
+                                      height: 160,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(AppRadius.md),
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7))),
+                                          child: RTCVideoView(_local, mirror: true, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
+                            ],
                           ),
-                      ],
-                    ),
                   ),
                 ),
               ),
@@ -398,6 +462,14 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
                       label: _camOn ? 'Cam' : 'Cam off',
                       onTap: _ending ? null : () { unawaited(_toggleCam()); },
                     ),
+                  if (_isVideo && _cameras != null && _cameras!.length > 1)
+                    const SizedBox(width: AppSpacing.sm),
+                  if (_isVideo && _cameras != null && _cameras!.length > 1)
+                    _Pill(
+                      icon: Icons.switch_camera_rounded,
+                      label: 'Swap',
+                      onTap: _ending ? null : () { unawaited(_swapCamera()); },
+                    ),
                   if (_isVideo) const SizedBox(width: AppSpacing.sm),
                   _Hangup(onTap: _ending ? null : () { unawaited(_end(reason: 'hangup')); }),
                 ],
@@ -413,7 +485,7 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
 class _Action extends StatelessWidget {
   final IconData icon;
   final String tooltip;
-  final VoidCallback? onTap; // ← maintenant nullable
+  final VoidCallback? onTap;
   const _Action({required this.icon, required this.tooltip, this.onTap});
 
   @override
@@ -443,7 +515,7 @@ class _Action extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback? onTap; // ← maintenant nullable, type synchrone
+  final VoidCallback? onTap;
   const _Pill({required this.icon, required this.label, this.onTap});
 
   @override
