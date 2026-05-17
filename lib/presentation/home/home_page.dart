@@ -708,8 +708,8 @@ class _SearchBarOverlayState extends State<_SearchBarOverlay> {
                   colors: [ThixPremiumColors.goldDark, ThixPremiumColors.goldPrimary],
                 ),
               ),
-              child: const Row(
-                children: [
+              child: Row( // 🌟 Correction ici : Suppression du "const" global qui bloquait la compilation
+                children: const [
                   Text(
                     'Vérifier',
                     style: TextStyle(
@@ -993,7 +993,7 @@ class _ServiceCardState extends State<_ServiceCard>
                     Expanded(
                       child: Text(
                         widget.title,
-                        textAlign: Center,
+                        textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
