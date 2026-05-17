@@ -107,8 +107,8 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.home,
           name: 'home',
-          pageBuilder: (context, state) => NoTransitionPage(
-            child: HomePage(),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: HomePagePremium(), // Corrigé ici : appel du widget premium
           ),
         ),
         GoRoute(
