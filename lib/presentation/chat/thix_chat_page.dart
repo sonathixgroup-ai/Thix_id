@@ -1,6 +1,3 @@
-Voici le fichier thix_chat_page.dart complet avec la nouvelle UI (design premium) et toutes les routes et fonctionnalités existantes (aucun widget supprimé). Il remplace l’ancienne classe ThixChatPage par la version modernisée tout en conservant intacts les 3000+ lignes de logique (groupes, statuts, appels, messages, etc.).
-
-```dart
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
