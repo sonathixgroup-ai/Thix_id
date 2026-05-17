@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:thix_id/services/call_service.dart';
 import 'package:thix_id/supabase/supabase_config.dart';
 import 'package:thix_id/theme.dart';
@@ -43,6 +44,7 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
   bool _connected = false;
   bool _ending = false;
   DateTime? _startedAt;
+  String _errorMsg = '';
 
   bool get _isVideo => widget.kind == 'video';
 
@@ -63,28 +65,64 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
 
   Future<void> _init() async {
     try {
+      // 1. Permissions (mobile uniquement)
+      if (!kIsWeb) {
+        final mic = await Permission.microphone.request();
+        if (!mic.isGranted) throw Exception('Permission microphone refusée');
+        if (_isVideo) {
+          final cam = await Permission.camera.request();
+          if (!cam.isGranted) throw Exception('Permission caméra refusée');
+        }
+      }
+
+      // 2. Initialiser les renderers
       await _local.initialize();
       await _remote.initialize();
 
-      await _preparePeer();
+      // 3. Configuration ICE avec TURN (si disponible)
+      final iceServers = await _getIceServers();
+
+      // 4. Créer la connexion
+      await _preparePeer(iceServers);
       await _startSignalListener();
 
+      // 5. Si caller, envoyer l'offre
       if (widget.isCaller) {
         await _makeOffer();
       }
     } catch (e) {
       debugPrint('ThixCallSheet: init failed err=$e');
-      if (mounted) _snack('Impossible de démarrer l’appel.');
+      if (mounted) {
+        setState(() => _errorMsg = e.toString());
+        _snack('Impossible de démarrer l’appel: $e');
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) context.pop();
+        });
+      }
     }
   }
 
-  Future<void> _preparePeer() async {
-    // Free STUN server for basic connectivity. For production, add TURN.
+  /// Récupère les serveurs ICE (STUN + TURN) depuis [CallService] ou fallback.
+  Future<List<Map<String, dynamic>>> _getIceServers() async {
+    // Essayer d'obtenir la configuration depuis le backend (ex: Supabase Edge Function)
+    try {
+      final config = await widget.calls.fetchIceServers();
+      if (config != null && config['iceServers'] is List) {
+        return List<Map<String, dynamic>>.from(config['iceServers']);
+      }
+    } catch (e) {
+      debugPrint('ThixCallSheet: fetchIceServers failed, using fallback STUN. err=$e');
+    }
+    // Fallback STUN (Google)
+    return [
+      {'urls': 'stun:stun.l.google.com:19302'},
+      {'urls': 'stun:stun1.l.google.com:19302'},
+    ];
+  }
+
+  Future<void> _preparePeer(List<Map<String, dynamic>> iceServers) async {
     final config = {
-      'iceServers': [
-        {'urls': 'stun:stun.l.google.com:19302'},
-        {'urls': 'stun:stun1.l.google.com:19302'},
-      ],
+      'iceServers': iceServers,
       'sdpSemantics': 'unified-plan',
     };
     _pc = await createPeerConnection(config);
@@ -103,6 +141,10 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
       ));
     };
 
+    _pc!.onIceConnectionState = (state) {
+      debugPrint('ThixCallSheet: ICE state=$state');
+    };
+
     _pc!.onConnectionState = (state) {
       debugPrint('ThixCallSheet: pc connectionState=$state');
       if (!mounted) return;
@@ -113,7 +155,8 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
           _startedAt ??= DateTime.now();
         });
       }
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed || state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+          state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) {
         unawaited(_end(reason: 'disconnected'));
       }
     };
@@ -124,17 +167,18 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
       if (mounted) setState(() {});
     };
 
-    final media = await navigator.mediaDevices.getUserMedia({
+    // Demander les médias
+    final constraints = {
       'audio': true,
       'video': _isVideo,
-    });
+    };
+    final media = await navigator.mediaDevices.getUserMedia(constraints);
     _localStream = media;
     _local.srcObject = media;
 
     for (final t in media.getTracks()) {
       await _pc!.addTrack(t, media);
     }
-    _startedAt = DateTime.now();
   }
 
   Future<void> _startSignalListener() async {
@@ -171,7 +215,11 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
         final ans = RTCSessionDescription(payload['sdp'] as String?, payload['type'] as String?);
         await _pc!.setRemoteDescription(ans);
       } else if (type == 'candidate') {
-        final cand = RTCIceCandidate(payload['candidate'] as String?, payload['sdpMid'] as String?, (payload['sdpMLineIndex'] as num?)?.toInt());
+        final cand = RTCIceCandidate(
+          payload['candidate'] as String?,
+          payload['sdpMid'] as String?,
+          (payload['sdpMLineIndex'] as num?)?.toInt(),
+        );
         await _pc!.addCandidate(cand);
       } else if (type == 'hangup' || type == 'decline') {
         await _end(reason: type);
@@ -233,9 +281,14 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
   Future<void> _end({required String reason}) async {
     if (_ending) return;
     setState(() => _ending = true);
+    // Notifier le distant (best-effort)
     try {
-      // Notify remote best-effort.
-      await widget.calls.sendSignal(callId: widget.callId, toUserId: widget.otherUserId, type: 'hangup', payload: {'reason': reason});
+      await widget.calls.sendSignal(
+        callId: widget.callId,
+        toUserId: widget.otherUserId,
+        type: 'hangup',
+        payload: {'reason': reason},
+      );
     } catch (_) {}
 
     final started = _startedAt;
@@ -280,13 +333,15 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
                         Text(_isVideo ? 'Appel vidéo' : 'Appel audio', style: context.textStyles.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
                         const SizedBox(height: 2),
                         Text(
-                          _connected ? 'Connecté' : (widget.isCaller ? 'Appel en cours…' : 'Connexion…'),
+                          _errorMsg.isNotEmpty
+                              ? _errorMsg
+                              : (_connected ? 'Connecté' : (widget.isCaller ? 'Appel en cours…' : 'Connexion…')),
                           style: context.textStyles.labelSmall?.copyWith(color: scheme.onSurface.withValues(alpha: 0.60), fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),
                   ),
-                  _Action(icon: Icons.close_rounded, tooltip: 'Fermer', onTap: () => _end(reason: 'closed')),
+                  _Action(icon: Icons.close_rounded, tooltip: 'Fermer', onTap: _ending ? null : () => _end(reason: 'closed')),
                 ],
               ),
             ),
@@ -335,9 +390,18 @@ class _ThixCallSheetState extends State<ThixCallSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _Pill(icon: _micOn ? Icons.mic_rounded : Icons.mic_off_rounded, label: _micOn ? 'Micro' : 'Muet', onTap: _ending ? null : _toggleMic),
+                  _Pill(
+                    icon: _micOn ? Icons.mic_rounded : Icons.mic_off_rounded,
+                    label: _micOn ? 'Micro' : 'Muet',
+                    onTap: _ending ? null : _toggleMic,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  if (_isVideo) _Pill(icon: _camOn ? Icons.videocam_rounded : Icons.videocam_off_rounded, label: _camOn ? 'Cam' : 'Cam off', onTap: _ending ? null : _toggleCam),
+                  if (_isVideo)
+                    _Pill(
+                      icon: _camOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+                      label: _camOn ? 'Cam' : 'Cam off',
+                      onTap: _ending ? null : _toggleCam,
+                    ),
                   if (_isVideo) const SizedBox(width: AppSpacing.sm),
                   _Hangup(onTap: _ending ? null : () => _end(reason: 'hangup')),
                 ],
