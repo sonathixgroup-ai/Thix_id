@@ -600,7 +600,7 @@ class _PremiumHeader extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          height: 185,
+          height: 140,
           width: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -639,7 +639,7 @@ class _PremiumHeader extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(18, safeTop + 8, 18, 0),
+          padding: EdgeInsets.fromLTRB(16, safeTop + 4, 16, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1142,10 +1142,10 @@ class _MissionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 115,
-      padding: const EdgeInsets.all(14),
+      height: 90,
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(13),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1224,7 +1224,7 @@ class _FloatingBottomNav extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
-          height: 70,
+          height: 60,
           decoration: BoxDecoration(
             color: ThixPremiumColors.white.withOpacity(0.88),
             borderRadius: BorderRadius.circular(30),
