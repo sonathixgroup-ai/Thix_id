@@ -41,7 +41,7 @@ class PremiumGradients {
   }
 }
 
-// ==================== PAGE DÉTAILS ÉVÉNEMENT ====================
+// ==================== PAGE DÉTAILS ÉVÉNEMENT (CORRIGÉE) ====================
 class EventDetailsPage extends StatefulWidget {
   final String eventId;
   final bool registered;
@@ -54,10 +54,12 @@ class EventDetailsPage extends StatefulWidget {
 class _EventDetailsPageState extends State<EventDetailsPage> {
   final _svc = EventService();
   Timer? _tick;
+  late Future<EventItem?> _eventFuture; // ← stocké pour éviter la reconstruction
 
   @override
   void initState() {
     super.initState();
+    _eventFuture = _svc.fetchEvent(widget.eventId);
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -86,7 +88,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       backgroundColor: PremiumColors.backgroundLight,
       body: SafeArea(
         child: FutureBuilder<EventItem?>(
-          future: _svc.fetchEvent(widget.eventId),
+          future: _eventFuture, // ← fixe, plus de reconstruction
           builder: (context, snap) {
             if (snap.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator(color: PremiumColors.gold));
