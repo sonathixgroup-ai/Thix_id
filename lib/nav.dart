@@ -40,6 +40,7 @@ import 'package:thix_id/presentation/training/learning_dashboard_page.dart';
 import 'package:thix_id/presentation/training/lesson_player_page.dart';
 import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
+import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
 import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart'; // Import de la page THIX Santé
 
 class AppRouter {
@@ -252,6 +253,11 @@ class AppRouter {
           ),
         ),
         GoRoute(
+  path: AppRoutes.thixMarket,
+  name: 'thixMarket',
+  builder: (context, state) => const ThixMarketPage(),
+),
+        GoRoute(
           path: AppRoutes.jobs,
           name: 'jobs',
           pageBuilder: (context, state) => const NoTransitionPage(
@@ -434,6 +440,7 @@ class AppRoutes {
   static const String lessonPlayer = '/learn/player';
   static const String admin = '/admin';
   static const String thixSante = '/sante'; // Route pour THIX Santé
+  static const String thixMarket = '/market';
 }
 
 extension GoRouterBackHelpers on BuildContext {
