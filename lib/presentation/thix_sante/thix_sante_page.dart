@@ -98,7 +98,7 @@ class ThixSantePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Bonjour, Michel 🎉',
+                          'Bonjour, Daniel Mwana Longo 🎉',
                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                         ),
                         const SizedBox(height: 8),
@@ -227,14 +227,14 @@ class ThixSantePage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: 6,
-                crossAxisSpacing: 6,
-                childAspectRatio: 1.6,
+                crossAxisCount: 4,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1.9,
                 children: [
                   _MiniServiceCard(
                     icon: Icons.person_search_rounded,
@@ -286,7 +286,7 @@ class ThixSantePage extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // ========== BANNIÈRE URGENCE ==========
               Container(
