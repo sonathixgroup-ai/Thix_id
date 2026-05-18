@@ -1,3 +1,5 @@
+git pull --rebase origin main
+git push origin main
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
