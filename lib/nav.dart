@@ -41,10 +41,9 @@ import 'package:thix_id/presentation/training/lesson_player_page.dart';
 import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
 import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
-import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart'; // Import de la page THIX Santé
+import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart';
 
 class AppRouter {
-  /// Creates a [GoRouter] instance.
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
     final refresh = extraRefreshListenable == null ? auth : Listenable.merge([auth, extraRefreshListenable]);
     return GoRouter(
@@ -68,12 +67,10 @@ class AppRouter {
         final isProtected = !isPublic && !isAuthPage;
         if (!isLoggedIn && isProtected) return AppRoutes.login;
 
-        // Admin area: authenticated + RBAC role required.
         if (isAdmin) {
           if (!isLoggedIn) return AppRoutes.login;
         }
 
-        // Payment-gated activation: block protected areas until UID is assigned.
         if (isLoggedIn) {
           final u = auth.currentUser;
           final isActivated = (u?.hasRealThixId ?? false);
@@ -86,7 +83,6 @@ class AppRouter {
           }
         }
 
-        // Enforce strict separation between Personal and Enterprise spaces.
         if (isLoggedIn) {
           final t = auth.currentUser?.accountType;
           if (location == AppRoutes.userDashboard && t == AccountType.enterprise) return AppRoutes.enterpriseDashboard;
@@ -252,11 +248,18 @@ class AppRouter {
             child: NetworkPage(),
           ),
         ),
+        // ==================== THIX MARKET ====================
         GoRoute(
-  path: AppRoutes.thixMarket,
-  name: 'thixMarket',
-  builder: (context, state) => const ThixMarketPage(),
-),
+          path: AppRoutes.thixMarket,
+          name: 'thixMarket',
+          builder: (context, state) => const ThixMarketPage(),
+        ),
+        // ==================== THIX SANTÉ ====================
+        GoRoute(
+          path: AppRoutes.thixSante,
+          name: 'thixSante',
+          builder: (context, state) => const ThixSantePage(),
+        ),
         GoRoute(
           path: AppRoutes.jobs,
           name: 'jobs',
@@ -267,12 +270,16 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.jobDashboard,
           name: 'jobDashboard',
-          pageBuilder: (context, state) => const NoTransitionPage(child: JobDashboardPage()),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: JobDashboardPage(),
+          ),
         ),
         GoRoute(
           path: AppRoutes.recruiter,
           name: 'recruiter',
-          pageBuilder: (context, state) => const NoTransitionPage(child: RecruiterPortalPage()),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: RecruiterPortalPage(),
+          ),
         ),
         GoRoute(
           path: AppRoutes.opportunities,
@@ -386,12 +393,6 @@ class AppRouter {
             return NoTransitionPage(child: LessonPlayerPage(enrollmentId: id));
           },
         ),
-        // Route THIX Santé ajoutée
-        GoRoute(
-          path: AppRoutes.thixSante,
-          name: 'thixSante',
-          builder: (context, state) => const ThixSantePage(),
-        ),
         GoRoute(
           path: '${AppRoutes.admin}/:module',
           name: 'admin',
@@ -439,8 +440,8 @@ class AppRoutes {
   static const String learningDashboard = '/learn';
   static const String lessonPlayer = '/learn/player';
   static const String admin = '/admin';
-  static const String thixSante = '/sante'; // Route pour THIX Santé
   static const String thixMarket = '/market';
+  static const String thixSante = '/sante';
 }
 
 extension GoRouterBackHelpers on BuildContext {
