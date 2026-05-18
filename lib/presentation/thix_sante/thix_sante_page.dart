@@ -99,14 +99,13 @@ class ThixSantePage extends StatelessWidget {
                         Row(
                           children: const [
                             Text(
-                              'Bonjour, Michel ',
+                              'Bonjour, Assiyah 🎉',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
                             ),
-                            Text('👋', style: TextStyle(fontSize: 16)),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -124,7 +123,7 @@ class ThixSantePage extends StatelessWidget {
                           'Consultez, suivez et prenez soin de\nvotre santé au quotidien.',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withOpacity(0.9), // ✅ correction white90
+                            color: Colors.white.withOpacity(0.9),
                             height: 1.4,
                           ),
                         ),
@@ -161,7 +160,7 @@ class ThixSantePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ========== ACTIONS RAPIDES (5 boutons blancs) ==========
+              // ========== ACTIONS RAPIDES (5 icônes) ==========
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -181,7 +180,7 @@ class ThixSantePage extends StatelessWidget {
                     color: const Color(0xFF8B5CF6),
                   ),
                   _QuickActionItem(
-                    icon: Icons.medication_rounded, // ✅ correction : Icons.pill_rounded n'existe pas
+                    icon: Icons.medication_rounded,
                     label: 'Ordonnances',
                     color: const Color(0xFF1D4ED8),
                   ),
@@ -282,7 +281,7 @@ class ThixSantePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // ========== SERVICES RAPIDES ==========
+              // ========== SERVICES RAPIDES (8 cartes) ==========
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -308,50 +307,69 @@ class ThixSantePage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 1.35,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1.5,
                 children: [
                   _ServiceCard(
                     icon: Icons.person_search_rounded,
-                    title: 'Consulter\nun médecin',
+                    title: 'Consulter un médecin',
+                    description: 'Parlez à un professionnel',
                     bgColor: const Color(0xFFEFF6FF),
                     iconColor: const Color(0xFF2563EB),
                   ),
                   _ServiceCard(
                     icon: Icons.add_box_rounded,
-                    title: 'Dossier\nmédical',
+                    title: 'Dossier médical',
+                    description: 'Accédez à votre dossier de santé',
                     bgColor: const Color(0xFFECFDF5),
                     iconColor: const Color(0xFF10B981),
                   ),
                   _ServiceCard(
                     icon: Icons.science_outlined,
-                    title: 'Résultats\nd’examens',
+                    title: 'Résultats d’examens',
+                    description: 'Consultez vos analyses',
                     bgColor: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF8B5CF6),
                   ),
                   _ServiceCard(
                     icon: Icons.assignment_turned_in_rounded,
-                    title: 'Mes\nordonnances',
+                    title: 'Mes ordonnances',
+                    description: 'Gérez et renouvelez vos ordonnances',
                     bgColor: const Color(0xFFFFF7ED),
                     iconColor: const Color(0xFFF97316),
                   ),
                   _ServiceCard(
                     icon: Icons.domain_rounded,
-                    title: 'Trouver un\nhôpital',
+                    title: 'Trouver un hôpital',
+                    description: 'Trouvez l’hôpital le plus proche',
                     bgColor: const Color(0xFFFFF1F0),
                     iconColor: const Color(0xFFEF4444),
                   ),
                   _ServiceCard(
                     icon: Icons.local_pharmacy_rounded,
-                    title: 'Trouver un\nmédicament',
+                    title: 'Trouver un médicament',
+                    description: 'Vérifiez la disponibilité',
                     bgColor: const Color(0xFFE0F2FE),
                     iconColor: const Color(0xFF0284C7),
+                  ),
+                  _ServiceCard(
+                    icon: Icons.storefront_rounded,
+                    title: 'Pharmacies proches',
+                    description: 'Trouvez la pharmacie la plus proche',
+                    bgColor: const Color(0xFFE6F9F9),
+                    iconColor: const Color(0xFF0891B2),
+                  ),
+                  _ServiceCard(
+                    icon: Icons.emergency_rounded,
+                    title: 'Urgences proches',
+                    description: 'Services d’urgence disponibles 24/7',
+                    bgColor: const Color(0xFFFFF1F0),
+                    iconColor: const Color(0xFFDC2626),
                   ),
                 ],
               ),
@@ -373,7 +391,7 @@ class ThixSantePage extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.local_shipping_rounded, color: Color(0xFFEF4444), size: 28),
+                      child: const Icon(Icons.local_hospital_rounded, color: Color(0xFFEF4444), size: 28),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -474,12 +492,10 @@ class _ProfileIconButton extends StatelessWidget {
 
 class _QuickActionItem extends StatelessWidget {
   final IconData icon;
-  final IconData? fallbackIcon;
   final String label;
   final Color color;
   const _QuickActionItem({
     required this.icon,
-    this.fallbackIcon,
     required this.label,
     required this.color,
   });
@@ -582,11 +598,13 @@ class _StatCard extends StatelessWidget {
 class _ServiceCard extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String description;
   final Color bgColor;
   final Color iconColor;
   const _ServiceCard({
     required this.icon,
     required this.title,
+    required this.description,
     required this.bgColor,
     required this.iconColor,
   });
@@ -606,26 +624,34 @@ class _ServiceCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
-            ],
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), height: 1.2),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
+          const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF94A3B8)),
         ],
       ),
     );
