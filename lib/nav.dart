@@ -42,6 +42,7 @@ import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
 import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
 import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart';
+import 'package:thix_id/presentation/reservation/thix_reservation_page.dart'; // AJOUT
 
 class AppRouter {
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
@@ -260,6 +261,12 @@ class AppRouter {
           name: 'thixSante',
           builder: (context, state) => const ThixSantePage(),
         ),
+        // ==================== RÉSERVATION ====================
+        GoRoute(
+          path: AppRoutes.reservation,
+          name: 'reservation',
+          builder: (context, state) => const ThixReservationPage(),
+        ),
         GoRoute(
           path: AppRoutes.jobs,
           name: 'jobs',
@@ -443,6 +450,7 @@ class AppRoutes {
   static const String admin = '/admin';
   static const String thixMarket = '/market';
   static const String thixSante = '/sante';
+  static const String reservation = '/reservation'; // AJOUT
 }
 
 extension GoRouterBackHelpers on BuildContext {
