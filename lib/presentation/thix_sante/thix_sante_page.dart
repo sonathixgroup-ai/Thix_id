@@ -6,7 +6,7 @@ class ThixSantePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F7FA), // Fond très clair et bleuté de la maquette
+      backgroundColor: const Color(0xFFF3F7FA),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -36,7 +36,7 @@ class ThixSantePage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF00A896), // Couleur verte/turquoise du logo
+                              color: const Color(0xFF00A896),
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -84,7 +84,6 @@ class ThixSantePage extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // Icône de bouclier en arrière-plan à droite
                     Positioned(
                       right: -10,
                       bottom: -10,
@@ -121,11 +120,11 @@ class ThixSantePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Consultez, suivez et prenez soin de\nvotre santé au quotidien.',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white90,
+                            color: Colors.white.withOpacity(0.9), // ✅ correction white90
                             height: 1.4,
                           ),
                         ),
@@ -182,8 +181,7 @@ class ThixSantePage extends StatelessWidget {
                     color: const Color(0xFF8B5CF6),
                   ),
                   _QuickActionItem(
-                    icon: Icons.pill_rounded, // Alternative si Medication est manquante ou importez font_awesome
-                    fallbackIcon: Icons.medical_services_outlined,
+                    icon: Icons.medication_rounded, // ✅ correction : Icons.pill_rounded n'existe pas
                     label: 'Ordonnances',
                     color: const Color(0xFF1D4ED8),
                   ),
@@ -310,8 +308,7 @@ class ThixSantePage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              
-              // Transformation en Grille (2 Colonnes) comme sur la maquette
+
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -370,7 +367,6 @@ class ThixSantePage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // Illustration ambulance simplifiée
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -411,7 +407,7 @@ class ThixSantePage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 100), // Espace pour la barre de navigation basse
+              const SizedBox(height: 100),
             ],
           ),
         ),
@@ -420,7 +416,7 @@ class ThixSantePage extends StatelessWidget {
   }
 }
 
-// ========== COMPOSANTS RE-STYLISÉS ==========
+// ========== COMPOSANTS ==========
 
 class _NotificationIconButton extends StatelessWidget {
   final VoidCallback onTap;
@@ -467,7 +463,7 @@ class _ProfileIconButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: const BoxDecoration(
-          color: Color(0xFF0F172A), // Cercle noir/bleu foncé de la maquette
+          color: Color(0xFF0F172A),
           shape: BoxShape.circle,
         ),
         child: const Icon(Icons.person, color: Colors.white, size: 22),
@@ -496,7 +492,7 @@ class _QuickActionItem extends StatelessWidget {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: Colors.white, // Fond blanc requis
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
