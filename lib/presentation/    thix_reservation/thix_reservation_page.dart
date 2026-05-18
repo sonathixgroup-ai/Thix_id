@@ -1,659 +1,1365 @@
 import 'package:flutter/material.dart';
 
-class ThixMoneyPage extends StatefulWidget {
-  const ThixMoneyPage({super.key});
+class ThixReservationPage extends StatefulWidget {
+  const ThixReservationPage({super.key});
 
   @override
-  State<ThixMoneyPage> createState() => _ThixMoneyPageState();
+  State<ThixReservationPage> createState() =>
+      _ThixReservationPageState();
 }
 
-class _ThixMoneyPageState extends State<ThixMoneyPage> {
+class _ThixReservationPageState
+    extends State<ThixReservationPage> {
   int currentIndex = 2;
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: const Color(0xffF7F7FA),
 
-      /// ================= BOTTOM NAV =================
-      bottomNavigationBar: Container(
-        height: 78,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(30),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(.06),
-              blurRadius: 15,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            navItem(Icons.home_filled, "Accueil", 0),
-            navItem(Icons.swap_horiz, "Transactions", 1),
-            centerButton(),
-            navItem(Icons.credit_card, "Cartes", 3),
-            navItem(Icons.person_outline, "Profil", 4),
-          ],
-        ),
-      ),
+      bottomNavigationBar: bottomBar(),
 
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-
-              /// ================= HEADER =================
-              Row(
-                children: [
-                  const Icon(
-                    Icons.menu_rounded,
-                    size: 30,
-                    color: Color(0xff091B4A),
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Row(
-                        children: [
-                          Text(
-                            "THIX ",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              color: Color(0xff091B4A),
-                            ),
-                          ),
-                          Text(
-                            "MONEY",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              color: Color(0xff2563FF),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        "Votre argent, votre liberté.",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const Spacer(),
-
-                  Stack(
-                    children: [
-                      const Icon(
-                        Icons.notifications_none_rounded,
-                        size: 30,
-                        color: Color(0xff091B4A),
-                      ),
-                      Positioned(
-                        right: 2,
-                        top: 2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      image: const DecorationImage(
-                        image: NetworkImage(
-                          "https://i.pravatar.cc/300",
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              /// ================= CARD BALANCE =================
-              Container(
-                height: size.height * .21,
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xff020B52),
-                      Color(0xff00197D),
-                    ],
-                  ),
-                ),
-
-                child: Row(
+        child: SingleChildScrollView(
+          physics:
+              const BouncingScrollPhysics(),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 12,
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                /// ================= HEADER =================
+                Row(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Text(
-                                "Solde disponible",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(
-                                Icons.remove_red_eye_outlined,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-
-                          const Spacer(),
-
-                          const Text(
-                            "1.250.000 FC",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 38,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          const Text(
-                            "≈ 625,00 USD",
-                            style: TextStyle(
-                              color: Color(0xff8EA4FF),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-
-                          const Spacer(),
-
-                          Row(
-                            children: [
-                              actionButton(
-                                Icons.history,
-                                "Historique",
-                              ),
-                              const SizedBox(width: 12),
-                              miniButton(Icons.more_horiz),
-                            ],
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius
+                                .circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black
+                                .withOpacity(.03),
+                            blurRadius: 10,
                           ),
                         ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "R",
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight:
+                                FontWeight
+                                    .w900,
+                            color: Color(
+                                0xff2563FF),
+                          ),
+                        ),
                       ),
                     ),
 
                     const SizedBox(width: 14),
 
-                    /// VISA CARD
-                    Container(
-                      width: 190,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            "https://images.unsplash.com/photo-1640161704729-cbe966a08476?q=80&w=1200&auto=format&fit=crop",
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+                        children: const [
+                          Row(
+                            children: [
+                              Text(
+                                "THIX ",
+                                style:
+                                    TextStyle(
+                                  fontSize:
+                                      18,
+                                  fontWeight:
+                                      FontWeight
+                                          .w900,
+                                ),
+                              ),
+                              Text(
+                                "RÉSERVATION",
+                                style:
+                                    TextStyle(
+                                  fontSize:
+                                      18,
+                                  fontWeight:
+                                      FontWeight
+                                          .w900,
+                                  color: Color(
+                                      0xff2563FF),
+                                ),
+                              ),
+                            ],
                           ),
-                          fit: BoxFit.cover,
+
+                          SizedBox(height: 2),
+
+                          Text(
+                            "Réservez tout, partout, en toute simplicité.",
+                            style: TextStyle(
+                              color:
+                                  Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    topIcon(
+                        Icons.notifications_none),
+
+                    const SizedBox(width: 10),
+
+                    topIcon(Icons.person_outline),
+                  ],
+                ),
+
+                const SizedBox(height: 22),
+
+                /// ================= HERO =================
+                Container(
+                  height: 182,
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(
+                            28),
+                    gradient:
+                        const LinearGradient(
+                      colors: [
+                        Color(0xffF5F2FF),
+                        Color(0xffEEF3FF),
+                      ],
+                    ),
+                  ),
+
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets
+                                .all(20),
+                        child: Row(
+                          children: [
+                            /// LEFT
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  Container(
+                                    padding:
+                                        const EdgeInsets
+                                            .symmetric(
+                                      horizontal:
+                                          10,
+                                      vertical:
+                                          4,
+                                    ),
+                                    decoration:
+                                        BoxDecoration(
+                                      color: Colors
+                                          .white,
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              10),
+                                    ),
+                                    child:
+                                        const Text(
+                                      "⚡ PROMO FLASH",
+                                      style:
+                                          TextStyle(
+                                        fontWeight:
+                                            FontWeight.bold,
+                                        color: Color(
+                                            0xffFFB800),
+                                        fontSize:
+                                            11,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(
+                                      height:
+                                          14),
+
+                                  RichText(
+                                    text:
+                                        const TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              "Jusqu’à ",
+                                          style:
+                                              TextStyle(
+                                            fontSize:
+                                                20,
+                                            color:
+                                                Colors.black,
+                                            fontWeight:
+                                                FontWeight.w700,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              "-40%",
+                                          style:
+                                              TextStyle(
+                                            fontSize:
+                                                20,
+                                            color:
+                                                Color(0xff6B4EFF),
+                                            fontWeight:
+                                                FontWeight.w900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(
+                                      height:
+                                          4),
+
+                                  const Text(
+                                    "sur vos réservations de bus & vols",
+                                    style:
+                                        TextStyle(
+                                      fontWeight:
+                                          FontWeight
+                                              .w600,
+                                    ),
+                                  ),
+
+                                  const SizedBox(
+                                      height:
+                                          8),
+
+                                  const Text(
+                                    "Valable jusqu'au 30 Juin 2025",
+                                    style:
+                                        TextStyle(
+                                      color:
+                                          Colors.grey,
+                                      fontSize:
+                                          12,
+                                    ),
+                                  ),
+
+                                  const Spacer(),
+
+                                  Container(
+                                    padding:
+                                        const EdgeInsets
+                                            .symmetric(
+                                      horizontal:
+                                          18,
+                                      vertical:
+                                          12,
+                                    ),
+                                    decoration:
+                                        BoxDecoration(
+                                      color: const Color(
+                                          0xff2563FF),
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                              14),
+                                    ),
+                                    child:
+                                        const Text(
+                                      "Profiter maintenant",
+                                      style:
+                                          TextStyle(
+                                        color: Colors
+                                            .white,
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            /// RIGHT IMAGE
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Image
+                                        .network(
+                                      "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+                                      height:
+                                          90,
+                                    ),
+                                  ),
+
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Image
+                                        .network(
+                                      "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
+                                      height:
+                                          115,
+                                    ),
+                                  ),
+
+                                  Positioned(
+                                    right: 90,
+                                    bottom: 18,
+                                    child: Image
+                                        .network(
+                                      "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
+                                      height:
+                                          55,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+
+                      Positioned(
+                        left: 10,
+                        top: 76,
+                        child: arrowButton(
+                            Icons.chevron_left),
+                      ),
+
+                      Positioned(
+                        right: 10,
+                        top: 76,
+                        child: arrowButton(
+                            Icons.chevron_right),
+                      ),
+
+                      Positioned(
+                        bottom: 14,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment
+                                  .center,
+                          children: [
+                            indicator(true),
+                            indicator(false),
+                            indicator(false),
+                            indicator(false),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                /// ================= SERVICES =================
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    vertical: 18,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(
+                            24),
+                  ),
+
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment
+                            .spaceAround,
+                    children: [
+                      serviceItem(
+                        "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
+                        "Bus",
+                      ),
+                      serviceItem(
+                        "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+                        "Vol",
+                      ),
+                      serviceItem(
+                        "https://cdn-icons-png.flaticon.com/512/139/139899.png",
+                        "Hôtel",
+                      ),
+                      serviceItem(
+                        "https://cdn-icons-png.flaticon.com/512/3097/3097144.png",
+                        "Taxi",
+                      ),
+                      serviceItem(
+                        "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
+                        "Livraison",
+                      ),
+                      serviceItem(
+                        "",
+                        "Plus",
+                        isMore: true,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                /// ================= RESERVATIONS =================
+                sectionHeader(
+                    "Mes réservations"),
+
+                const SizedBox(height: 14),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: bookingCard(
+                        Colors.blue,
+                        Icons.luggage,
+                        "À venir",
+                        "3",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: bookingCard(
+                        Colors.green,
+                        Icons.access_time,
+                        "En cours",
+                        "1",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: bookingCard(
+                        Colors.purple,
+                        Icons.check_circle,
+                        "Terminées",
+                        "8",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: bookingCard(
+                        Colors.red,
+                        Icons.cancel,
+                        "Annulées",
+                        "0",
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 22),
 
-              /// ================= MAIN ACTIONS =================
-              Row(
-                children: [
-                  Expanded(
-                    child: quickAction(
-                      Colors.blue,
-                      Icons.north_east_rounded,
-                      "Envoyer",
-                    ),
+                /// ================= OFFERS =================
+                sectionHeader(
+                    "Offres spéciales pour vous"),
+
+                const SizedBox(height: 14),
+
+                SizedBox(
+                  height: 138,
+                  child: ListView(
+                    scrollDirection:
+                        Axis.horizontal,
+                    children: [
+                      offerCard(
+                        "Hôtels",
+                        "-30%",
+                        "Séjournez plus,\npayez moins",
+                        "https://cdn-icons-png.flaticon.com/512/139/139899.png",
+                        const Color(
+                            0xffF9F3FF),
+                      ),
+                      offerCard(
+                        "Vols",
+                        "-20%",
+                        "Sur tous les vols",
+                        "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+                        const Color(
+                            0xffEDF7FF),
+                      ),
+                      offerCard(
+                        "Bus",
+                        "-15%",
+                        "Voyagez en toute\nconfiance",
+                        "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
+                        const Color(
+                            0xffEEF8FF),
+                      ),
+                      offerCard(
+                        "Livraison",
+                        "-10%",
+                        "Envoi express",
+                        "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
+                        const Color(
+                            0xffFFF7EC),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: quickAction(
-                      Colors.green,
-                      Icons.add,
-                      "Recharger",
-                    ),
+                ),
+
+                const SizedBox(height: 18),
+
+                /// ================= PARRAINAGE =================
+                Container(
+                  height: 100,
+                  padding:
+                      const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color(
+                        0xffF8F4FF),
+                    borderRadius:
+                        BorderRadius.circular(
+                            24),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: quickAction(
-                      Colors.deepPurple,
-                      Icons.qr_code_scanner_rounded,
-                      "Scanner",
-                    ),
+
+                  child: Row(
+                    children: [
+                      Image.network(
+                        "https://cdn-icons-png.flaticon.com/512/2583/2583344.png",
+                        height: 58,
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment
+                                  .start,
+                          children: [
+                            Text(
+                              "Parrainez & Gagnez !",
+                              style:
+                                  TextStyle(
+                                fontSize: 20,
+                                fontWeight:
+                                    FontWeight
+                                        .w800,
+                                color: Color(
+                                    0xff7B3AED),
+                              ),
+                            ),
+
+                            SizedBox(height: 6),
+
+                            Text(
+                              "Invitez vos proches et gagnez jusqu'à 10.000 FC par parrainage.",
+                              style:
+                                  TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const CircleAvatar(
+                        radius: 18,
+                        backgroundImage:
+                            NetworkImage(
+                          "https://i.pravatar.cc/300",
+                        ),
+                      ),
+
+                      const CircleAvatar(
+                        radius: 18,
+                        backgroundImage:
+                            NetworkImage(
+                          "https://i.pravatar.cc/301",
+                        ),
+                      ),
+
+                      const CircleAvatar(
+                        radius: 18,
+                        backgroundImage:
+                            NetworkImage(
+                          "https://i.pravatar.cc/302",
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Icon(
+                        Icons.chevron_right,
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: quickAction(
-                      Colors.orange,
-                      Icons.account_balance_wallet_outlined,
-                      "Retrait",
-                    ),
+                ),
+
+                const SizedBox(height: 22),
+
+                /// ================= RESTAURANTS =================
+                sectionHeader(
+                    "Restaurants à proximité"),
+
+                const SizedBox(height: 14),
+
+                SizedBox(
+                  height: 220,
+                  child: ListView(
+                    scrollDirection:
+                        Axis.horizontal,
+                    children: [
+                      restaurantCard(
+                        "Le Goût d'Ici",
+                        "Africaine",
+                        "20-30 min",
+                        "4.6",
+                        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800",
+                      ),
+                      restaurantCard(
+                        "Fast & Good",
+                        "Fast Food",
+                        "15-25 min",
+                        "4.8",
+                        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
+                      ),
+                      restaurantCard(
+                        "Pizza Time",
+                        "Italienne",
+                        "20-30 min",
+                        "4.5",
+                        "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
+                      ),
+                      restaurantCard(
+                        "Sushi House",
+                        "Japonaise",
+                        "25-35 min",
+                        "4.7",
+                        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800",
+                      ),
+                    ],
                   ),
+                ),
+
+                const SizedBox(height: 20),
+
+                /// ================= ANNONCES =================
+                sectionHeader("Annonces"),
+
+                const SizedBox(height: 14),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: annonceCard(
+                        "À VENDRE",
+                        "Toyota RAV4 2021",
+                        "25.000.000 FC",
+                        Colors.green,
+                        "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800",
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: annonceCard(
+                        "À LOUER",
+                        "Appartement 3 pièces",
+                        "600.000 FC / mois",
+                        Colors.pink,
+                        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800",
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: annonceCard(
+                        "SERVICE",
+                        "Ménage à domicile",
+                        "À partir de 10.000 FC",
+                        Colors.green,
+                        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800",
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                /// ================= FOOT FEATURES =================
+                Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment
+                          .spaceAround,
+                  children: const [
+                    featureBottom(
+                      Icons.shield_outlined,
+                      "Paiement sécurisé",
+                      "Transactions 100% sûres",
+                    ),
+                    featureBottom(
+                      Icons.headset_mic_outlined,
+                      "Support 24/7",
+                      "Nous sommes là",
+                    ),
+                    featureBottom(
+                      Icons.workspace_premium_outlined,
+                      "Meilleurs prix",
+                      "Garantie incluse",
+                    ),
+                    featureBottom(
+                      Icons.cancel_outlined,
+                      "Annulation facile",
+                      "Flexible et rapide",
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 120),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget bottomBar() {
+    return Container(
+      height: 88,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
+      ),
+
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceAround,
+        children: [
+          navItem(Icons.home, "Accueil", 0),
+          navItem(Icons.explore_outlined,
+              "Explorer", 1),
+
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient:
+                  const LinearGradient(
+                colors: [
+                  Color(0xff2563FF),
+                  Color(0xff0047FF),
                 ],
               ),
-
-              const SizedBox(height: 12),
-
-              /// ================= RAPID PAYMENTS =================
-              sectionTitle("Paiements rapides"),
-
-              const SizedBox(height: 8),
-
-              Container(
-                height: 92,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue
+                      .withOpacity(.3),
+                  blurRadius: 16,
                 ),
-
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    paymentItem(Icons.receipt_long, "Facture"),
-                    paymentItem(Icons.groups, "Tontine"),
-                    paymentItem(Icons.lightbulb, "Électricité"),
-                    paymentItem(Icons.water_drop, "Eau"),
-                    paymentItem(Icons.tv, "TV"),
-                    paymentItem(Icons.more_horiz, "Plus"),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              /// ================= HORIZONTAL CARDS =================
-              Expanded(
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    giftCard(
-                      title: "Carte THIX ID",
-                      subtitle: "Payez partout avec votre carte",
-                      color1: const Color(0xffE9EDFF),
-                      color2: Colors.white,
-                      button: "Voir carte",
-                      image:
-                          "https://images.unsplash.com/photo-1640161704729-cbe966a08476?q=80&w=1200&auto=format&fit=crop",
-                    ),
-
-                    giftCard(
-                      title: "THIX Tontine",
-                      subtitle: "Épargnez et atteignez vos objectifs",
-                      color1: const Color(0xff011B7A),
-                      color2: const Color(0xff052FBF),
-                      button: "Rejoindre",
-                      image:
-                          "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop",
-                      dark: true,
-                    ),
-
-                    giftCard(
-                      title: "Parrainez & gagnez",
-                      subtitle: "Invitez vos proches",
-                      color1: const Color(0xffE8FFF0),
-                      color2: const Color(0xffF5FFF8),
-                      button: "Inviter",
-                      image:
-                          "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=1200&auto=format&fit=crop",
-                    ),
-
-                    giftCard(
-                      title: "Crypto Wallet",
-                      subtitle: "Achetez Bitcoin & USDT",
-                      color1: const Color(0xff191919),
-                      color2: const Color(0xff303030),
-                      button: "Investir",
-                      image:
-                          "https://images.unsplash.com/photo-1621761191319-c6fb62004040?q=80&w=1200&auto=format&fit=crop",
-                      dark: true,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 10),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// ================= WIDGETS =================
-
-  Widget navItem(IconData icon, String label, int index) {
-    final active = currentIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          currentIndex = index;
-        });
-      },
-
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: active ? Colors.blue : Colors.grey,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: active ? Colors.blue : Colors.grey,
+              ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget centerButton() {
-    return Transform.translate(
-      offset: const Offset(0, -18),
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xff2563FF),
-              Color(0xff003CFF),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withOpacity(.4),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.qr_code_scanner,
-                color: Colors.white, size: 28),
-            SizedBox(height: 2),
-            Text(
-              "QR",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget actionButton(IconData icon, String text) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white24,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget miniButton(IconData icon) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white24,
-        ),
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-      ),
-    );
-  }
-
-  Widget quickAction(
-    Color color,
-    IconData icon,
-    String title,
-  ) {
-    return Container(
-      height: 105,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-      ),
-
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white),
-          ),
-
-          const SizedBox(height: 10),
-
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget paymentItem(IconData icon, String title) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CircleAvatar(
-          radius: 22,
-          backgroundColor: const Color(0xffF5F6FA),
-          child: Icon(icon, color: Colors.blue),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget sectionTitle(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Color(0xff091B4A),
-          ),
-        ),
-
-        const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 16,
-          color: Colors.grey,
-        ),
-      ],
-    );
-  }
-
-  Widget giftCard({
-    required String title,
-    required String subtitle,
-    required Color color1,
-    required Color color2,
-    required String button,
-    required String image,
-    bool dark = false,
-  }) {
-    return Container(
-      width: 320,
-      margin: const EdgeInsets.only(right: 14),
-      padding: const EdgeInsets.all(18),
-
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: [color1, color2],
-        ),
-      ),
-
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: const Column(
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: dark ? Colors.white : Colors.black,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                  ),
+                Icon(
+                  Icons.calendar_month,
+                  color: Colors.white,
                 ),
-
-                const SizedBox(height: 10),
-
+                SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  "Réserver",
                   style: TextStyle(
-                    color: dark
-                        ? Colors.white70
-                        : Colors.black54,
-                    fontSize: 13,
-                  ),
-                ),
-
-                const Spacer(),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: dark
-                        ? Colors.white
-                        : const Color(0xff003CFF),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    button,
-                    style: TextStyle(
-                      color: dark
-                          ? Colors.black
-                          : Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    color: Colors.white,
+                    fontSize: 11,
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(width: 12),
+          navItem(Icons.receipt_long,
+              "Mes réservations", 3),
+          navItem(Icons.person_outline,
+              "Profil", 4),
+        ],
+      ),
+    );
+  }
 
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.network(
-              image,
-              width: 120,
-              height: 150,
-              fit: BoxFit.cover,
+  Widget navItem(
+      IconData icon,
+      String title,
+      int index) {
+    final active = currentIndex == index;
+
+    return Column(
+      mainAxisAlignment:
+          MainAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          color: active
+              ? const Color(0xff2563FF)
+              : Colors.grey,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            color: active
+                ? const Color(0xff2563FF)
+                : Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// ================= WIDGETS =================
+
+Widget topIcon(IconData icon) {
+  return Container(
+    width: 52,
+    height: 52,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(.04),
+          blurRadius: 10,
+        ),
+      ],
+    ),
+    child: Icon(icon),
+  );
+}
+
+Widget arrowButton(IconData icon) {
+  return Container(
+    width: 34,
+    height: 34,
+    decoration: BoxDecoration(
+      color: Colors.white,
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(.05),
+          blurRadius: 6,
+        ),
+      ],
+    ),
+    child: Icon(icon, size: 20),
+  );
+}
+
+Widget indicator(bool active) {
+  return Container(
+    margin:
+        const EdgeInsets.symmetric(
+            horizontal: 3),
+    width: active ? 16 : 8,
+    height: 8,
+    decoration: BoxDecoration(
+      color: active
+          ? const Color(0xff2563FF)
+          : Colors.grey.shade300,
+      borderRadius:
+          BorderRadius.circular(10),
+    ),
+  );
+}
+
+Widget serviceItem(
+  String image,
+  String title, {
+  bool isMore = false,
+}) {
+  return Column(
+    children: [
+      Container(
+        width: 58,
+        height: 58,
+        decoration: BoxDecoration(
+          color: const Color(0xffF7F7FA),
+          borderRadius:
+              BorderRadius.circular(18),
+        ),
+        child: isMore
+            ? const Icon(
+                Icons.grid_view_rounded,
+                color: Colors.grey,
+                size: 30,
+              )
+            : Padding(
+                padding:
+                    const EdgeInsets.all(8),
+                child: Image.network(image),
+              ),
+      ),
+
+      const SizedBox(height: 8),
+
+      Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ],
+  );
+}
+
+Widget sectionHeader(String title) {
+  return Row(
+    mainAxisAlignment:
+        MainAxisAlignment.spaceBetween,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      Row(
+        children: const [
+          Text(
+            "Voir tout",
+            style: TextStyle(
+              color: Colors.grey,
             ),
+          ),
+          SizedBox(width: 4),
+          Icon(
+            Icons.chevron_right,
+            size: 18,
+            color: Colors.grey,
           ),
         ],
       ),
+    ],
+  );
+}
+
+Widget bookingCard(
+  Color color,
+  IconData icon,
+  String title,
+  String count,
+) {
+  return Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius:
+          BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor:
+              color.withOpacity(.12),
+          child: Icon(
+            icon,
+            color: color,
+            size: 20,
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.black54,
+            fontSize: 12,
+          ),
+        ),
+
+        const SizedBox(height: 2),
+
+        Text(
+          count,
+          style: const TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget offerCard(
+  String title,
+  String percent,
+  String desc,
+  String image,
+  Color bg,
+) {
+  return Container(
+    width: 160,
+    margin: const EdgeInsets.only(right: 12),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: bg,
+      borderRadius:
+          BorderRadius.circular(22),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight:
+                      FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                percent,
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight:
+                      FontWeight.w900,
+                  color: Color(0xff2563FF),
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                desc,
+                style: const TextStyle(
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        Image.network(
+          image,
+          width: 56,
+        ),
+      ],
+    ),
+  );
+}
+
+Widget restaurantCard(
+  String title,
+  String type,
+  String time,
+  String rate,
+  String image,
+) {
+  return Container(
+    width: 165,
+    margin: const EdgeInsets.only(right: 14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius:
+          BorderRadius.circular(20),
+    ),
+    child: Column(
+      children: [
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child: Image.network(
+                image,
+                height: 110,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius:
+                      BorderRadius.circular(
+                          12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      rate,
+                      style:
+                          const TextStyle(
+                        color:
+                            Colors.white,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        Padding(
+          padding:
+              const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style:
+                          const TextStyle(
+                        fontWeight:
+                            FontWeight
+                                .w700,
+                      ),
+                    ),
+                  ),
+                  const Icon(
+                    Icons.favorite_border,
+                    size: 18,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                type,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Row(
+                children: [
+                  Text(
+                    time,
+                    style:
+                        const TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Text(
+                    "\$\$",
+                    style: TextStyle(
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget annonceCard(
+  String tag,
+  String title,
+  String price,
+  Color color,
+  String image,
+) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius:
+          BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child: Image.network(
+                image,
+                height: 105,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius:
+                      BorderRadius.circular(
+                          10),
+                ),
+                child: Text(
+                  tag,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            const Positioned(
+              top: 10,
+              right: 10,
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor:
+                    Colors.white,
+                child: Icon(
+                  Icons.favorite_border,
+                  size: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        Padding(
+          padding:
+              const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight:
+                      FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                price,
+                style: const TextStyle(
+                  fontWeight:
+                      FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class featureBottom extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String sub;
+
+  const featureBottom(
+    this.icon,
+    this.title,
+    this.sub, {
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: const Color(0xff2563FF),
+        ),
+
+        const SizedBox(height: 8),
+
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+        ),
+
+        const SizedBox(height: 2),
+
+        Text(
+          sub,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 10,
+          ),
+        ),
+      ],
     );
   }
 }
