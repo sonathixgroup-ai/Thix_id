@@ -112,7 +112,7 @@ class ThixSantePage extends StatelessWidget {
                         const Text(
                           'Votre santé\nentre de bonnes mains',
                           style: TextStyle(
-                            fontSize: 26,
+                            fontSize: 23,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             height: 1.2,
