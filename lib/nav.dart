@@ -40,8 +40,15 @@ import 'package:thix_id/presentation/training/learning_dashboard_page.dart';
 import 'package:thix_id/presentation/training/lesson_player_page.dart';
 import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
-import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
 import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart';
+
+// RECRÉATION TEMPORAIRE DE THIX MARKET POUR ÉVITER LES ERREURS DE COMPILATION
+// À supprimer ou remplacer lorsque le fichier réel sera créé dans presentation/thix_market/
+class ThixMarketPage extends StatelessWidget {
+  const ThixMarketPage({super.key});
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('THIX Market - En cours de développement')));
+}
 
 class AppRouter {
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
@@ -373,7 +380,7 @@ class AppRouter {
           pageBuilder: (context, state) => const NoTransitionPage(child: TrainingHomePage()),
         ),
         GoRoute(
-          path: '${AppRoutes.trainingDetails}/:trainingId',
+          path: '${AppRoutes.trainingDetailsBasePath}/:trainingId',
           name: 'trainingDetails',
           pageBuilder: (context, state) {
             final id = state.pathParameters['trainingId'] ?? '';
@@ -436,7 +443,8 @@ class AppRoutes {
   static const String events = '/events';
   static const String education = '/education';
   static const String trainingHome = '/training';
-  static const String trainingDetails = '/training';
+  static const String trainingDetailsBasePath = '/training-details'; // Correction de la collision des chemins
+  static const String trainingDetails = '/training-details';
   static const String learningDashboard = '/learn';
   static const String lessonPlayer = '/learn/player';
   static const String admin = '/admin';
