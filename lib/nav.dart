@@ -42,8 +42,7 @@ import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
 import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
 import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart';
-import 'package:thix_id/presentation/thix_reservation/thix_reservation_page.dart'; // AJOUT
-
+import 'package:thix_id/presentation/thix_reservation/thix_reservation_page.dart';
 class AppRouter {
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
     final refresh = extraRefreshListenable == null ? auth : Listenable.merge([auth, extraRefreshListenable]);
