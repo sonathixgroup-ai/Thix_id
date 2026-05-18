@@ -524,7 +524,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                               title: 'Thix Money',
                               iconBackgroundColor: const Color(0xFFE9FFF2),
                               iconColor: const Color(0xFF00A86B),
-                              onTap: () {},
+                              onTap: () => context.push(AppRoutes.thixMoney),
                             ),
                             _ServiceCard(
                               icon: Icons.account_balance_rounded,
@@ -538,7 +538,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                               title: 'Réservation',
                               iconBackgroundColor: const Color(0xFFF8F1FF),
                               iconColor: const Color(0xFF9C27B0),
-                              onTap: () {},
+                              onTap: () => context.push(AppRoutes.reservation),
                             ),
                           ],
                         );
