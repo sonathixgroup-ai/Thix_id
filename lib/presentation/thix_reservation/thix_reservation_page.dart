@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ThixReservationPage extends StatefulWidget {
   const ThixReservationPage({super.key});
@@ -16,145 +16,155 @@ class _ThixReservationPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF7F7FA),
+      extendBody: true,
+      backgroundColor: const Color(0xffF5F6FA),
 
-      bottomNavigationBar: bottomBar(),
+      bottomNavigationBar: _bottomBar(),
 
       body: SafeArea(
         child: SingleChildScrollView(
-          physics:
-              const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 12,
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 10,
+              bottom: 120,
             ),
             child: Column(
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
-                /// ================= HEADER =================
+                /// HEADER
                 Row(
                   children: [
                     Container(
-                      width: 58,
-                      height: 58,
+                      width: 54,
+                      height: 54,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius:
-                            BorderRadius
-                                .circular(18),
+                            BorderRadius.circular(
+                                16),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black
                                 .withOpacity(.03),
-                            blurRadius: 10,
+                            blurRadius: 8,
+                            offset:
+                                const Offset(
+                                    0, 2),
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           "R",
-                          style: TextStyle(
-                            fontSize: 34,
+                          style:
+                              GoogleFonts.poppins(
+                            fontSize: 32,
                             fontWeight:
-                                FontWeight
-                                    .w900,
-                            color: Color(
+                                FontWeight.w900,
+                            color: const Color(
                                 0xff2563FF),
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
 
                     Expanded(
                       child: Column(
                         crossAxisAlignment:
                             CrossAxisAlignment
                                 .start,
-                        children: const [
-                          Row(
-                            children: [
-                              Text(
-                                "THIX ",
-                                style:
-                                    TextStyle(
-                                  fontSize:
-                                      18,
-                                  fontWeight:
-                                      FontWeight
-                                          .w900,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "THIX ",
+                                  style:
+                                      GoogleFonts
+                                          .poppins(
+                                    color: Colors
+                                        .black,
+                                    fontSize: 19,
+                                    fontWeight:
+                                        FontWeight
+                                            .w800,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                "RÉSERVATION",
-                                style:
-                                    TextStyle(
-                                  fontSize:
-                                      18,
-                                  fontWeight:
-                                      FontWeight
-                                          .w900,
-                                  color: Color(
-                                      0xff2563FF),
+                                TextSpan(
+                                  text:
+                                      "RÉSERVATION",
+                                  style:
+                                      GoogleFonts
+                                          .poppins(
+                                    color:
+                                        const Color(
+                                            0xff2563FF),
+                                    fontSize: 19,
+                                    fontWeight:
+                                        FontWeight
+                                            .w800,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
 
-                          SizedBox(height: 2),
+                          const SizedBox(
+                              height: 2),
 
                           Text(
                             "Réservez tout, partout, en toute simplicité.",
-                            style: TextStyle(
+                            style:
+                                GoogleFonts.poppins(
                               color:
                                   Colors.grey,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    topIcon(
+                    _topIcon(
                         Icons.notifications_none),
 
                     const SizedBox(width: 10),
 
-                    topIcon(Icons.person_outline),
+                    _topIcon(Icons.person_outline),
                   ],
                 ),
 
-                const SizedBox(height: 22),
+                const SizedBox(height: 14),
 
-                /// ================= HERO =================
+                /// HERO CARD
                 Container(
-                  height: 182,
+                  height: 178,
                   decoration: BoxDecoration(
                     borderRadius:
                         BorderRadius.circular(
-                            28),
+                            20),
                     gradient:
                         const LinearGradient(
                       colors: [
-                        Color(0xffF5F2FF),
+                        Color(0xffF4F2FF),
                         Color(0xffEEF3FF),
                       ],
                     ),
                   ),
-
                   child: Stack(
                     children: [
                       Padding(
                         padding:
-                            const EdgeInsets
-                                .all(20),
+                            const EdgeInsets.all(
+                                18),
                         child: Row(
                           children: [
-                            /// LEFT
                             Expanded(
                               child: Column(
                                 crossAxisAlignment:
@@ -178,36 +188,37 @@ class _ThixReservationPageState
                                           BorderRadius.circular(
                                               10),
                                     ),
-                                    child:
-                                        const Text(
+                                    child: Text(
                                       "⚡ PROMO FLASH",
                                       style:
-                                          TextStyle(
-                                        fontWeight:
-                                            FontWeight.bold,
-                                        color: Color(
-                                            0xffFFB800),
+                                          GoogleFonts
+                                              .poppins(
                                         fontSize:
-                                            11,
+                                            10,
+                                        fontWeight:
+                                            FontWeight
+                                                .w700,
+                                        color: const Color(
+                                            0xffF5A623),
                                       ),
                                     ),
                                   ),
 
                                   const SizedBox(
                                       height:
-                                          14),
+                                          10),
 
                                   RichText(
                                     text:
-                                        const TextSpan(
+                                        TextSpan(
                                       children: [
                                         TextSpan(
                                           text:
                                               "Jusqu’à ",
                                           style:
-                                              TextStyle(
+                                              GoogleFonts.poppins(
                                             fontSize:
-                                                20,
+                                                18,
                                             color:
                                                 Colors.black,
                                             fontWeight:
@@ -218,11 +229,11 @@ class _ThixReservationPageState
                                           text:
                                               "-40%",
                                           style:
-                                              TextStyle(
+                                              GoogleFonts.poppins(
                                             fontSize:
-                                                20,
+                                                18,
                                             color:
-                                                Color(0xff6B4EFF),
+                                                const Color(0xff6B4EFF),
                                             fontWeight:
                                                 FontWeight.w900,
                                           ),
@@ -235,13 +246,16 @@ class _ThixReservationPageState
                                       height:
                                           4),
 
-                                  const Text(
+                                  Text(
                                     "sur vos réservations de bus & vols",
                                     style:
-                                        TextStyle(
+                                        GoogleFonts
+                                            .poppins(
+                                      fontSize:
+                                          12,
                                       fontWeight:
                                           FontWeight
-                                              .w600,
+                                              .w500,
                                     ),
                                   ),
 
@@ -249,14 +263,15 @@ class _ThixReservationPageState
                                       height:
                                           8),
 
-                                  const Text(
+                                  Text(
                                     "Valable jusqu'au 30 Juin 2025",
                                     style:
-                                        TextStyle(
-                                      color:
-                                          Colors.grey,
+                                        GoogleFonts
+                                            .poppins(
                                       fontSize:
-                                          12,
+                                          10,
+                                      color: Colors
+                                          .grey,
                                     ),
                                   ),
 
@@ -267,9 +282,9 @@ class _ThixReservationPageState
                                         const EdgeInsets
                                             .symmetric(
                                       horizontal:
-                                          18,
+                                          16,
                                       vertical:
-                                          12,
+                                          10,
                                     ),
                                     decoration:
                                         BoxDecoration(
@@ -277,17 +292,20 @@ class _ThixReservationPageState
                                           0xff2563FF),
                                       borderRadius:
                                           BorderRadius.circular(
-                                              14),
+                                              12),
                                     ),
-                                    child:
-                                        const Text(
+                                    child: Text(
                                       "Profiter maintenant",
                                       style:
-                                          TextStyle(
+                                          GoogleFonts
+                                              .poppins(
                                         color: Colors
                                             .white,
                                         fontWeight:
-                                            FontWeight.bold,
+                                            FontWeight
+                                                .w600,
+                                        fontSize:
+                                            11,
                                       ),
                                     ),
                                   ),
@@ -295,40 +313,39 @@ class _ThixReservationPageState
                               ),
                             ),
 
-                            /// RIGHT IMAGE
                             Expanded(
                               child: Stack(
                                 children: [
                                   Positioned(
-                                    right: 0,
                                     top: 0,
-                                    child: Image
-                                        .network(
+                                    right: 10,
+                                    child:
+                                        Image.network(
                                       "https://cdn-icons-png.flaticon.com/512/744/744465.png",
                                       height:
-                                          90,
+                                          80,
                                     ),
                                   ),
 
                                   Positioned(
                                     right: 0,
                                     bottom: 0,
-                                    child: Image
-                                        .network(
+                                    child:
+                                        Image.network(
                                       "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
                                       height:
-                                          115,
+                                          105,
                                     ),
                                   ),
 
                                   Positioned(
-                                    right: 90,
-                                    bottom: 18,
-                                    child: Image
-                                        .network(
+                                    bottom: 10,
+                                    right: 85,
+                                    child:
+                                        Image.network(
                                       "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
                                       height:
-                                          55,
+                                          45,
                                     ),
                                   ),
                                 ],
@@ -339,21 +356,21 @@ class _ThixReservationPageState
                       ),
 
                       Positioned(
-                        left: 10,
-                        top: 76,
-                        child: arrowButton(
+                        left: 8,
+                        top: 72,
+                        child: _arrowButton(
                             Icons.chevron_left),
                       ),
 
                       Positioned(
-                        right: 10,
-                        top: 76,
-                        child: arrowButton(
+                        right: 8,
+                        top: 72,
+                        child: _arrowButton(
                             Icons.chevron_right),
                       ),
 
                       Positioned(
-                        bottom: 14,
+                        bottom: 12,
                         left: 0,
                         right: 0,
                         child: Row(
@@ -361,10 +378,10 @@ class _ThixReservationPageState
                               MainAxisAlignment
                                   .center,
                           children: [
-                            indicator(true),
-                            indicator(false),
-                            indicator(false),
-                            indicator(false),
+                            _indicator(true),
+                            _indicator(false),
+                            _indicator(false),
+                            _indicator(false),
                           ],
                         ),
                       ),
@@ -372,94 +389,92 @@ class _ThixReservationPageState
                   ),
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
 
-                /// ================= SERVICES =================
+                /// SERVICES
                 Container(
+                  height: 108,
                   padding:
                       const EdgeInsets.symmetric(
-                    vertical: 18,
+                    horizontal: 6,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius:
                         BorderRadius.circular(
-                            24),
+                            20),
                   ),
-
                   child: Row(
                     mainAxisAlignment:
                         MainAxisAlignment
                             .spaceAround,
                     children: [
-                      serviceItem(
-                        "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
+                      _service(
+                        "🚌",
                         "Bus",
                       ),
-                      serviceItem(
-                        "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+                      _service(
+                        "✈️",
                         "Vol",
                       ),
-                      serviceItem(
-                        "https://cdn-icons-png.flaticon.com/512/139/139899.png",
+                      _service(
+                        "🏨",
                         "Hôtel",
                       ),
-                      serviceItem(
-                        "https://cdn-icons-png.flaticon.com/512/3097/3097144.png",
+                      _service(
+                        "🚕",
                         "Taxi",
                       ),
-                      serviceItem(
-                        "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
+                      _service(
+                        "🛵",
                         "Livraison",
                       ),
-                      serviceItem(
-                        "",
+                      _service(
+                        "◻️",
                         "Plus",
-                        isMore: true,
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
 
-                /// ================= RESERVATIONS =================
-                sectionHeader(
+                _sectionHeader(
                     "Mes réservations"),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
 
                 Row(
                   children: [
                     Expanded(
-                      child: bookingCard(
+                      child: _bookingCard(
                         Colors.blue,
                         Icons.luggage,
                         "À venir",
                         "3",
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: bookingCard(
+                      child: _bookingCard(
                         Colors.green,
-                        Icons.access_time,
+                        Icons.timelapse,
                         "En cours",
                         "1",
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: bookingCard(
+                      child: _bookingCard(
                         Colors.purple,
                         Icons.check_circle,
                         "Terminées",
                         "8",
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: bookingCard(
+                      child: _bookingCard(
                         Colors.red,
                         Icons.cancel,
                         "Annulées",
@@ -469,264 +484,32 @@ class _ThixReservationPageState
                   ],
                 ),
 
-                const SizedBox(height: 22),
+                const SizedBox(height: 14),
 
-                /// ================= OFFERS =================
-                sectionHeader(
+                _sectionHeader(
                     "Offres spéciales pour vous"),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
 
                 SizedBox(
-                  height: 138,
+                  height: 126,
                   child: ListView(
                     scrollDirection:
                         Axis.horizontal,
                     children: [
-                      offerCard(
-                        "Hôtels",
-                        "-30%",
-                        "Séjournez plus,\npayez moins",
-                        "https://cdn-icons-png.flaticon.com/512/139/139899.png",
-                        const Color(
-                            0xffF9F3FF),
-                      ),
-                      offerCard(
-                        "Vols",
-                        "-20%",
-                        "Sur tous les vols",
-                        "https://cdn-icons-png.flaticon.com/512/744/744465.png",
-                        const Color(
-                            0xffEDF7FF),
-                      ),
-                      offerCard(
-                        "Bus",
-                        "-15%",
-                        "Voyagez en toute\nconfiance",
-                        "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
-                        const Color(
-                            0xffEEF8FF),
-                      ),
-                      offerCard(
-                        "Livraison",
-                        "-10%",
-                        "Envoi express",
-                        "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
-                        const Color(
-                            0xffFFF7EC),
-                      ),
+                      _offerCard(
+                          "Hôtels",
+                          "-30%"),
+                      _offerCard(
+                          "Vols", "-20%"),
+                      _offerCard(
+                          "Bus", "-15%"),
+                      _offerCard(
+                          "Livraison",
+                          "-10%"),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 18),
-
-                /// ================= PARRAINAGE =================
-                Container(
-                  height: 100,
-                  padding:
-                      const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(
-                        0xffF8F4FF),
-                    borderRadius:
-                        BorderRadius.circular(
-                            24),
-                  ),
-
-                  child: Row(
-                    children: [
-                      Image.network(
-                        "https://cdn-icons-png.flaticon.com/512/2583/2583344.png",
-                        height: 58,
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-                          children: [
-                            Text(
-                              "Parrainez & Gagnez !",
-                              style:
-                                  TextStyle(
-                                fontSize: 20,
-                                fontWeight:
-                                    FontWeight
-                                        .w800,
-                                color: Color(
-                                    0xff7B3AED),
-                              ),
-                            ),
-
-                            SizedBox(height: 6),
-
-                            Text(
-                              "Invitez vos proches et gagnez jusqu'à 10.000 FC par parrainage.",
-                              style:
-                                  TextStyle(
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const CircleAvatar(
-                        radius: 18,
-                        backgroundImage:
-                            NetworkImage(
-                          "https://i.pravatar.cc/300",
-                        ),
-                      ),
-
-                      const CircleAvatar(
-                        radius: 18,
-                        backgroundImage:
-                            NetworkImage(
-                          "https://i.pravatar.cc/301",
-                        ),
-                      ),
-
-                      const CircleAvatar(
-                        radius: 18,
-                        backgroundImage:
-                            NetworkImage(
-                          "https://i.pravatar.cc/302",
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      const Icon(
-                        Icons.chevron_right,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 22),
-
-                /// ================= RESTAURANTS =================
-                sectionHeader(
-                    "Restaurants à proximité"),
-
-                const SizedBox(height: 14),
-
-                SizedBox(
-                  height: 220,
-                  child: ListView(
-                    scrollDirection:
-                        Axis.horizontal,
-                    children: [
-                      restaurantCard(
-                        "Le Goût d'Ici",
-                        "Africaine",
-                        "20-30 min",
-                        "4.6",
-                        "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800",
-                      ),
-                      restaurantCard(
-                        "Fast & Good",
-                        "Fast Food",
-                        "15-25 min",
-                        "4.8",
-                        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
-                      ),
-                      restaurantCard(
-                        "Pizza Time",
-                        "Italienne",
-                        "20-30 min",
-                        "4.5",
-                        "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
-                      ),
-                      restaurantCard(
-                        "Sushi House",
-                        "Japonaise",
-                        "25-35 min",
-                        "4.7",
-                        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800",
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                /// ================= ANNONCES =================
-                sectionHeader("Annonces"),
-
-                const SizedBox(height: 14),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: annonceCard(
-                        "À VENDRE",
-                        "Toyota RAV4 2021",
-                        "25.000.000 FC",
-                        Colors.green,
-                        "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800",
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: annonceCard(
-                        "À LOUER",
-                        "Appartement 3 pièces",
-                        "600.000 FC / mois",
-                        Colors.pink,
-                        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800",
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: annonceCard(
-                        "SERVICE",
-                        "Ménage à domicile",
-                        "À partir de 10.000 FC",
-                        Colors.green,
-                        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800",
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                /// ================= FOOT FEATURES =================
-                Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment
-                          .spaceAround,
-                  children: const [
-                    featureBottom(
-                      Icons.shield_outlined,
-                      "Paiement sécurisé",
-                      "Transactions 100% sûres",
-                    ),
-                    featureBottom(
-                      Icons.headset_mic_outlined,
-                      "Support 24/7",
-                      "Nous sommes là",
-                    ),
-                    featureBottom(
-                      Icons.workspace_premium_outlined,
-                      "Meilleurs prix",
-                      "Garantie incluse",
-                    ),
-                    featureBottom(
-                      Icons.cancel_outlined,
-                      "Annulation facile",
-                      "Flexible et rapide",
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 120),
               ],
             ),
           ),
@@ -735,27 +518,258 @@ class _ThixReservationPageState
     );
   }
 
-  Widget bottomBar() {
+  Widget _topIcon(IconData icon) {
     return Container(
-      height: 88,
-      decoration: const BoxDecoration(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(30),
-        ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withOpacity(.03),
+            blurRadius: 8,
+          ),
+        ],
       ),
+      child: Icon(
+        icon,
+        size: 22,
+      ),
+    );
+  }
 
+  Widget _arrowButton(IconData icon) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withOpacity(.03),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Icon(icon, size: 18),
+    );
+  }
+
+  Widget _indicator(bool active) {
+    return Container(
+      margin:
+          const EdgeInsets.symmetric(
+              horizontal: 3),
+      width: active ? 14 : 7,
+      height: 7,
+      decoration: BoxDecoration(
+        color: active
+            ? const Color(0xff2563FF)
+            : Colors.grey.shade300,
+        borderRadius:
+            BorderRadius.circular(10),
+      ),
+    );
+  }
+
+  Widget _service(
+      String emoji, String title) {
+    return Column(
+      mainAxisAlignment:
+          MainAxisAlignment.center,
+      children: [
+        Text(
+          emoji,
+          style:
+              const TextStyle(fontSize: 30),
+        ),
+
+        const SizedBox(height: 6),
+
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _bookingCard(
+    Color color,
+    IconData icon,
+    String title,
+    String count,
+  ) {
+    return Container(
+      height: 92,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 15,
+            backgroundColor:
+                color.withOpacity(.12),
+            child: Icon(
+              icon,
+              color: color,
+              size: 16,
+            ),
+          ),
+
+          const Spacer(),
+
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: Colors.black54,
+            ),
+          ),
+
+          Text(
+            count,
+            style: GoogleFonts.poppins(
+              fontSize: 28,
+              fontWeight:
+                  FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _offerCard(
+      String title, String percent) {
+    return Container(
+      width: 150,
+      margin:
+          const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontWeight:
+                  FontWeight.w600,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Text(
+            percent,
+            style: GoogleFonts.poppins(
+              fontSize: 28,
+              color:
+                  const Color(0xff2563FF),
+              fontWeight:
+                  FontWeight.w800,
+            ),
+          ),
+
+          const Spacer(),
+
+          Text(
+            "Offre spéciale",
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title) {
+    return Row(
+      mainAxisAlignment:
+          MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+
+        Row(
+          children: [
+            Text(
+              "Voir tout",
+              style:
+                  GoogleFonts.poppins(
+                fontSize: 11,
+                color: Colors.grey,
+              ),
+            ),
+
+            const SizedBox(width: 4),
+
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 16,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _bottomBar() {
+    return Container(
+      height: 82,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            const BorderRadius.vertical(
+          top: Radius.circular(26),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withOpacity(.04),
+            blurRadius: 12,
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment:
             MainAxisAlignment.spaceAround,
         children: [
-          navItem(Icons.home, "Accueil", 0),
-          navItem(Icons.explore_outlined,
+          _navItem(
+              Icons.home, "Accueil", 0),
+          _navItem(Icons.explore_outlined,
               "Explorer", 1),
 
           Container(
-            width: 72,
-            height: 72,
+            width: 68,
+            height: 68,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient:
@@ -765,26 +779,22 @@ class _ThixReservationPageState
                   Color(0xff0047FF),
                 ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue
-                      .withOpacity(.3),
-                  blurRadius: 16,
-                ),
-              ],
             ),
-            child: const Column(
+            child: Column(
               mainAxisAlignment:
                   MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.calendar_month,
                   color: Colors.white,
                 ),
-                SizedBox(height: 2),
+
+                const SizedBox(height: 2),
+
                 Text(
                   "Réserver",
-                  style: TextStyle(
+                  style:
+                      GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 11,
                   ),
@@ -793,19 +803,21 @@ class _ThixReservationPageState
             ),
           ),
 
-          navItem(Icons.receipt_long,
+          _navItem(Icons.receipt_long,
               "Mes réservations", 3),
-          navItem(Icons.person_outline,
+
+          _navItem(Icons.person_outline,
               "Profil", 4),
         ],
       ),
     );
   }
 
-  Widget navItem(
-      IconData icon,
-      String title,
-      int index) {
+  Widget _navItem(
+    IconData icon,
+    String title,
+    int index,
+  ) {
     final active = currentIndex == index;
 
     return Column(
@@ -814,550 +826,21 @@ class _ThixReservationPageState
       children: [
         Icon(
           icon,
+          size: 22,
           color: active
               ? const Color(0xff2563FF)
               : Colors.grey,
         ),
+
         const SizedBox(height: 4),
+
         Text(
           title,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 11,
             color: active
                 ? const Color(0xff2563FF)
                 : Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// ================= WIDGETS =================
-
-Widget topIcon(IconData icon) {
-  return Container(
-    width: 52,
-    height: 52,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      shape: BoxShape.circle,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(.04),
-          blurRadius: 10,
-        ),
-      ],
-    ),
-    child: Icon(icon),
-  );
-}
-
-Widget arrowButton(IconData icon) {
-  return Container(
-    width: 34,
-    height: 34,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      shape: BoxShape.circle,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(.05),
-          blurRadius: 6,
-        ),
-      ],
-    ),
-    child: Icon(icon, size: 20),
-  );
-}
-
-Widget indicator(bool active) {
-  return Container(
-    margin:
-        const EdgeInsets.symmetric(
-            horizontal: 3),
-    width: active ? 16 : 8,
-    height: 8,
-    decoration: BoxDecoration(
-      color: active
-          ? const Color(0xff2563FF)
-          : Colors.grey.shade300,
-      borderRadius:
-          BorderRadius.circular(10),
-    ),
-  );
-}
-
-Widget serviceItem(
-  String image,
-  String title, {
-  bool isMore = false,
-}) {
-  return Column(
-    children: [
-      Container(
-        width: 58,
-        height: 58,
-        decoration: BoxDecoration(
-          color: const Color(0xffF7F7FA),
-          borderRadius:
-              BorderRadius.circular(18),
-        ),
-        child: isMore
-            ? const Icon(
-                Icons.grid_view_rounded,
-                color: Colors.grey,
-                size: 30,
-              )
-            : Padding(
-                padding:
-                    const EdgeInsets.all(8),
-                child: Image.network(image),
-              ),
-      ),
-
-      const SizedBox(height: 8),
-
-      Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ],
-  );
-}
-
-Widget sectionHeader(String title) {
-  return Row(
-    mainAxisAlignment:
-        MainAxisAlignment.spaceBetween,
-    children: [
-      Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      Row(
-        children: const [
-          Text(
-            "Voir tout",
-            style: TextStyle(
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(width: 4),
-          Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: Colors.grey,
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-Widget bookingCard(
-  Color color,
-  IconData icon,
-  String title,
-  String count,
-) {
-  return Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius:
-          BorderRadius.circular(20),
-    ),
-    child: Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor:
-              color.withOpacity(.12),
-          child: Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.black54,
-            fontSize: 12,
-          ),
-        ),
-
-        const SizedBox(height: 2),
-
-        Text(
-          count,
-          style: const TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget offerCard(
-  String title,
-  String percent,
-  String desc,
-  String image,
-  Color bg,
-) {
-  return Container(
-    width: 160,
-    margin: const EdgeInsets.only(right: 12),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: bg,
-      borderRadius:
-          BorderRadius.circular(22),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight:
-                      FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                percent,
-                style: const TextStyle(
-                  fontSize: 30,
-                  fontWeight:
-                      FontWeight.w900,
-                  color: Color(0xff2563FF),
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                desc,
-                style: const TextStyle(
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        Image.network(
-          image,
-          width: 56,
-        ),
-      ],
-    ),
-  );
-}
-
-Widget restaurantCard(
-  String title,
-  String type,
-  String time,
-  String rate,
-  String image,
-) {
-  return Container(
-    width: 165,
-    margin: const EdgeInsets.only(right: 14),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius:
-          BorderRadius.circular(20),
-    ),
-    child: Column(
-      children: [
-        Stack(
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-              child: Image.network(
-                image,
-                height: 110,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius:
-                      BorderRadius.circular(
-                          12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      rate,
-                      style:
-                          const TextStyle(
-                        color:
-                            Colors.white,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        Padding(
-          padding:
-              const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style:
-                          const TextStyle(
-                        fontWeight:
-                            FontWeight
-                                .w700,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.favorite_border,
-                    size: 18,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                type,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Row(
-                children: [
-                  Text(
-                    time,
-                    style:
-                        const TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Text(
-                    "\$\$",
-                    style: TextStyle(
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget annonceCard(
-  String tag,
-  String title,
-  String price,
-  Color color,
-  String image,
-) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius:
-          BorderRadius.circular(20),
-    ),
-    child: Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Stack(
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-              child: Image.network(
-                image,
-                height: 105,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius:
-                      BorderRadius.circular(
-                          10),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
-            const Positioned(
-              top: 10,
-              right: 10,
-              child: CircleAvatar(
-                radius: 14,
-                backgroundColor:
-                    Colors.white,
-                child: Icon(
-                  Icons.favorite_border,
-                  size: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        Padding(
-          padding:
-              const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight:
-                      FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                price,
-                style: const TextStyle(
-                  fontWeight:
-                      FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-class featureBottom extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String sub;
-
-  const featureBottom(
-    this.icon,
-    this.title,
-    this.sub, {
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: const Color(0xff2563FF),
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-        ),
-
-        const SizedBox(height: 2),
-
-        Text(
-          sub,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 10,
           ),
         ),
       ],
