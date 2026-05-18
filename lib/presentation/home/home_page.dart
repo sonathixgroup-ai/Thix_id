@@ -463,7 +463,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                               title: 'THIX Market',
                               iconBackgroundColor: const Color(0xFFFFF5E8),
                               iconColor: const Color(0xFFFF9800),
-                              onTap: () {},
+                              onTap: onTap: () => context.push(AppRoutes.thixMarket),
                             ),
                             _ServiceCard(
                               icon: Icons.school_rounded,
