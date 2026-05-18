@@ -40,13 +40,10 @@ import 'package:thix_id/presentation/training/learning_dashboard_page.dart';
 import 'package:thix_id/presentation/training/lesson_player_page.dart';
 import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
+import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart'; // Import de la page THIX Santé
 
 class AppRouter {
   /// Creates a [GoRouter] instance.
-  ///
-  /// Note: we accept an optional [extraRefreshListenable] so the router can
-  /// refresh (and therefore rebuild route pages) when global app state changes
-  /// that is not auth-related (e.g. runtime locale changes).
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
     final refresh = extraRefreshListenable == null ? auth : Listenable.merge([auth, extraRefreshListenable]);
     return GoRouter(
@@ -108,7 +105,7 @@ class AppRouter {
           path: AppRoutes.home,
           name: 'home',
           pageBuilder: (context, state) => const NoTransitionPage(
-            child: HomePagePremium(), // Corrigé ici : appel du widget premium
+            child: HomePagePremium(),
           ),
         ),
         GoRoute(
@@ -180,21 +177,17 @@ class AppRouter {
             child: EnterpriseDashboardPage(),
           ),
         ),
-
         GoRoute(
           path: AppRoutes.enterprise,
           name: 'enterpriseEntry',
           redirect: (context, state) {
             final isLoggedIn = auth.isAuthenticated;
             if (!isLoggedIn) return AppRoutes.login;
-
             final t = auth.currentUser?.accountType;
             if (t == AccountType.enterprise) return AppRoutes.enterpriseDashboard;
-
             return AppRoutes.enterpriseReg;
           },
         ),
-
         GoRoute(
           path: '/entreprise/:slug',
           name: 'enterprisePortalAliasFr',
@@ -361,7 +354,6 @@ class AppRouter {
             child: EducationPage(),
           ),
         ),
-
         GoRoute(
           path: AppRoutes.trainingHome,
           name: 'trainingHome',
@@ -388,7 +380,12 @@ class AppRouter {
             return NoTransitionPage(child: LessonPlayerPage(enrollmentId: id));
           },
         ),
-
+        // Route THIX Santé ajoutée
+        GoRoute(
+          path: AppRoutes.thixSante,
+          name: 'thixSante',
+          builder: (context, state) => const ThixSantePage(),
+        ),
         GoRoute(
           path: '${AppRoutes.admin}/:module',
           name: 'admin',
@@ -436,6 +433,7 @@ class AppRoutes {
   static const String learningDashboard = '/learn';
   static const String lessonPlayer = '/learn/player';
   static const String admin = '/admin';
+  static const String thixSante = '/sante'; // Route pour THIX Santé
 }
 
 extension GoRouterBackHelpers on BuildContext {
