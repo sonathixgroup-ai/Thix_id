@@ -516,7 +516,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                               title: 'THIX Santé',
                               iconBackgroundColor: const Color(0xFFFFEEF1),
                               iconColor: const Color(0xFFE63946),
-                              onTap: () {},
+                              onTap: () => context.push(AppRoutes.thixSante),
                             ),
                             _ServiceCard(
                               icon: Icons.account_balance_wallet_rounded,
