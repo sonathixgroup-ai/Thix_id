@@ -42,7 +42,7 @@ import 'package:thix_id/presentation/admin/admin_page.dart';
 import 'package:thix_id/presentation/admin/admin_routes.dart';
 import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
 import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart';
-import 'package:thix_id/presentation/reservation/thix_reservation_page.dart'; // AJOUT
+import 'package:thix_id/presentation/thix_reservation/thix_reservation_page.dart'; // AJOUT
 
 class AppRouter {
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
@@ -289,6 +289,13 @@ class AppRouter {
           ),
         ),
         GoRoute(
+  path: AppRoutes.thixMoney,
+  name: 'thixMoney',
+  pageBuilder: (context, state) => const NoTransitionPage(
+    child: ThixReservationPage(),
+  ),
+),
+        GoRoute(
           path: AppRoutes.opportunities,
           name: 'opportunities',
           pageBuilder: (context, state) => const NoTransitionPage(
@@ -451,6 +458,7 @@ class AppRoutes {
   static const String thixMarket = '/market';
   static const String thixSante = '/sante';
   static const String reservation = '/reservation'; // AJOUT
+  static String get thixMoney => '/thix-money';
 }
 
 extension GoRouterBackHelpers on BuildContext {
