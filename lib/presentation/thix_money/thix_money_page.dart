@@ -1,502 +1,954 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ThixMoneyPage extends StatefulWidget {
   const ThixMoneyPage({super.key});
 
   @override
-  State<ThixMoneyPage> createState() => _ThixMoneyPageState();
+  State<ThixMoneyPage> createState() =>
+      _ThixMoneyPageState();
 }
 
-class _ThixMoneyPageState extends State<ThixMoneyPage> {
+class _ThixMoneyPageState
+    extends State<ThixMoneyPage> {
   int currentIndex = 2;
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      extendBody: true,
+      backgroundColor: const Color(0xffF5F7FB),
 
-      /// ================= BOTTOM NAV =================
-      bottomNavigationBar: Container(
-        height: 78,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(30),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(.06),
-              blurRadius: 15,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            navItem(Icons.home_filled, "Accueil", 0),
-            navItem(Icons.swap_horiz, "Transactions", 1),
-            centerButton(),
-            navItem(Icons.credit_card, "Cartes", 3),
-            navItem(Icons.person_outline, "Profil", 4),
-          ],
-        ),
-      ),
+      bottomNavigationBar: _bottomNavigation(),
 
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-
-              /// ================= HEADER =================
-              Row(
-                children: [
-                  const Icon(
-                    Icons.menu_rounded,
-                    size: 30,
-                    color: Color(0xff091B4A),
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Row(
-                        children: [
-                          Text(
-                            "THIX ",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              color: Color(0xff091B4A),
-                            ),
-                          ),
-                          Text(
-                            "MONEY",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                              color: Color(0xff2563FF),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        "Votre argent, votre liberté.",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const Spacer(),
-
-                  Stack(
-                    children: [
-                      const Icon(
-                        Icons.notifications_none_rounded,
-                        size: 30,
-                        color: Color(0xff091B4A),
-                      ),
-                      Positioned(
-                        right: 2,
-                        top: 2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      image: const DecorationImage(
-                        image: NetworkImage(
-                          "https://i.pravatar.cc/300",
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              /// ================= CARD BALANCE =================
-              Container(
-                height: size.height * .21,
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xff020B52),
-                      Color(0xff00197D),
-                    ],
-                  ),
-                ),
-
-                child: Row(
+        child: SingleChildScrollView(
+          physics:
+              const ClampingScrollPhysics(),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 10,
+            ),
+            child: Column(
+              children: [
+                /// HEADER
+                Row(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Text(
-                                "Solde disponible",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(
-                                Icons.remove_red_eye_outlined,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-
-                          const Spacer(),
-
-                          const Text(
-                            "1.250.000 FC",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 38,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          const Text(
-                            "≈ 625,00 USD",
-                            style: TextStyle(
-                              color: Color(0xff8EA4FF),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-
-                          const Spacer(),
-
-                          Row(
-                            children: [
-                              actionButton(
-                                Icons.history,
-                                "Historique",
-                              ),
-                              const SizedBox(width: 12),
-                              miniButton(Icons.more_horiz),
-                            ],
-                          ),
-                        ],
-                      ),
+                    Icon(
+                      Icons.menu_rounded,
+                      size: 28,
+                      color: const Color(
+                          0xff111827),
                     ),
 
                     const SizedBox(width: 14),
 
-                    /// VISA CARD
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'THIX ',
+                                  style:
+                                      GoogleFonts
+                                          .poppins(
+                                    fontSize:
+                                        20,
+                                    fontWeight:
+                                        FontWeight
+                                            .w800,
+                                    color: const Color(
+                                        0xff111827),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text:
+                                      'MONEY',
+                                  style:
+                                      GoogleFonts
+                                          .poppins(
+                                    fontSize:
+                                        20,
+                                    fontWeight:
+                                        FontWeight
+                                            .w800,
+                                    color: const Color(
+                                        0xff2563FF),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Text(
+                            'Votre argent, votre liberté.',
+                            style:
+                                GoogleFonts
+                                    .poppins(
+                              fontSize: 12,
+                              color:
+                                  Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Stack(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration:
+                              BoxDecoration(
+                            color:
+                                Colors.white,
+                            shape:
+                                BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors
+                                    .black
+                                    .withOpacity(
+                                        .03),
+                                blurRadius:
+                                    8,
+                              )
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons
+                                .notifications_none_rounded,
+                            size: 24,
+                          ),
+                        ),
+
+                        Positioned(
+                          right: 4,
+                          top: 4,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration:
+                                const BoxDecoration(
+                              color:
+                                  Colors.red,
+                              shape: BoxShape
+                                  .circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '3',
+                                style:
+                                    GoogleFonts
+                                        .poppins(
+                                  fontSize:
+                                      9,
+                                  color: Colors
+                                      .white,
+                                  fontWeight:
+                                      FontWeight
+                                          .w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+
+                    const SizedBox(width: 10),
+
                     Container(
-                      width: 190,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
-                        image: const DecorationImage(
+                      width: 50,
+                      height: 50,
+                      decoration:
+                          BoxDecoration(
+                        shape:
+                            BoxShape.circle,
+                        image:
+                            const DecorationImage(
                           image: NetworkImage(
-                            "https://images.unsplash.com/photo-1640161704729-cbe966a08476?q=80&w=1200&auto=format&fit=crop",
+                            'https://i.pravatar.cc/300',
                           ),
                           fit: BoxFit.cover,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors
+                                .black
+                                .withOpacity(
+                                    .05),
+                            blurRadius: 10,
+                          )
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 18),
 
-              /// ================= MAIN ACTIONS =================
-              Row(
-                children: [
-                  Expanded(
-                    child: quickAction(
-                      Colors.blue,
-                      Icons.north_east_rounded,
-                      "Envoyer",
+                /// BALANCE CARD
+                Container(
+                  height: 170,
+                  padding:
+                      const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(
+                            28),
+                    gradient:
+                        const LinearGradient(
+                      begin:
+                          Alignment.topLeft,
+                      end: Alignment
+                          .bottomRight,
+                      colors: [
+                        Color(0xff020B56),
+                        Color(0xff001B8D),
+                      ],
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue
+                            .withOpacity(.18),
+                        blurRadius: 18,
+                        offset:
+                            const Offset(
+                                0, 8),
+                      )
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: quickAction(
-                      Colors.green,
-                      Icons.add,
-                      "Recharger",
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment
+                                  .start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Solde disponible',
+                                  style:
+                                      GoogleFonts.poppins(
+                                    color: Colors
+                                        .white70,
+                                    fontSize:
+                                        13,
+                                  ),
+                                ),
+
+                                const SizedBox(
+                                    width:
+                                        8),
+
+                                const Icon(
+                                  Icons
+                                      .visibility_outlined,
+                                  color: Colors
+                                      .white70,
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(
+                                height:
+                                    14),
+
+                            Text(
+                              '1.250.000 FC',
+                              style:
+                                  GoogleFonts
+                                      .poppins(
+                                color: Colors
+                                    .white,
+                                fontSize:
+                                    24,
+                                fontWeight:
+                                    FontWeight
+                                        .w800,
+                              ),
+                            ),
+
+                            const SizedBox(
+                                height:
+                                    6),
+
+                            Text(
+                              '≈ 625,00 USD',
+                              style:
+                                  GoogleFonts
+                                      .poppins(
+                                color: Colors
+                                    .white70,
+                                fontSize:
+                                    14,
+                              ),
+                            ),
+
+                            const Spacer(),
+
+                            Row(
+                              children: [
+                                _miniButton(
+                                  Icons
+                                      .history,
+                                  'Historique',
+                                ),
+
+                                const SizedBox(
+                                    width:
+                                        10),
+
+                                Container(
+                                  width:
+                                      48,
+                                  height:
+                                      48,
+                                  decoration:
+                                      BoxDecoration(
+                                    borderRadius:
+                                        BorderRadius.circular(
+                                            16),
+                                    border:
+                                        Border.all(
+                                      color: Colors
+                                          .white24,
+                                    ),
+                                  ),
+                                  child:
+                                      const Icon(
+                                    Icons
+                                        .more_horiz,
+                                    color: Colors
+                                        .white,
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      /// VISA CARD
+                      Container(
+                        width: 170,
+                        decoration:
+                            BoxDecoration(
+                          borderRadius:
+                              BorderRadius
+                                  .circular(
+                                      22),
+                          gradient:
+                              const LinearGradient(
+                            colors: [
+                              Color(
+                                  0xff020817),
+                              Color(
+                                  0xff0B1437),
+                            ],
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              right: -20,
+                              top: -20,
+                              child:
+                                  Container(
+                                width:
+                                    120,
+                                height:
+                                    120,
+                                decoration:
+                                    BoxDecoration(
+                                  shape: BoxShape
+                                      .circle,
+                                  color: Colors
+                                      .amber
+                                      .withOpacity(
+                                          .05),
+                                ),
+                              ),
+                            ),
+
+                            Padding(
+                              padding:
+                                  const EdgeInsets
+                                      .all(
+                                      16),
+                              child:
+                                  Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'THIX ID',
+                                    style:
+                                        GoogleFonts.poppins(
+                                      color: Colors.amber,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+
+                                  const Spacer(),
+
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width:
+                                            34,
+                                        height:
+                                            24,
+                                        decoration:
+                                            BoxDecoration(
+                                          color: Colors.amber,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                      ),
+
+                                      const SizedBox(
+                                          width:
+                                              10),
+
+                                      const Icon(
+                                        Icons.wifi,
+                                        color: Colors.amber,
+                                        size: 18,
+                                      )
+                                    ],
+                                  ),
+
+                                  const Spacer(),
+
+                                  Align(
+                                    alignment:
+                                        Alignment.bottomRight,
+                                    child:
+                                        Text(
+                                      'VISA',
+                                      style:
+                                          GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: quickAction(
-                      Colors.deepPurple,
-                      Icons.qr_code_scanner_rounded,
-                      "Scanner",
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: quickAction(
-                      Colors.orange,
-                      Icons.account_balance_wallet_outlined,
-                      "Retrait",
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              /// ================= RAPID PAYMENTS =================
-              sectionTitle("Paiements rapides"),
-
-              const SizedBox(height: 8),
-
-              Container(
-                height: 92,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
                 ),
 
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                const SizedBox(height: 16),
+
+                /// ACTIONS
+                Row(
                   children: [
-                    paymentItem(Icons.receipt_long, "Facture"),
-                    paymentItem(Icons.groups, "Tontine"),
-                    paymentItem(Icons.lightbulb, "Électricité"),
-                    paymentItem(Icons.water_drop, "Eau"),
-                    paymentItem(Icons.tv, "TV"),
-                    paymentItem(Icons.more_horiz, "Plus"),
+                    Expanded(
+                      child: _actionCard(
+                        color:
+                            const Color(
+                                0xff2563FF),
+                        icon:
+                            Icons.north_east,
+                        title:
+                            'Envoyer /\nTransférer',
+                        subtitle:
+                            'Vers un contact\nou un compte',
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: _actionCard(
+                        color:
+                            const Color(
+                                0xff16A34A),
+                        icon:
+                            Icons.add,
+                        title:
+                            'Recharger /\nApprovisionner',
+                        subtitle:
+                            'Depuis carte ou\nMobile Money',
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: _actionCard(
+                        color:
+                            const Color(
+                                0xff7C3AED),
+                        icon:
+                            Icons.qr_code_scanner,
+                        title:
+                            'Scanner QR',
+                        subtitle:
+                            'Payer ou recevoir\nrapidement',
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: _actionCard(
+                        color:
+                            const Color(
+                                0xffF59E0B),
+                        icon:
+                            Icons.wallet,
+                        title:
+                            'Retrait',
+                        subtitle:
+                            'Chez agent ou\nvers réseau tiers',
+                      ),
+                    ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
-              /// ================= HORIZONTAL CARDS =================
-              Expanded(
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    giftCard(
-                      title: "Carte THIX ID",
-                      subtitle: "Payez partout avec votre carte",
-                      color1: const Color(0xffE9EDFF),
-                      color2: Colors.white,
-                      button: "Voir carte",
-                      image:
-                          "https://images.unsplash.com/photo-1640161704729-cbe966a08476?q=80&w=1200&auto=format&fit=crop",
-                    ),
+                /// QUICK PAYMENTS
+                Container(
+                  padding:
+                      const EdgeInsets.all(
+                          18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(
+                            24),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .spaceBetween,
+                        children: [
+                          Text(
+                            'Paiements rapides',
+                            style:
+                                GoogleFonts
+                                    .poppins(
+                              fontSize: 18,
+                              fontWeight:
+                                  FontWeight
+                                      .w700,
+                            ),
+                          ),
 
-                    giftCard(
-                      title: "THIX Tontine",
-                      subtitle: "Épargnez et atteignez vos objectifs",
-                      color1: const Color(0xff011B7A),
-                      color2: const Color(0xff052FBF),
-                      button: "Rejoindre",
-                      image:
-                          "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop",
-                      dark: true,
-                    ),
+                          Row(
+                            children: [
+                              Text(
+                                'Voir tout',
+                                style:
+                                    GoogleFonts.poppins(
+                                  fontSize:
+                                      12,
+                                  color: Colors.grey,
+                                ),
+                              ),
 
-                    giftCard(
-                      title: "Parrainez & gagnez",
-                      subtitle: "Invitez vos proches",
-                      color1: const Color(0xffE8FFF0),
-                      color2: const Color(0xffF5FFF8),
-                      button: "Inviter",
-                      image:
-                          "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=1200&auto=format&fit=crop",
-                    ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 18,
+                              )
+                            ],
+                          )
+                        ],
+                      ),
 
-                    giftCard(
-                      title: "Crypto Wallet",
-                      subtitle: "Achetez Bitcoin & USDT",
-                      color1: const Color(0xff191919),
-                      color2: const Color(0xff303030),
-                      button: "Investir",
-                      image:
-                          "https://images.unsplash.com/photo-1621761191319-c6fb62004040?q=80&w=1200&auto=format&fit=crop",
-                      dark: true,
-                    ),
-                  ],
+                      const SizedBox(height: 18),
+
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .spaceAround,
+                        children: [
+                          _paymentItem(
+                            Icons.receipt,
+                            'Payer une\nfacture',
+                            const Color(
+                                0xff2563FF),
+                          ),
+
+                          _paymentItem(
+                            Icons.groups,
+                            'THIX\nTontine',
+                            const Color(
+                                0xff16A34A),
+                          ),
+
+                          _paymentItem(
+                            Icons.lightbulb,
+                            'Électricité',
+                            const Color(
+                                0xffF59E0B),
+                          ),
+
+                          _paymentItem(
+                            Icons.water_drop,
+                            'Eau',
+                            const Color(
+                                0xff2563FF),
+                          ),
+
+                          _paymentItem(
+                            Icons.tv,
+                            'TV &\nInternet',
+                            const Color(
+                                0xffEC4899),
+                          ),
+
+                          _paymentItem(
+                            Icons.more_horiz,
+                            'Autres\nservices',
+                            Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 10),
-            ],
+                const SizedBox(height: 16),
+
+                /// THIX CARD
+                Container(
+                  height: 170,
+                  padding:
+                      const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(
+                            24),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment
+                                  .start,
+                          children: [
+                            Text(
+                              'Carte THIX ID',
+                              style:
+                                  GoogleFonts
+                                      .poppins(
+                                fontSize:
+                                    18,
+                                fontWeight:
+                                    FontWeight
+                                        .w700,
+                              ),
+                            ),
+
+                            const SizedBox(
+                                height:
+                                    8),
+
+                            Text(
+                              'Payez partout avec votre carte\nTHIX ID Visa.',
+                              style:
+                                  GoogleFonts
+                                      .poppins(
+                                fontSize:
+                                    13,
+                                color: Colors
+                                    .grey,
+                              ),
+                            ),
+
+                            const Spacer(),
+
+                            Container(
+                              padding:
+                                  const EdgeInsets
+                                      .symmetric(
+                                horizontal:
+                                    20,
+                                vertical:
+                                    12,
+                              ),
+                              decoration:
+                                  BoxDecoration(
+                                color: const Color(
+                                    0xff0B1F8F),
+                                borderRadius:
+                                    BorderRadius.circular(
+                                        16),
+                              ),
+                              child: Text(
+                                'Voir ma carte',
+                                style:
+                                    GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 14),
+
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child:
+                                  Container(
+                                decoration:
+                                    BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.circular(20),
+                                  gradient:
+                                      const LinearGradient(
+                                    colors: [
+                                      Color(0xff020817),
+                                      Color(0xff0B1437),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(
+                                height:
+                                    10),
+
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius:
+                                      18,
+                                  backgroundColor:
+                                      const Color(0xff0B1F8F),
+                                  child:
+                                      const Icon(
+                                    Icons
+                                        .verified,
+                                    color: Colors
+                                        .white,
+                                    size: 18,
+                                  ),
+                                ),
+
+                                const SizedBox(
+                                    width:
+                                        8),
+
+                                Expanded(
+                                  child:
+                                      Text(
+                                    'Sécurisée\net acceptée partout',
+                                    style:
+                                        GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// GIFTS
+                SizedBox(
+                  height: 150,
+                  child: ListView(
+                    scrollDirection:
+                        Axis.horizontal,
+                    children: [
+                      _giftCard(
+                        bg:
+                            const Color(
+                                0xff001B8D),
+                        title:
+                            'THIX Tontine',
+                        subtitle:
+                            'Épargnez, cotisez et atteignez\nvos objectifs.',
+                        button:
+                            'Rejoindre',
+                      ),
+
+                      const SizedBox(width: 14),
+
+                      _giftCard(
+                        bg:
+                            const Color(
+                                0xffEAF8EE),
+                        title:
+                            'Parrainez & gagnez',
+                        subtitle:
+                            'Invitez vos proches et\ngagnez des récompenses.',
+                        button:
+                            'Inviter',
+                        dark: false,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// MORE SERVICES
+                Container(
+                  padding:
+                      const EdgeInsets.all(
+                          18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.circular(
+                            24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+                    children: [
+                      Text(
+                        'Plus de services',
+                        style:
+                            GoogleFonts
+                                .poppins(
+                          fontSize: 18,
+                          fontWeight:
+                              FontWeight
+                                  .w700,
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .spaceAround,
+                        children: [
+                          _miniService(
+                              Icons.security,
+                              'Assurance'),
+                          _miniService(
+                              Icons.bar_chart,
+                              'Investir'),
+                          _miniService(
+                              Icons.discount,
+                              'Coupons'),
+                          _miniService(
+                              Icons.receipt_long,
+                              'Relevés'),
+                          _miniService(
+                              Icons.support_agent,
+                              'Support'),
+                          _miniService(
+                              Icons.more_horiz,
+                              'Plus'),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// ================= WIDGETS =================
-
-  Widget navItem(IconData icon, String label, int index) {
-    final active = currentIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          currentIndex = index;
-        });
-      },
-
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: active ? Colors.blue : Colors.grey,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: active ? Colors.blue : Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget centerButton() {
-    return Transform.translate(
-      offset: const Offset(0, -18),
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xff2563FF),
-              Color(0xff003CFF),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withOpacity(.4),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.qr_code_scanner,
-                color: Colors.white, size: 28),
-            SizedBox(height: 2),
-            Text(
-              "QR",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget actionButton(IconData icon, String text) {
+  Widget _miniButton(
+      IconData icon, String text) {
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 12,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius:
+            BorderRadius.circular(18),
         border: Border.all(
           color: Colors.white24,
         ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white),
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 18,
+          ),
+
           const SizedBox(width: 8),
+
           Text(
             text,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               color: Colors.white,
-              fontWeight: FontWeight.w600,
+              fontWeight:
+                  FontWeight.w500,
             ),
-          ),
+          )
         ],
       ),
     );
   }
 
-  Widget miniButton(IconData icon) {
+  Widget _actionCard({
+    required Color color,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white24,
-        ),
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-      ),
-    );
-  }
-
-  Widget quickAction(
-    Color color,
-    IconData icon,
-    String title,
-  ) {
-    return Container(
-      height: 105,
+      height: 210,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius:
+            BorderRadius.circular(24),
       ),
-
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Container(
             width: 52,
@@ -505,100 +957,109 @@ class _ThixMoneyPageState extends State<ThixMoneyPage> {
               color: color,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.white),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 24,
+            ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 18),
 
           Text(
             title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight:
+                  FontWeight.w700,
             ),
           ),
+
+          const SizedBox(height: 14),
+
+          Text(
+            subtitle,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              height: 1.5,
+              color: Colors.grey,
+            ),
+          )
         ],
       ),
     );
   }
 
-  Widget paymentItem(IconData icon, String title) {
+  Widget _paymentItem(
+    IconData icon,
+    String text,
+    Color color,
+  ) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CircleAvatar(
-          radius: 22,
-          backgroundColor: const Color(0xffF5F6FA),
-          child: Icon(icon, color: Colors.blue),
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: color.withOpacity(.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 22,
+          ),
         ),
-        const SizedBox(height: 6),
+
+        const SizedBox(height: 8),
+
         Text(
-          title,
-          style: const TextStyle(
+          text,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
             fontSize: 11,
-            fontWeight: FontWeight.w500,
+            height: 1.5,
+            fontWeight:
+                FontWeight.w500,
           ),
-        ),
+        )
       ],
     );
   }
 
-  Widget sectionTitle(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Color(0xff091B4A),
-          ),
-        ),
-
-        const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 16,
-          color: Colors.grey,
-        ),
-      ],
-    );
-  }
-
-  Widget giftCard({
+  Widget _giftCard({
+    required Color bg,
     required String title,
     required String subtitle,
-    required Color color1,
-    required Color color2,
     required String button,
-    required String image,
-    bool dark = false,
+    bool dark = true,
   }) {
     return Container(
       width: 320,
-      margin: const EdgeInsets.only(right: 14),
       padding: const EdgeInsets.all(18),
-
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: [color1, color2],
-        ),
+        color: bg,
+        borderRadius:
+            BorderRadius.circular(24),
       ),
-
       child: Row(
         children: [
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment
+                      .start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    color: dark ? Colors.white : Colors.black,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
+                  style:
+                      GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight:
+                        FontWeight.w700,
+                    color: dark
+                        ? Colors.white
+                        : Colors.green,
                   ),
                 ),
 
@@ -606,54 +1067,234 @@ class _ThixMoneyPageState extends State<ThixMoneyPage> {
 
                 Text(
                   subtitle,
-                  style: TextStyle(
+                  style:
+                      GoogleFonts.poppins(
+                    fontSize: 13,
+                    height: 1.6,
                     color: dark
                         ? Colors.white70
-                        : Colors.black54,
-                    fontSize: 13,
+                        : Colors.black87,
                   ),
                 ),
 
                 const Spacer(),
 
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
+                  padding:
+                      const EdgeInsets
+                          .symmetric(
+                    horizontal: 20,
+                    vertical: 10,
                   ),
-                  decoration: BoxDecoration(
+                  decoration:
+                      BoxDecoration(
                     color: dark
                         ? Colors.white
-                        : const Color(0xff003CFF),
-                    borderRadius: BorderRadius.circular(16),
+                        : Colors.green,
+                    borderRadius:
+                        BorderRadius
+                            .circular(
+                                16),
                   ),
                   child: Text(
                     button,
-                    style: TextStyle(
+                    style:
+                        GoogleFonts
+                            .poppins(
+                      fontWeight:
+                          FontWeight
+                              .w600,
                       color: dark
                           ? Colors.black
                           : Colors.white,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
+                )
               ],
             ),
           ),
 
-          const SizedBox(width: 12),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.network(
-              image,
-              width: 120,
-              height: 150,
-              fit: BoxFit.cover,
+          Container(
+            width: 95,
+            decoration:
+                BoxDecoration(
+              borderRadius:
+                  BorderRadius
+                      .circular(18),
+              color: Colors.white
+                  .withOpacity(.08),
             ),
-          ),
+          )
         ],
       ),
+    );
+  }
+
+  Widget _miniService(
+      IconData icon, String text) {
+    return Column(
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color:
+                const Color(0xffF5F7FB),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            size: 22,
+            color:
+                const Color(0xff2563FF),
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            fontWeight:
+                FontWeight.w500,
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _bottomNavigation() {
+    return Container(
+      height: 88,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            const BorderRadius.vertical(
+          top: Radius.circular(28),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color:
+                Colors.black.withOpacity(
+                    .05),
+            blurRadius: 20,
+          )
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment
+                .spaceAround,
+        children: [
+          _navItem(
+              Icons.home_rounded,
+              'Accueil',
+              0),
+
+          _navItem(
+              Icons.sync_alt_rounded,
+              'Transactions',
+              1),
+
+          Container(
+            width: 74,
+            height: 74,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient:
+                  const LinearGradient(
+                colors: [
+                  Color(0xff2563FF),
+                  Color(0xff0047FF),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue
+                      .withOpacity(.35),
+                  blurRadius: 18,
+                )
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment:
+                  MainAxisAlignment
+                      .center,
+              children: [
+                const Icon(
+                  Icons.qr_code_scanner,
+                  color: Colors.white,
+                  size: 28,
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  'Scanner\nQR',
+                  textAlign:
+                      TextAlign.center,
+                  style:
+                      GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight:
+                        FontWeight.w500,
+                  ),
+                )
+              ],
+            ),
+          ),
+
+          _navItem(
+              Icons.credit_card_outlined,
+              'Cartes',
+              3),
+
+          _navItem(
+              Icons.person_outline,
+              'Profil',
+              4),
+        ],
+      ),
+    );
+  }
+
+  Widget _navItem(
+      IconData icon,
+      String title,
+      int index) {
+    final active =
+        currentIndex == index;
+
+    return Column(
+      mainAxisAlignment:
+          MainAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          size: 24,
+          color: active
+              ? const Color(
+                  0xff2563FF)
+              : Colors.grey,
+        ),
+
+        const SizedBox(height: 5),
+
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            fontWeight:
+                FontWeight.w500,
+            color: active
+                ? const Color(
+                    0xff2563FF)
+                : Colors.grey,
+          ),
+        )
+      ],
     );
   }
 }
