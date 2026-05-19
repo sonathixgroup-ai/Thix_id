@@ -123,8 +123,8 @@ class ThixReservationScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: [
-                      const Text("THIX ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    children: const [
+                      Text("THIX ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       Text("RÉSERVATION", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1A73E8))),
                     ],
                   ),
@@ -170,8 +170,8 @@ class ThixReservationScreen extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Colors.blue.shade50, const Color(0xFFE8F0FE)],
-              begin: Alignment.leftCenter,
-              end: Alignment.rightCenter,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -191,7 +191,7 @@ class ThixReservationScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     const Text("Jusqu'à -40%", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
-                    const Text("sur vos réservations de bus & vols", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.black80)),
+                    Text("sur vos réservations de bus & vols", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.black.withOpacity(0.8))),
                     const Text("Valable jusqu'au 30 Juin 2025", style: TextStyle(fontSize: 8, color: Colors.grey)),
                     const SizedBox(height: 6),
                     ElevatedButton(
@@ -207,7 +207,6 @@ class ThixReservationScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              // Illustration du bus à droite
               Positioned(
                 right: -10,
                 bottom: 10,
@@ -217,13 +216,12 @@ class ThixReservationScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // Les petits points (Page Indicators) sous la bannière
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(width: 12, height: 5, decoration: BoxDecoration(color: const Color(0xFF1A73E8), borderRadius: BorderRadius.circular(4))),
             const SizedBox(width: 4),
-            ...List.generate(3, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 2), width: 5, height: 5, decoration: const BoxDecoration(color: Colors.black24, shape: BoxShape.circle))),
+            ...List.generate(3, (index) => Container(margin: const EdgeInsets.symmetric(horizontal: 2), width: 5, height: 5, decoration: const BoxDecoration(color: Colors.black26, shape: BoxShape.circle))),
           ],
         )
       ],
@@ -266,7 +264,7 @@ class ThixReservationScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black80)),
+        Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black.withOpacity(0.8))),
         Row(
           children: const [
             Text("Voir tout", style: TextStyle(fontSize: 10, color: Colors.grey)),
@@ -344,7 +342,7 @@ class ThixReservationScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(offer['title'] as String, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54)),
-                Text(offer['promo'] as String, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1A73E8))),
+                const Text(offer['promo'] as String, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1A73E8))),
                 const SizedBox(height: 1),
                 Text(offer['desc'] as String, style: const TextStyle(fontSize: 8, color: Colors.black54, height: 1.1)),
               ],
@@ -359,7 +357,7 @@ class ThixReservationScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F3FF), // Couleur violette claire du fond
+        color: const Color(0xFFF5F3FF),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -375,7 +373,6 @@ class ThixReservationScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Les visages empilés à droite (Profils des parrains)
           Row(
             children: List.generate(3, (index) => const Align(
               widthFactor: 0.6,
@@ -452,7 +449,7 @@ class ThixReservationScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(restau['time']!, style: const TextStyle(fontSize: 7.5, color: Colors.black54)),
-                          const Icon(Icons.favorite_border, size: 10, color: Colors.black54), // Petit cœur rajouté !
+                          const Icon(Icons.favorite_border, size: 10, color: Colors.black54),
                         ],
                       )
                     ],
@@ -470,7 +467,7 @@ class ThixReservationScreen extends StatelessWidget {
     final annonces = [
       {'tag': 'À VENDRE', 'tagColor': Colors.green, 'title': 'Toyota RAV4 2021', 'price': '25.000.000 FC'},
       {'tag': 'À LOUER', 'tagColor': Colors.red, 'title': 'Appartement 3 pièces', 'price': '600.000 FC / mois'},
-      {'tag': 'SERVICE', 'tagColor': Colors.teal, 'title': 'Ménage à domicile', 'price': 'À partir de 10.000 FC'}, // 3e carte ajoutée !
+      {'tag': 'SERVICE', 'tagColor': Colors.teal, 'title': 'Ménage à domicile', 'price': 'À partir de 10.000 FC'},
     ];
 
     return SizedBox(
