@@ -290,8 +290,8 @@ class AppRouter {
         GoRoute(
   path: AppRoutes.thixMoney,
   name: 'thixMoney',
-  pageBuilder: (context, state) => const NoTransitionPage(
-    child: ThixMoneyPage(),
+  pageBuilder: (context, state) => NoTransitionPage(
+    child: const ThixMoneyPage(),
   ),
 ),
         GoRoute(
