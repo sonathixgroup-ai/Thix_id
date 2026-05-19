@@ -151,8 +151,7 @@ Expanded(
     ),
   ),
 ),
-                      
-                      // --- COLONNE DROITE : EVENEMENTS & OPPORTUNITES (Flex 3) ---
+                                            // --- COLONNE DROITE : EVENEMENTS & OPPORTUNITES (Flex 3) ---
                       Expanded(
                         flex: 3,
                         child: Column(
