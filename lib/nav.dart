@@ -44,6 +44,7 @@ import 'package:thix_id/presentation/thix_market/thix_market_page.dart';
 import 'package:thix_id/presentation/thix_sante/thix_sante_page.dart';
 import 'package:thix_id/presentation/thix_reservation/thix_reservation_page.dart';
 import 'package:thix_id/presentation/thix_money/thix_money_page.dart';
+import 'package:thix_id/presentation/thix_incubator/incubator_page.dart';
 class AppRouter {
   static GoRouter create(AuthController auth, {Listenable? extraRefreshListenable}) {
     final refresh = extraRefreshListenable == null ? auth : Listenable.merge([auth, extraRefreshListenable]);
@@ -466,6 +467,7 @@ class AppRoutes {
   static const String thixSante = '/sante';
   static const String reservation = '/reservation'; // AJOUT
   static String get thixMoney => '/thix-money';
+  static String get incubator => '/incubator';
 }
 
 extension GoRouterBackHelpers on BuildContext {
