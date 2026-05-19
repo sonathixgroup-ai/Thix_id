@@ -17,30 +17,38 @@ class NetworkPage extends StatelessWidget {
         elevation: 0.5,
         title: Row(
           children: [
-            Image.asset('assets/logo_thix.png', height: 32, errorBuilder: (_, __, ___) => const Icon(Icons.blur_on, color: primaryBlue, size: 32)),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.blur_on, color: primaryBlue, size: 22),
+            ),
             const SizedBox(width: 8),
             const Text(
               'THIX RÉSEAU PRO',
-              style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold, fontSize: 15),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Badge(label: Text('3'), child: Icon(Icons.notifications_none, color: textDark)),
+            icon: const Badge(
+              label: Text('3', style: TextStyle(color: Colors.white, fontSize: 10)),
+              child: Icon(Icons.notifications_none, color: textDark),
+            ),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Badge(label: Text('5'), child: Icon(Icons.chat_bubble_outline, color: textDark)),
+            icon: const Badge(
+              label: Text('5', style: TextStyle(color: Colors.white, fontSize: 10)),
+              child: Icon(Icons.chat_bubble_outline, color: textDark),
+            ),
             onPressed: () {},
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: AssetImage('assets/profile.jpg'),
-            ),
-          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -50,18 +58,97 @@ class NetworkPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Barre de Recherche Rapide
+              // 1. BLOC PROFIL FIXE (Anciennement à droite, maintenant adapté au mobile)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.15)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.blueGrey,
+                          child: Icon(Icons.person, color: Colors.white, size: 28),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Text(
+                                    "Hi, Koffi Amani",
+                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: textDark),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text("👋", style: TextStyle(fontSize: 14)),
+                                ],
+                              ),
+                              const Text(
+                                "Entrepreneur | Innovateur",
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(Icons.location_on, size: 12, color: Colors.grey[600]),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    "Abidjan, Côte d'Ivoire",
+                                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 36),
+                        side: const BorderSide(color: primaryBlue),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {},
+                      child: const Text("Voir mon profil", style: TextStyle(color: primaryBlue, fontSize: 13, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    // Statistiques Réseau
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatItem("128", "Connexions"),
+                        _buildStatItem("24", "Demandes"),
+                        _buildStatItem("18", "Visites"),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 2. BARRE DE RECHERCHE
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+                  border: Border.all(color: Colors.grey.withOpacity(0.15)),
                 ),
                 child: const TextField(
                   decoration: InputDecoration(
                     hintText: "Rechercher des personnes, entreprises...",
-                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                    hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
+                    prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 12),
                   ),
@@ -69,58 +156,61 @@ class NetworkPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // 2. Grille d'actions rapides (Taille ultra-réduite pour mobile)
+              // 3. BOUTONS D'ACTIONS RAPIDES (Taille mobile optimisée)
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 3,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
-                childAspectRatio: 1.4,
+                childAspectRatio: 1.3,
                 children: [
-                  _buildQuickAction(Icons.person_add_alt_1, "Trouver", primaryBlue),
+                  _buildQuickAction(Icons.person_add_alt_1, "Trouver des\npersonnes", primaryBlue),
                   _buildQuickAction(Icons.business, "Entreprises", Colors.emerald),
-                  _buildQuickAction(Icons.work_outline, "Emplois", Colors.orange),
+                  _buildQuickAction(Icons.work_outline, "Offres d'emploi", Colors.orange),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // 3. Section : Suggestions Pour Vous (Format liste horizontale compacte)
+              // 4. SECTION : SUGGESTIONS POUR VOUS (Défilement horizontal fluide)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Suggestions pour vous", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: textDark)),
-                  TextButton(onPressed: () {}, child: const Text("Voir tout", style: TextStyle(fontSize: 13, color: primaryBlue))),
+                  const Text("Suggestions pour vous", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textDark)),
+                  TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                    child: const Text("Voir tout", style: TextStyle(fontSize: 12, color: primaryBlue, fontWeight: FontWeight.bold)),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 145, // Hauteur fixe stricte pour empêcher le débordement vertical
+                height: 155, // Hauteur contrôlée pour éviter le "Right/Bottom Overflowed"
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   children: [
-                    _buildCompactSuggestionCard("Ismaël Koné", "CEO, AgroVision", "12 en commun"),
-                    _buildCompactSuggestionCard("Fatou N'Guessan", "Consultante RH", "7 en commun"),
-                    _buildCompactSuggestionCard("Herve Yao", "Investisseur", "5 en commun"),
+                    _buildSuggestionCard("Ismaël Koné", "CEO, AgroVision", "12 en commun"),
+                    _buildSuggestionCard("Fatou N'Guessan", "Consultante RH", "7 en commun"),
+                    _buildSuggestionCard("Herve Yao", "Investisseur", "5 en commun"),
+                    _buildSuggestionCard("Adama Bakayoko", "Développeur Fullstack", "9 en commun"),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // 4. Section : Fil d'actualité
+              // 5. SECTION : FIL D'ACTUALITÉ
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Fil d'actualité", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: textDark)),
-                  DropdownButton<String>(
-                    value: 'Récents',
-                    underline: const SizedBox(),
-                    style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
-                    items: <String>['Récents', 'Populaires'].map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
-                    }).toList(),
-                    onChanged: (_) {},
+                  const Text("Fil d'actualité", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textDark)),
+                  Row(
+                    children: [
+                      Text("Trier par : ", style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      Text("Récents", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textDark)),
+                      Icon(Icons.arrow_drop_down, size: 16, color: Colors.grey[600]),
+                    ],
                   ),
                 ],
               ),
@@ -129,32 +219,45 @@ class NetworkPage extends StatelessWidget {
                 author: "Aïcha Diallo",
                 role: "CEO, TechNova",
                 time: "2h",
-                text: "Heureuse de d'annoncer le lancement de notre nouvelle plateforme d'intelligence artificielle dédiée aux PME. Hâte d'avoir vos retours !",
+                text: "Heureuse d'annoncer le lancement de notre nouvelle plateforme d'intelligence artificielle dédiée aux PME. Hâte d'avoir vos retours !",
               ),
             ],
           ),
         ),
       ),
-      // Bottom Navigation Bar Mobile standard
+      // BARRE DE NAVIGATION INFÉRIEURE MOBILE
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
+        currentIndex: 1, // "Réseau" activé
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
         selectedItemColor: primaryBlue,
         unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Réseau'),
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Accueil'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Réseau'),
           BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 36, color: primaryBlue), label: 'Créer'),
-          BottomNavigationBarItem(icon: Icon(Icons.mail_outline), label: 'Messages'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profil'),
+          BottomNavigationBarItem(icon: Icon(Icons.mail_outline), activeIcon: Icon(Icons.mail), label: 'Messages'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
     );
   }
 
-  // Composant widget pour les boutons du haut
+  // Widget utilitaire pour les statistiques du profil
+  Widget _buildStatItem(String count, String label) {
+    return Column(
+      children: [
+        Text(count, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+      ],
+    );
+  }
+
+  // Widget utilitaire pour les boutons d'actions en grille
   Widget _buildQuickAction(IconData icon, String label, Color color) {
     return Container(
       decoration: BoxDecoration(
@@ -166,15 +269,19 @@ class NetworkPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, color: color, size: 20),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)), textAlign: Center),
+          const SizedBox(height: 6),
+          Text(
+            label, 
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B), height: 1.2), 
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
   }
 
-  // Composant widget pour les cartes de suggestions (Taille optimisée)
-  Widget _buildCompactSuggestionCard(String name, String title, String mutual) {
+  // Widget utilitaire pour les cartes de suggestions horizontales
+  Widget _buildSuggestionCard(String name, String title, String mutual) {
     return Container(
       width: 135,
       margin: const EdgeInsets.only(right: 10, bottom: 4),
@@ -187,12 +294,16 @@ class NetworkPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircleAvatar(radius: 20, backgroundColor: Color(0xFFE2E8F0), child: Icon(Icons.person, color: Colors.grey, size: 20)),
-          const SizedBox(height: 6),
-          Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-          Text(title, style: const TextStyle(fontSize: 10, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+          const CircleAvatar(
+            radius: 18, 
+            backgroundColor: Color(0xFFE2E8F0), 
+            child: Icon(Icons.person, color: Colors.blueGrey, size: 20)
+          ),
           const SizedBox(height: 4),
-          Text(mutual, style: const TextStyle(fontSize: 9, color: Colors.blueGrey), maxLines: 1),
+          Text(name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(title, style: const TextStyle(fontSize: 9, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 2),
+          Text(mutual, style: const TextStyle(fontSize: 8, color: Colors.grey), maxLines: 1),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
@@ -213,7 +324,7 @@ class NetworkPage extends StatelessWidget {
     );
   }
 
-  // Composant widget pour le post du fil d'actualité
+  // Widget utilitaire pour le rendu d'un post dans le fil
   Widget _buildFeedPost({required String author, required String role, required String time, required String text}) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -233,23 +344,27 @@ class NetworkPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(author, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                    Text("$role • $time", style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(author, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text("$role • $time", style: const TextStyle(fontSize: 10, color: Colors.grey)),
                   ],
                 ),
               ),
-              IconButton(icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey), onPressed: () {}),
+              Icon(Icons.more_vert, size: 16, color: Colors.grey[600]),
             ],
           ),
           const SizedBox(height: 8),
-          Text(text, style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF334155))),
-          const SizedBox(height: 12),
-          // Remplacement de l'image lourde par un conteneur d'illustration UI premium simulé
+          Text(text, style: const TextStyle(fontSize: 12, height: 1.3, color: Color(0xFF334155))),
+          const SizedBox(height: 10),
+          // Bannière TechNova AI simulée proprement sans assets externes requis
           Container(
-            height: 130,
+            height: 120,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             padding: const EdgeInsets.all(12),
@@ -257,24 +372,38 @@ class NetworkPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("TechNova AI", style: TextStyle(color: Colors.blue[400], fontWeight: FontWeight.bold, fontSize: 14)),
+                const Text("TechNova AI", style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 4),
-                const Text("L'intelligence au service\nde votre croissance.", style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500)),
+                Text(
+                  "L'intelligence au service\nde votre croissance.", 
+                  style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 11, fontWeight: FontWeight.w500, height: 1.2),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 8),
           const Divider(height: 1),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              TextButton.icon(onPressed: () {}, icon: const Icon(Icons.thumb_up_out_line_rounded, size: 16, color: Colors.grey), label: const Text("J'aime", style: TextStyle(fontSize: 11, color: Colors.grey))),
-              TextButton.icon(onPressed: () {}, icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.grey), label: const Text("Commenter", style: TextStyle(fontSize: 11, color: Colors.grey))),
-              TextButton.icon(onPressed: () {}, icon: const Icon(Icons.share_outlined, size: 16, color: Colors.grey), label: const Text("Partager", style: TextStyle(fontSize: 11, color: Colors.grey))),
+              _buildPostActionButton(Icons.thumb_up_out_line_rounded, "J'aime"),
+              _buildPostActionButton(Icons.chat_bubble_outline, "Commenter"),
+              _buildPostActionButton(Icons.share_outlined, "Partager"),
             ],
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildPostActionButton(IconData icon, String label) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: Colors.grey[600]),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+      ],
     );
   }
 }
