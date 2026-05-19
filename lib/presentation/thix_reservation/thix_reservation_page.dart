@@ -342,7 +342,7 @@ class ThixReservationPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(offer['title'] as String, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54)),
-                const Text(offer['promo'] as String, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1A73E8))),
+                Text(offer['promo'] as String, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1A73E8))),
                 const SizedBox(height: 1),
                 Text(offer['desc'] as String, style: const TextStyle(fontSize: 8, color: Colors.black54, height: 1.1)),
               ],
