@@ -1,11 +1,15 @@
+import 'dart:convert';
+
+/// Represents a certificate issued to a user for completing a training.
 class TrainingCertificate {
   final String id;
   final String userId;
   final String trainingId;
-  final String verificationId;
-  final String status; // issued | revoked
+  final String certificateNumber;
   final DateTime issuedAt;
-  final DateTime? revokedAt;
+  final DateTime? expiresAt;
+  final String? certificateUrl;
+  final String? qrCodeUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -13,55 +17,27 @@ class TrainingCertificate {
     required this.id,
     required this.userId,
     required this.trainingId,
-    required this.verificationId,
-    required this.status,
+    required this.certificateNumber,
     required this.issuedAt,
-    required this.revokedAt,
+    required this.expiresAt,
+    required this.certificateUrl,
+    required this.qrCodeUrl,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  TrainingCertificate copyWith({
-    String? id,
-    String? userId,
-    String? trainingId,
-    String? verificationId,
-    String? status,
-    DateTime? issuedAt,
-    DateTime? revokedAt,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return TrainingCertificate(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      trainingId: trainingId ?? this.trainingId,
-      verificationId: verificationId ?? this.verificationId,
-      status: status ?? this.status,
-      issuedAt: issuedAt ?? this.issuedAt,
-      revokedAt: revokedAt ?? this.revokedAt,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-
   factory TrainingCertificate.fromJson(Map<String, dynamic> json) {
-    DateTime? dt(String key) {
-      final v = json[key];
-      if (v == null) return null;
-      return DateTime.tryParse(v.toString());
-    }
-
     return TrainingCertificate(
       id: (json['id'] ?? '').toString(),
       userId: (json['user_id'] ?? '').toString(),
       trainingId: (json['training_id'] ?? '').toString(),
-      verificationId: (json['verification_id'] ?? '').toString(),
-      status: (json['status'] ?? 'issued').toString(),
-      issuedAt: dt('issued_at') ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      revokedAt: dt('revoked_at'),
-      createdAt: DateTime.tryParse((json['created_at'] ?? '').toString()) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      updatedAt: DateTime.tryParse((json['updated_at'] ?? '').toString()) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      certificateNumber: (json['certificate_number'] ?? '').toString(),
+      issuedAt: DateTime.tryParse((json['issued_at'] ?? '').toString()) ?? DateTime.now(),
+      expiresAt: DateTime.tryParse((json['expires_at'] ?? '').toString()),
+      certificateUrl: (json['certificate_url'] ?? '').toString().trim().isEmpty ? null : (json['certificate_url'] ?? '').toString(),
+      qrCodeUrl: (json['qr_code_url'] ?? '').toString().trim().isEmpty ? null : (json['qr_code_url'] ?? '').toString(),
+      createdAt: DateTime.tryParse((json['created_at'] ?? '').toString()) ?? DateTime.now(),
+      updatedAt: DateTime.tryParse((json['updated_at'] ?? '').toString()) ?? DateTime.now(),
     );
   }
 
@@ -70,10 +46,11 @@ class TrainingCertificate {
       'id': id,
       'user_id': userId,
       'training_id': trainingId,
-      'verification_id': verificationId,
-      'status': status,
+      'certificate_number': certificateNumber,
       'issued_at': issuedAt.toUtc().toIso8601String(),
-      'revoked_at': revokedAt?.toUtc().toIso8601String(),
+      'expires_at': expiresAt?.toUtc().toIso8601String(),
+      'certificate_url': certificateUrl,
+      'qr_code_url': qrCodeUrl,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
