@@ -490,11 +490,22 @@ class ThixMarketPage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-Text(p['price']!, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.extraBold, color: Color(0xFF0F172A))),
-Text(p['oldPrice']!, style: const TextStyle(fontSize: 8.5, color: Colors.grey, decoration: TextDecoration.lineThrough)),
-                    ],
-                  ),
-                ),
+Text(
+  p['price'] ?? '',
+  style: const TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.extraBold,   // bien noter le B majuscule
+    color: Color(0xFF0F172A),
+  ),
+),
+Text(
+  p['oldPrice'] ?? '',
+  style: const TextStyle(
+    fontSize: 8.5,
+    color: Colors.grey,
+    decoration: TextDecoration.lineThrough,
+  ),
+),
                 Positioned(
                   top: 8, left: 8,
                   child: Container(
