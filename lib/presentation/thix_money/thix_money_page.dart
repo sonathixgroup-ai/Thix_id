@@ -198,7 +198,7 @@ class _ThixMoneyPageState
 
                 /// BALANCE CARD
                 Container(
-                  height: 170,
+                  height: 140,
                   padding:
                       const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -244,7 +244,7 @@ class _ThixMoneyPageState
                                     color: Colors
                                         .white70,
                                     fontSize:
-                                        13,
+                                        14,
                                   ),
                                 ),
 
@@ -274,7 +274,7 @@ class _ThixMoneyPageState
                                 color: Colors
                                     .white,
                                 fontSize:
-                                    24,
+                                    16,
                                 fontWeight:
                                     FontWeight
                                         .w800,
@@ -345,7 +345,7 @@ class _ThixMoneyPageState
 
                       /// VISA CARD
                       Container(
-                        width: 170,
+                        width: 140,
                         decoration:
                             BoxDecoration(
                           borderRadius:
@@ -365,14 +365,14 @@ class _ThixMoneyPageState
                         child: Stack(
                           children: [
                             Positioned(
-                              right: -20,
-                              top: -20,
+                              right: -16,
+                              top: -16,
                               child:
                                   Container(
                                 width:
-                                    120,
+                                    100,
                                 height:
-                                    120,
+                                    100,
                                 decoration:
                                     BoxDecoration(
                                   shape: BoxShape
@@ -439,7 +439,7 @@ class _ThixMoneyPageState
                                         Alignment.bottomRight,
                                     child:
                                         Text(
-                                      'VISA',
+                                      'NFC PAYE',
                                       style:
                                           GoogleFonts.poppins(
                                         color: Colors.white,
@@ -458,7 +458,7 @@ class _ThixMoneyPageState
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 /// ACTIONS
                 Row(
@@ -471,7 +471,7 @@ class _ThixMoneyPageState
                         icon:
                             Icons.north_east,
                         title:
-                            'Envoyer /\nTransférer',
+                            'Envoyer',
                         subtitle:
                             'Vers un contact\nou un compte',
                       ),
@@ -487,7 +487,7 @@ class _ThixMoneyPageState
                         icon:
                             Icons.add,
                         title:
-                            'Recharger /\nApprovisionner',
+                            'Recharger',
                         subtitle:
                             'Depuis carte ou\nMobile Money',
                       ),
@@ -527,7 +527,7 @@ class _ThixMoneyPageState
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 /// QUICK PAYMENTS
                 Container(
@@ -637,7 +637,7 @@ class _ThixMoneyPageState
 
                 /// THIX CARD
                 Container(
-                  height: 170,
+                  height: 140,
                   padding:
                       const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -789,7 +789,7 @@ class _ThixMoneyPageState
 
                 /// GIFTS
                 SizedBox(
-                  height: 150,
+                  height: 130,
                   child: ListView(
                     scrollDirection:
                         Axis.horizontal,
