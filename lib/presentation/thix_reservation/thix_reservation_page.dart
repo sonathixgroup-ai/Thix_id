@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
         primaryColor: const Color(0xFF1A73E8),
         fontFamily: 'Roboto',
       ),
-      home: const ThixReservationScreen(),
+      home: const ThixReservationPage(),
     );
   }
 }
