@@ -1,19 +1,8 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 2063bb3 (Fix: correction import et ajout page réservation)
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 /// OpenAI proxy integration for THIX ID.
-///
-/// IMPORTANT: API credentials are resolved via environment variables at runtime.
-/// - OPENAI_PROXY_API_KEY
-/// - OPENAI_PROXY_ENDPOINT
-///
-/// The endpoint is expected to be a complete URL (do not append /v1/...)
-/// and should accept Chat Completions-compatible payloads.
 class OpenAiConfig {
   static const apiKey = String.fromEnvironment('OPENAI_PROXY_API_KEY');
   static const endpoint = String.fromEnvironment('OPENAI_PROXY_ENDPOINT');
@@ -25,10 +14,6 @@ class OpenAiConfig {
         'Authorization': 'Bearer $apiKey',
       };
 
-  /// Returns a ranked list of job ids with rationale.
-  ///
-  /// This is used by the Employment dashboard to generate AI recommendations.
-  /// If OpenAI is not configured, returns an empty list.
   static Future<List<Map<String, dynamic>>> recommendJobs({
     required Map<String, dynamic> userProfile,
     required List<Map<String, dynamic>> jobs,
