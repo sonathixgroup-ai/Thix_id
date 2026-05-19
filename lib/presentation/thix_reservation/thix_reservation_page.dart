@@ -20,8 +20,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ThixReservationScreen extends StatelessWidget {
-  const ThixReservationScreen({super.key});
+class ThixReservationPage extends StatelessWidget {
+  const ThixReservationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
