@@ -129,29 +129,7 @@ Expanded(
                   ),
                 ),
                 const SizedBox(width: 24),
-                // Colonne droite (événements, opportunités, communauté)
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildUpcomingEventsWidget(),
-                      const SizedBox(height: 24),
-                      _buildOpportunitiesWidget(),
-                      const SizedBox(height: 24),
-                      _buildCommunityWidget(),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }
-        },
-      ),
-    ),
-  ),
-),
-                                            // --- COLONNE DROITE : EVENEMENTS & OPPORTUNITES (Flex 3) ---
+                                      // Colonne droite (événements, opportunités, communauté)
                       Expanded(
                         flex: 3,
                         child: Column(
@@ -170,84 +148,85 @@ Expanded(
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavbar(),
-    )
-  }
+    ),
+    bottomNavigationBar: _buildBottomNavbar(),
+  );
 }
-  // --- BARRE SUPÉRIEURE (HEADER) ---
 
-  Widget _buildTopNavBar() {
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                height: 42,
-                width: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0A5CFF),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(
-                  child: Text("𝒯", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                ),
+// --- BARRE SUPÉRIEURE (HEADER) ---
+
+Widget _buildTopNavBar() {
+  return Container(
+    height: 70,
+    padding: const EdgeInsets.symmetric(horizontal: 24),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A5CFF),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(width: 12),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Text("THIX ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
-                      Text("INCUBATEUR", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0A5CFF))),
-                    ],
+              child: const Center(
+                child: Text("𝒯", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Text("THIX ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
+                    Text("INCUBATEUR", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0A5CFF))),
+                  ],
+                ),
+                const Text("Innover aujourd'hui, impacter demain.", style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+              ],
+            )
+          ],
+        ),
+        Row(
+          children: [
+            const Icon(Icons.search, color: Color(0xFF64748B), size: 22),
+            const SizedBox(width: 20),
+            Stack(
+              children: [
+                const Icon(Icons.notifications_none_rounded, color: Color(0xFF64748B), size: 24),
+                Positioned(
+                  right: 2,
+                  top: 2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: const Text("3", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
                   ),
-                  const Text("Innover aujourd'hui, impacter demain.", style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                ],
-              )
-            ],
-          ),
-          Row(
-            children: [
-              const Icon(Icons.search, color: Color(0xFF64748B), size: 22),
-              const SizedBox(width: 20),
-              Stack(
-                children: [
-                  const Icon(Icons.notifications_none_rounded, color: Color(0xFF64748B), size: 24),
-                  Positioned(
-                    right: 2,
-                    top: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                      child: const Text("3", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(width: 20),
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200'),
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
+                )
+              ],
+            ),
+            const SizedBox(width: 20),
+            const CircleAvatar(
+              radius: 18,
+              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200'),
+            )
+          ],
+        )
+      ],
+    ),
+  );
+}
 
   // --- BANNER DE BIENVENUE AVEC L'ILLUSTRATION FUSÉE ORBITALE & INDICATEURS ---
 
