@@ -456,7 +456,7 @@ class _HomePagePremiumState extends State<HomePagePremium>
                               title: 'Incubateur',
                               iconBackgroundColor: const Color(0xFFF3F0FF),
                               iconColor: const Color(0xFF5B3FFF),
-                              onTap: () => context.go('/incubator'),
+                              onTap: () => context.pushNamed('incubator'),
                             ),
                             _ServiceCard(
   icon: Icons.storefront_rounded,
