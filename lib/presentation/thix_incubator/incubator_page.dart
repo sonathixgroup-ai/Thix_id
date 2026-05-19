@@ -175,9 +175,9 @@ Expanded(
         ),
       ),
       bottomNavigationBar: _buildBottomNavbar(),
-    );
+    )
   }
-
+}
   // --- BARRE SUPÉRIEURE (HEADER) ---
 
   Widget _buildTopNavBar() {
