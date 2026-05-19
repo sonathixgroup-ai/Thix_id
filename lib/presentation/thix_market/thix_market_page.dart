@@ -490,66 +490,38 @@ class ThixMarketPage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-Text(
-  p['price'] ?? '',
-  style: const TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.extraBold,   // bien noter le B majuscule
-    color: Color(0xFF0F172A),
-  ),
-),
-Text(
-  p['price'] ?? '',
-  style: const TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.extraBold,
-    color: Color(0xFF0F172A),
-  ),
-),
-Text(
-  p['oldPrice'] ?? '',
-  style: const TextStyle(
-    fontSize: 8.5,
-    color: Colors.grey,
-    decoration: TextDecoration.lineThrough,
-  ),
-),
-Positioned(
-  top: 8,
-  left: 8,
-  child: Container(
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-    decoration: BoxDecoration(
-      color: const Color(0xFFF59E0B),
-      borderRadius: BorderRadius.circular(6),
-    ),
-    child: Text(
-      p['tag'] ?? '',
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 8.5,
-        fontWeight: FontWeight.bold,
+                      Text(p['price']!, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.extrabold, color: Color(0xFF0F172A))),
+                      Text(p['oldPrice']!, style: const TextStyle(fontSize: 8.5, color: Colors.grey, decoration: TextDecoration.lineThrough)),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 8, left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xFFF59E0B), borderRadius: BorderRadius.circular(6)),
+                    child: Text(p['tag']!, style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const Positioned(
+                  top: 6, right: 6,
+                  child: Icon(Icons.favorite_border, size: 16, color: Colors.black45),
+                ),
+                Positioned(
+                  bottom: 8, right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle),
+                    child: const Icon(Icons.add_shopping_cart_rounded, size: 11, color: Colors.white),
+                  ),
+                )
+              ],
+            ),
+          );
+        },
       ),
-    ),
-  ),
-),
-const Positioned(
-  top: 6,
-  right: 6,
-  child: Icon(Icons.favorite_border, size: 16, color: Colors.black45),
-),
-Positioned(
-  bottom: 8,
-  right: 8,
-  child: Container(
-    padding: EdgeInsets.all(5),
-    decoration: const BoxDecoration(
-      color: Color(0xFFF59E0B),
-      shape: BoxShape.circle,
-    ),
-    child: const Icon(Icons.add_shopping_cart_rounded, size: 11, color: Colors.white),
-  ),
-),
+    );
+  }
 
   Widget _buildSectionHeader(String title) {
     return Row(
