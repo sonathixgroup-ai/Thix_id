@@ -451,43 +451,42 @@ class IncubatorPage extends StatelessWidget {
   // --- GRILLE DES RESSOURCES DISPONIBLES ---
 
   Widget _buildResourcesGrid() {
-    final resources = [
-      {'icon': Icons.backpack_outlined, 'title': 'Guides & Outils', 'desc': '24 ressources'},
-      {'icon': Icons.article_outlined, 'title': 'Templates', 'desc': '15 modèles'},
-      {'icon': Icons.analytics_outlined, 'title': 'Études & Rapports', 'desc': '10 documents'},
-      {'icon': Icons.play_circle_outline_rounded, 'title': 'Vidéos', 'desc': '32 vidéos'},
-    ];
+  final resources = [
+    {'icon': Icons.backpack_outlined, 'title': 'Guides & Outils', 'desc': '24 ressources'},
+    {'icon': Icons.article_outlined, 'title': 'Templates', 'desc': '15 modèles'},
+    {'icon': Icons.analytics_outlined, 'title': 'Études & Rapports', 'desc': '10 documents'},
+    {'icon': Icons.play_circle_outline_rounded, 'title': 'Vidéos', 'desc': '32 vidéos'},
+  ];
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: resources.map((res) {
-        return Container(
-          width: 160,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFF1F5F9)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFF0A5CFF).withOpacity(0.05), shape: BoxShape.circle),
-                child: Icon(res['icon'] as IconData, color: const Color(0xFF0A5CFF), size: 20),
-              ),
-              const SizedBox(height: 14),
-              Text(res['title']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A))),
-              const SizedBox(height: 2),
-              Text(res['desc']!, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: resources.map((res) {
+      return Container(
+        width: 160,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: const Color(0xFF0A5CFF).withOpacity(0.05), shape: BoxShape.circle),
+              child: Icon(res['icon'] as IconData, color: const Color(0xFF0A5CFF), size: 20),
+            ),
+            const SizedBox(height: 14),
+            Text(res['title'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0F172A))),
+            const SizedBox(height: 2),
+            Text(res['desc'] as String? ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+          ],
+        ),
+      );
+    }).toList(),
+  );
+}
   // --- CARROUSEL COMPACT DE MENTORS ---
 
   Widget _buildMentorsList() {
