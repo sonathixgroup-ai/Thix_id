@@ -128,8 +128,8 @@ Expanded(
                     ],
                   ),
                 ),
-                const SizedBox(width: 24),
-                                      // Colonne droite (événements, opportunités, communauté)
+                                      const SizedBox(width: 24),
+                      // Colonne droite (événements, opportunités, communauté)
                       Expanded(
                         flex: 3,
                         child: Column(
@@ -151,8 +151,8 @@ Expanded(
           ),
         ),
       ),
+      bottomNavigationBar: _buildBottomNavbar(),
     ),
-    bottomNavigationBar: _buildBottomNavbar(),
   );
 }
 
