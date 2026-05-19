@@ -434,35 +434,39 @@ class NetworkPage extends StatelessWidget {
   }
 
   Widget _buildPostStatsAndActions(String likes, String comments, String shares) {
+  // Fonction locale pour les icônes d'action
+  Widget _buildActionLabel(IconData icon, String label) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("👍 ❤️ $likes", style: const TextStyle(fontSize: 10, color: Colors.grey)),
-            Text("$comments commentaires  •  $shares partages", style: const TextStyle(fontSize: 10, color: Colors.grey)),
-          ],
-        ),
-        const Divider(height: 14, color: Color(0xFFF3F4F6)),
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceAround,
-  children: [
-    _buildActionLabel(Icons.thumb_up_outlined, "J'aime"),   // ← corrigé
-    _buildActionLabel(Icons.chat_bubble_outline_rounded, "Commenter"),
-    _buildActionLabel(Icons.share_outlined, "Partager"),
-    _buildActionLabel(Icons.send_outlined, "Envoyer"),
-  ],
-)
+        Icon(icon, size: 26, color: Colors.grey.shade700),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
 
-  Widget _buildActionLabel(IconData icon, String label) {
   return Column(
     children: [
-      Icon(icon, size: 26, color: Colors.grey.shade700),
-      const SizedBox(height: 4),
-      Text(label, style: const TextStyle(fontSize: 12)),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("👍 ❤️ $likes", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          Text("$comments commentaires  •  $shares partages", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        ],
+      ),
+      const Divider(height: 14, color: Color(0xFFF3F4F6)),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildActionLabel(Icons.thumb_up_outlined, "J'aime"),
+          _buildActionLabel(Icons.chat_bubble_outline_rounded, "Commenter"),
+          _buildActionLabel(Icons.share_outlined, "Partager"),
+          _buildActionLabel(Icons.send_outlined, "Envoyer"),
+        ],
+      ),
     ],
   );
-}
+  }
 
   // --- PANNEAU DROIT (WIDGETS BIEN ALIGNÉS) ---
 
