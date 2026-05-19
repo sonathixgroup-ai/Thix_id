@@ -374,7 +374,7 @@ class IncubatorPage extends StatelessWidget {
               children: [
                 Icon(res['icon'] as IconData, color: const Color(0xFF0A5CFF), size: 16),
                 const SizedBox(height: 4),
-                Text(res['title']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 9), maxLines: 1),
+                Text(res['title'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 9), maxLines: 1),
               ],
             ),
           ),
