@@ -382,6 +382,13 @@ class AppRouter {
           ),
         ),
         GoRoute(
+  path: '/incubator',       // ou AppRoutes.incubator
+  name: 'incubator',
+  pageBuilder: (context, state) => const NoTransitionPage(
+    child: IncubatorPage(),
+  ),
+),
+        GoRoute(
           path: AppRoutes.trainingHome,
           name: 'trainingHome',
           pageBuilder: (context, state) => const NoTransitionPage(child: TrainingHomePage()),
