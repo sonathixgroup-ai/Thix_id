@@ -444,28 +444,25 @@ class NetworkPage extends StatelessWidget {
           ],
         ),
         const Divider(height: 14, color: Color(0xFFF3F4F6)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildActionLabel(Icons.thumb_up_out_line_rounded, "J'aime"),
-            _buildActionLabel(Icons.chat_bubble_outline_rounded, "Commenter"),
-            _buildActionLabel(Icons.share_outlined, "Partager"),
-            _buildActionLabel(Icons.send_outlined, "Envoyer"),
-          ],
-        )
-      ],
-    );
-  }
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceAround,
+  children: [
+    _buildActionLabel(Icons.thumb_up_outlined, "J'aime"),   // ← corrigé
+    _buildActionLabel(Icons.chat_bubble_outline_rounded, "Commenter"),
+    _buildActionLabel(Icons.share_outlined, "Partager"),
+    _buildActionLabel(Icons.send_outlined, "Envoyer"),
+  ],
+)
 
   Widget _buildActionLabel(IconData icon, String label) {
-    return Row(
-      children: [
-        Icon(icon, size: 15, color: const Color(0xFF4B5563)),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: Color(0xFF4B5563), fontSize: 10.5, fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
+  return Column(
+    children: [
+      Icon(icon, size: 26, color: Colors.grey.shade700),
+      const SizedBox(height: 4),
+      Text(label, style: const TextStyle(fontSize: 12)),
+    ],
+  );
+}
 
   // --- PANNEAU DROIT (WIDGETS BIEN ALIGNÉS) ---
 
