@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
-class ThixReseauProPage extends StatelessWidget {
-  const ThixReseauProPage({super.key});
+class NetworkPage extends StatelessWidget {
+  const NetworkPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6), // Fond gris clair uniforme du design
-      body: SafeArea(
-        child: Column(
-          children: [
+      appBar: AppBar(
+        title: const Text('THIX Réseau Pro'),
+      ),
+      body: const Center(
+        child: Text('Page du réseau professionnel THIX'),
+      ),
+    );
+  }
+}
             // 1. Barre de navigation supérieure complète (Style Bureau / Tablette)
             _buildTopNavBar(),
             
