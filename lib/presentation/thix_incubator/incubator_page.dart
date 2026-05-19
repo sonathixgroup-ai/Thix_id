@@ -13,65 +13,144 @@ class IncubatorPage extends StatelessWidget {
             // 1. Barre de navigation supérieure (Header complet)
             _buildTopNavBar(),
             
-            // 2. Zone principale défilante (Double colonne style Dashboard)
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
+            /// 2. Zone principale défilante (responsive : une colonne sur mobile, deux sur desktop)
+Expanded(
+  child: SingleChildScrollView(
+    physics: const BouncingScrollPhysics(),
+    child: Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Si l'écran est plus petit que 900px, on passe en colonne unique
+          if (constraints.maxWidth < 900) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildWelcomeHeroBanner(),
+                const SizedBox(height: 24),
+                _buildQuickActionsGrid(),
+                const SizedBox(height: 32),
+                _buildSectionHeader("Statut de mes projets"),
+                const SizedBox(height: 16),
+                _buildProjectStatusCard(
+                  logo: Icons.eco_outlined,
+                  logoColor: Colors.green,
+                  title: "AgriTech Solutions",
+                  progress: 0.75,
+                  progressText: "75%",
+                  tag: "En incubation",
+                  tagColor: Colors.green,
+                  phase: "Prototype",
+                  date: "30 Juin 2025",
+                ),
+                const SizedBox(height: 16),
+                _buildProjectStatusCard(
+                  logo: Icons.school_outlined,
+                  logoColor: Colors.purple,
+                  title: "EduConnect",
+                  progress: 0.40,
+                  progressText: "40%",
+                  tag: "En évaluation",
+                  tagColor: Colors.orange,
+                  phase: "Idéation",
+                  date: "15 Août 2025",
+                ),
+                const SizedBox(height: 32),
+                _buildSectionHeader("Ressources pour vous"),
+                const SizedBox(height: 16),
+                _buildResourcesGrid(),
+                const SizedBox(height: 32),
+                _buildSectionHeader("Mentors disponibles"),
+                const SizedBox(height: 16),
+                _buildMentorsList(),
+                const SizedBox(height: 32),
+                _buildBottomIdeaBanner(),
+                const SizedBox(height: 24),
+                _buildUpcomingEventsWidget(),   // Événements en bas
+                const SizedBox(height: 24),
+                _buildOpportunitiesWidget(),    // Opportunités
+                const SizedBox(height: 24),
+                _buildCommunityWidget(),        // Communauté
+                const SizedBox(height: 40),
+              ],
+            );
+          } else {
+            // Version desktop : deux colonnes
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Colonne gauche (contenu principal)
+                Expanded(
+                  flex: 7,
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- COLONNE GAUCHE : CONTENU PRINCIPAL (Flex 7) ---
-                      Expanded(
-                        flex: 7,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildWelcomeHeroBanner(),
-                            const SizedBox(height: 24),
-                            _buildQuickActionsGrid(),
-                            const SizedBox(height: 32),
-                            _buildSectionHeader("Statut de mes projets"),
-                            const SizedBox(height: 16),
-                            _buildProjectStatusCard(
-                              logo: Icons.eco_outlined,
-                              logoColor: Colors.green,
-                              title: "AgriTech Solutions",
-                              progress: 0.75,
-                              progressText: "75%",
-                              tag: "En incubation",
-                              tagColor: Colors.green,
-                              phase: "Prototype",
-                              date: "30 Juin 2025",
-                            ),
-                            const SizedBox(height: 16),
-                            _buildProjectStatusCard(
-                              logo: Icons.school_outlined,
-                              logoColor: Colors.purple,
-                              title: "EduConnect",
-                              progress: 0.40,
-                              progressText: "40%",
-                              tag: "En évaluation",
-                              tagColor: Colors.orange,
-                              phase: "Idéation",
-                              date: "15 Août 2025",
-                            ),
-                            const SizedBox(height: 32),
-                            _buildSectionHeader("Ressources pour vous"),
-                            const SizedBox(height: 16),
-                            _buildResourcesGrid(),
-                            const SizedBox(height: 32),
-                            _buildSectionHeader("Mentors disponibles"),
-                            const SizedBox(height: 16),
-                            _buildMentorsList(),
-                            const SizedBox(height: 32),
-                            _buildBottomIdeaBanner(),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
+                      _buildWelcomeHeroBanner(),
+                      const SizedBox(height: 24),
+                      _buildQuickActionsGrid(),
+                      const SizedBox(height: 32),
+                      _buildSectionHeader("Statut de mes projets"),
+                      const SizedBox(height: 16),
+                      _buildProjectStatusCard(
+                        logo: Icons.eco_outlined,
+                        logoColor: Colors.green,
+                        title: "AgriTech Solutions",
+                        progress: 0.75,
+                        progressText: "75%",
+                        tag: "En incubation",
+                        tagColor: Colors.green,
+                        phase: "Prototype",
+                        date: "30 Juin 2025",
                       ),
-                      const SizedBox(width: 24),
+                      const SizedBox(height: 16),
+                      _buildProjectStatusCard(
+                        logo: Icons.school_outlined,
+                        logoColor: Colors.purple,
+                        title: "EduConnect",
+                        progress: 0.40,
+                        progressText: "40%",
+                        tag: "En évaluation",
+                        tagColor: Colors.orange,
+                        phase: "Idéation",
+                        date: "15 Août 2025",
+                      ),
+                      const SizedBox(height: 32),
+                      _buildSectionHeader("Ressources pour vous"),
+                      const SizedBox(height: 16),
+                      _buildResourcesGrid(),
+                      const SizedBox(height: 32),
+                      _buildSectionHeader("Mentors disponibles"),
+                      const SizedBox(height: 16),
+                      _buildMentorsList(),
+                      const SizedBox(height: 32),
+                      _buildBottomIdeaBanner(),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 24),
+                // Colonne droite (événements, opportunités, communauté)
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildUpcomingEventsWidget(),
+                      const SizedBox(height: 24),
+                      _buildOpportunitiesWidget(),
+                      const SizedBox(height: 24),
+                      _buildCommunityWidget(),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+        },
+      ),
+    ),
+  ),
+),
                       
                       // --- COLONNE DROITE : EVENEMENTS & OPPORTUNITES (Flex 3) ---
                       Expanded(
