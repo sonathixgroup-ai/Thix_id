@@ -1,6 +1,7 @@
 // ============================================================================
 // FICHIER: lib/services/event_service.dart
 // ============================================================================
+import 'package:flutter/foundation.dart'; // Ajouté pour debugPrint
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/models/event_item.dart';
 import 'package:thix_id/models/event_registration.dart';
@@ -87,11 +88,10 @@ class EventService {
   /// Récupère les catégories populaires (top 5 des plus utilisées)
   Future<List<String>> getPopularCategories() async {
     try {
-      // Méthode 1: compter les événements par catégorie
       final response = await _supabase
           .from('events')
           .select('category')
-          .limit(100); // on prend un échantillon
+          .limit(100);
 
       final Map<String, int> counts = {};
       for (var item in response) {
@@ -105,7 +105,6 @@ class EventService {
       return sorted.take(5).map((e) => e.key).toList();
     } catch (e) {
       debugPrint('Erreur getPopularCategories: $e');
-      // Fallback statique
       return [
         'Musique & Concerts',
         'Conférences & Séminaires',
@@ -176,7 +175,7 @@ class EventService {
     }
   }
 
-  /// Annule une réservation (soft delete ou update status)
+  /// Annule une réservation
   Future<void> cancelRegistration(String registrationId) async {
     try {
       await _supabase
@@ -189,7 +188,7 @@ class EventService {
     }
   }
 
-  /// Vérifie si l'utilisateur a déjà un billet pour un événement donné
+  /// Vérifie si l'utilisateur a déjà un billet
   Future<bool> hasUserTicket(String userId, String eventId) async {
     try {
       final response = await _supabase
@@ -211,7 +210,7 @@ class EventService {
   // CODES PROMO
   // ==========================================================================
 
-  /// Valide un code promo et retourne le pourcentage de réduction
+  /// Valide un code promo
   Future<double?> validatePromoCode(String code, String eventId) async {
     try {
       final response = await _supabase
