@@ -1,289 +1,861 @@
+// ============================================================================
+// FICHIER: lib/pages/event/event_ticket_page.dart
+// ============================================================================
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:thix_id/models/event_item.dart';
 import 'package:thix_id/models/event_registration.dart';
 import 'package:thix_id/nav.dart';
 import 'package:thix_id/services/event_service.dart';
 
-// ==================== COULEURS PREMIUM (GOLDEN + BLANC) ====================
-class PremiumColors {
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color backgroundLight = Color(0xFFF8F9FA);
-  static const Color gold = Color(0xFFD4AF37);
-  static const Color goldDark = Color(0xFFB8860B);
-  static const Color goldLight = Color(0xFFFFE066);
-  static const Color textPrimary = Color(0xFF1A1A2E);
-  static const Color textSecondary = Color(0xFF6C6C7A);
-  static const Color success = Color(0xFF10B981);
-  static const Color error = Color(0xFFEF4444);
-  static const Color stroke = Color(0xFFE2E8F0);
+// ============================================================================
+// MODÈLE POUR L'AFFICHAGE DU TICKET
+// ============================================================================
+class TicketDisplayData {
+  final String ticketCode;
+  final String thixCode;
+  final EventItem event;
+  final EventRegistration registration;
+  final DateTime purchaseDate;
+  final String attendeeName;
+  final String attendeeEmail;
+  final String? qrData;
+  final String? barcodeData;
+
+  TicketDisplayData({
+    required this.ticketCode,
+    required this.thixCode,
+    required this.event,
+    required this.registration,
+    required this.purchaseDate,
+    required this.attendeeName,
+    required this.attendeeEmail,
+    this.qrData,
+    this.barcodeData,
+  });
+
+  String get formattedPrice => '${registration.totalPrice.toStringAsFixed(0)} ${registration.currency ?? 'FCFA'}';
+  String get formattedDate => DateFormat('dd MMM yyyy • HH:mm').format(event.eventDate);
+  String get formattedPurchaseDate => DateFormat('dd/MM/yyyy à HH:mm').format(purchaseDate);
+  String get maskedTicketCode => '****${ticketCode.substring(ticketCode.length - 4)}';
 }
 
-// ==================== PAGE DU BILLET ====================
-class EventTicketPage extends StatefulWidget {
-  final String eventId;
-  final String registrationId;
+// ============================================================================
+// CONTROLLER
+// ============================================================================
+class EventTicketController extends ChangeNotifier {
+  final EventService _eventService;
+  
+  TicketDisplayData? _ticketData;
+  bool _isLoading = true;
+  String? _errorMessage;
+  bool _isSavingToWallet = false;
+  bool _isSharing = false;
 
-  const EventTicketPage({super.key, required this.eventId, required this.registrationId});
+  EventTicketController({
+    required EventService eventService,
+  }) : _eventService = eventService;
+
+  TicketDisplayData? get ticketData => _ticketData;
+  bool get isLoading => _isLoading;
+  bool get isSavingToWallet => _isSavingToWallet;
+  bool get isSharing => _isSharing;
+  String? get errorMessage => _errorMessage;
+
+  Future<void> loadTicket(String registrationId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final registration = await _eventService.getRegistrationById(registrationId);
+      if (registration == null) {
+        throw Exception('Billet introuvable');
+      }
+
+      final event = await _eventService.getEventById(registration.eventId);
+      if (event == null) {
+        throw Exception('Événement introuvable');
+      }
+
+      _ticketData = TicketDisplayData(
+        ticketCode: registration.ticketCode,
+        thixCode: registration.thixCode ?? _generateThixCode(registration),
+        event: event,
+        registration: registration,
+        purchaseDate: registration.createdAt ?? DateTime.now(),
+        attendeeName: registration.attendeeName ?? 'Participant',
+        attendeeEmail: registration.attendeeEmail ?? 'email@exemple.com',
+        qrData: _generateQRData(registration, event),
+        barcodeData: _generateBarcodeData(registration),
+      );
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  String _generateThixCode(EventRegistration registration) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch % 10000;
+    return 'THIX-${registration.ticketCode.substring(0, 8)}-$timestamp';
+  }
+
+  String _generateQRData(EventRegistration registration, EventItem event) {
+    return jsonEncode({
+      'ticket_id': registration.id,
+      'ticket_code': registration.ticketCode,
+      'event_id': event.id,
+      'event_name': event.title,
+      'attendee': registration.attendeeName,
+      'date': event.eventDate.toIso8601String(),
+      'verified': false,
+    });
+  }
+
+  String _generateBarcodeData(EventRegistration registration) {
+    return registration.ticketCode;
+  }
+
+  Future<void> saveToWallet() async {
+    _isSavingToWallet = true;
+    notifyListeners();
+
+    try {
+      if (kIsWeb) {
+        throw Exception('Fonctionnalité disponible uniquement sur mobile');
+      }
+
+      // Simulation - À implémenter avec wallet_pass ou passkit
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // Ici, intégration avec Apple Wallet / Google Pay
+      // await _walletService.addPass(_ticketData!);
+      
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    } finally {
+      _isSavingToWallet = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> shareTicket(BuildContext context) async {
+    _isSharing = true;
+    notifyListeners();
+
+    try {
+      final ticketData = _ticketData;
+      if (ticketData == null) return;
+
+      final String shareText = '''
+🎫 ${ticketData.event.title}
+━━━━━━━━━━━━━━━━━━━━━
+Code: ${ticketData.ticketCode}
+📅 ${ticketData.formattedDate}
+📍 ${ticketData.event.venue}
+👤 ${ticketData.attendeeName}
+💳 ${ticketData.formattedPrice}
+━━━━━━━━━━━━━━━━━━━━━
+Scannez ce code à l'entrée
+THIX - Vivez l'exceptionnel
+      ''';
+
+      await Share.share(shareText);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      _isSharing = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> downloadTicket() async {
+    // À implémenter avec path_provider et image_gallery_saver
+    debugPrint('Download ticket - À implémenter');
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+}
+
+// ============================================================================
+// PAGE PRINCIPALE
+// ============================================================================
+class EventTicketPage extends StatefulWidget {
+  final String registrationId;
+  final bool showBackButton;
+
+  const EventTicketPage({
+    super.key,
+    required this.registrationId,
+    this.showBackButton = true,
+  });
 
   @override
   State<EventTicketPage> createState() => _EventTicketPageState();
 }
 
-class _EventTicketPageState extends State<EventTicketPage> {
-  final _eventService = EventService();
+class _EventTicketPageState extends State<EventTicketPage>
+    with SingleTickerProviderStateMixin {
+  late EventTicketController _controller;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = EventTicketController(
+      eventService: context.read<EventService>(),
+    );
+    _controller.loadTicket(widget.registrationId);
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+    
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PremiumColors.backgroundLight,
-      body: SafeArea(
-        child: FutureBuilder<_TicketBundle?>(
-          future: _load(),
-          builder: (context, snap) {
-            if (snap.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator(color: PremiumColors.gold));
-            }
-            final bundle = snap.data;
-            if (bundle == null) {
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const _TicketTopBar(),
-                    const Spacer(),
-                    Text('Billet introuvable.', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: PremiumColors.textPrimary)),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () => context.popOrGo('/events/${widget.eventId}'),
-                      style: FilledButton.styleFrom(backgroundColor: PremiumColors.gold, foregroundColor: Colors.white),
-                      child: const Text('Retour à l’événement'),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-              );
-            }
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _TicketTopBar(eventId: widget.eventId),
-                  const SizedBox(height: 16),
-                  Text('Pass événementiel THIX', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: PremiumColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text('Présentez ce code (QR) à l’entrée.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: PremiumColors.textSecondary, height: 1.5)),
-                  const SizedBox(height: 24),
-                  _TicketCard(event: bundle.event, reg: bundle.reg),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.go('/events/${widget.eventId}'),
-                          icon: const Icon(Icons.event_rounded),
-                          label: const Text('Détails'),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: PremiumColors.stroke),
-                            foregroundColor: PremiumColors.textPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Billet prêt. Montrez le code à l’entrée.')),
-                            );
-                          },
-                          icon: const Icon(Icons.verified_rounded),
-                          label: const Text('Prêt à scanner'),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: PremiumColors.gold,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+      backgroundColor: Colors.grey[50],
+      appBar: _buildAppBar(),
+      body: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) {
+          if (_controller.isLoading) {
+            return _buildLoadingState();
+          }
+          
+          if (_controller.errorMessage != null) {
+            return _buildErrorState();
+          }
+          
+          if (_controller.ticketData == null) {
+            return _buildEmptyState();
+          }
+          
+          return _buildTicketContent();
+        },
       ),
     );
   }
 
-  Future<_TicketBundle?> _load() async {
-    try {
-      final event = await _eventService.fetchEvent(widget.eventId);
-      final reg = await _eventService.fetchRegistrationById(widget.registrationId);
-      if (event == null || reg == null) return null;
-      if (reg.eventId != event.id) return null;
-      return _TicketBundle(event: event, reg: reg);
-    } catch (e) {
-      debugPrint('EventTicketPage._load failed err=$e');
-      return null;
-    }
-  }
-}
-
-// ==================== BARRE DE RETOUR ====================
-class _TicketTopBar extends StatelessWidget {
-  final String? eventId;
-  const _TicketTopBar({this.eventId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
+  PreferredSizeWidget? _buildAppBar() {
+    if (!widget.showBackButton) return null;
+    
+    return AppBar(
+      title: const Text('Mon billet'),
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      foregroundColor: AppColors.textDark,
+      actions: [
         IconButton(
-          onPressed: () => context.popOrGo(eventId == null ? AppRoutes.events : '/events/$eventId'),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: PremiumColors.textPrimary),
+          icon: const Icon(Icons.share_outlined),
+          onPressed: _controller.isSharing ? null : () => _controller.shareTicket(context),
+          tooltip: 'Partager',
         ),
-        Expanded(
-          child: Text('Billet THIX', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: PremiumColors.textPrimary, fontWeight: FontWeight.w900)),
+        IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () => _showMoreMenu(),
+          tooltip: 'Plus',
         ),
       ],
     );
   }
-}
 
-// ==================== CARTE DU BILLET ====================
-class _TicketCard extends StatelessWidget {
-  final EventItem event;
-  final EventRegistration reg;
-  const _TicketCard({required this.event, required this.reg});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: PremiumColors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
-        border: Border.all(color: PremiumColors.stroke),
-      ),
+  Widget _buildLoadingState() {
+    return const Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.shield_rounded, color: PremiumColors.gold),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(event.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: PremiumColors.textPrimary)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text('${event.dateLabel} • ${event.location}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: PremiumColors.textSecondary, height: 1.5)),
-          const SizedBox(height: 24),
-          // QR Code
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: PremiumColors.stroke),
-            ),
-            child: Column(
-              children: [
-                Center(
-                  child: BarcodeWidget(
-                    barcode: Barcode.qrCode(),
-                    data: reg.ticketCode,
-                    drawText: false,
-                    width: 220,
-                    height: 220,
-                    color: Colors.black,
-                    errorBuilder: (context, error) => Text('Erreur QR: $error', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: PremiumColors.error)),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SelectableText(
-                  reg.ticketCode,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.5, color: PremiumColors.textPrimary),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          _TicketMetaRow(label: 'THIX ID', value: reg.attendeeThixId),
-          const SizedBox(height: 8),
-          _TicketMetaRow(label: 'Billets', value: reg.tickets.toString()),
-          if (reg.note != null && reg.note!.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _TicketMetaRow(label: 'Note', value: reg.note!),
-          ],
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Chargement de votre billet...'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: PremiumColors.success.withOpacity(0.1),
-                  border: Border.all(color: PremiumColors.success.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle_rounded, size: 16, color: PremiumColors.success),
-                    const SizedBox(width: 6),
-                    Text('Valide', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: PremiumColors.textPrimary, fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Text('ID: ${reg.id}', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: PremiumColors.textSecondary)),
-            ],
+          Text(
+            _controller.errorMessage!,
+            style: const TextStyle(color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _controller.loadTicket(widget.registrationId),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-// ==================== LIGNE D’INFORMATION DU BILLET ====================
-class _TicketMetaRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _TicketMetaRow({required this.label, required this.value});
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.confirmation_number_outlined, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          const Text('Aucun billet trouvé'),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => context.go(Routes.home),
+            child: const Text('Retour à l\'accueil'),
+          ),
+        ],
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(label, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: PremiumColors.textSecondary, fontWeight: FontWeight.w700)),
+  Widget _buildTicketContent() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildTicketCard(),
+              const SizedBox(height: 16),
+              _buildActionButtons(),
+              const SizedBox(height: 16),
+              _buildEventInfoCard(),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTicketCard() {
+    final ticket = _controller.ticketData!;
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          children: [
+            // Header avec gradient
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Image.asset(
+                        'assets/images/thix_logo_white.png',
+                        height: 32,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          ticket.ticketCode.substring(0, 8),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    ticket.event.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    ticket.formattedDate,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Corps du billet
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  // QR Code
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        BarcodeWidget(
+                          barcode: Barcode.qrCode(),
+                          data: ticket.qrData ?? ticket.ticketCode,
+                          width: 180,
+                          height: 180,
+                          drawText: false,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Scannez ce code à l\'entrée',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Code barre
+                  if (!kIsWeb) ...[
+                    BarcodeWidget(
+                      barcode: Barcode.code128(),
+                      data: ticket.barcodeData ?? ticket.ticketCode,
+                      width: double.infinity,
+                      height: 50,
+                      drawText: false,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  
+                  // Code textuel
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SelectableText(
+                      ticket.ticketCode,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                  
+                  const Divider(height: 32),
+                  
+                  // Informations participant
+                  _buildInfoRow(
+                    Icons.person_outline,
+                    'Participant',
+                    ticket.attendeeName,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    Icons.email_outline,
+                    'Email',
+                    ticket.attendeeEmail,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    Icons.confirmation_number_outlined,
+                    'Code THIX',
+                    ticket.thixCode,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    Icons.receipt_outlined,
+                    'Prix',
+                    ticket.formattedPrice,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    Icons.calendar_today_outlined,
+                    'Acheté le',
+                    ticket.formattedPurchaseDate,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[500]),
         const SizedBox(width: 12),
         Expanded(
-          child: SelectableText(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: PremiumColors.textPrimary, height: 1.4)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.download_outlined,
+            label: 'Télécharger',
+            onPressed: () => _controller.downloadTicket(),
+            color: Colors.grey[700]!,
+          ),
+        ),
+        const SizedBox(width: 12),
+        if (!kIsWeb)
+          Expanded(
+            child: _buildActionButton(
+              icon: Icons.wallet_outlined,
+              label: 'Ajouter au portefeuille',
+              onPressed: _controller.isSavingToWallet
+                  ? null
+                  : () async {
+                      try {
+                        await _controller.saveToWallet();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Billet ajouté au portefeuille'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erreur: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              color: AppColors.primary,
+            ),
+          ),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.calendar_month_outlined,
+            label: 'Ajouter au calendrier',
+            onPressed: () => _addToCalendar(),
+            color: Colors.grey[700]!,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+    required Color color,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withOpacity(0.1),
+        foregroundColor: color,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventInfoCard() {
+    final ticket = _controller.ticketData!;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Informations événement',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          _buildEventDetail(
+            Icons.location_on_outlined,
+            'Lieu',
+            ticket.event.venue,
+          ),
+          const SizedBox(height: 8),
+          _buildEventDetail(
+            Icons.access_time_outlined,
+            'Heure d\'ouverture',
+            '30 minutes avant l\'événement',
+          ),
+          const SizedBox(height: 8),
+          _buildEventDetail(
+            Icons.info_outline,
+            'Instructions',
+            'Présentez ce billet (digital ou imprimé) à l\'entrée',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventDetail(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: Colors.grey[500]),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(fontSize: 13)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showMoreMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Comment utiliser mon billet ?'),
+              onTap: () {
+                Navigator.pop(context);
+                _showHelpDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.report_problem_outlined),
+              title: const Text('Signaler un problème'),
+              onTap: () {
+                Navigator.pop(context);
+                _showReportDialog();
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.info_outline, color: Colors.grey),
+              title: const Text('À propos de THIX'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(Routes.about);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Comment utiliser mon billet ?'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('1. Ouvrez ce billet sur votre téléphone'),
+            SizedBox(height: 8),
+            Text('2. Présentez le QR code à l\'entrée'),
+            SizedBox(height: 8),
+            Text('3. Un membre de l\'équipe le scannera'),
+            SizedBox(height: 8),
+            Text('4. Vous pouvez aussi l\'imprimer'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReportDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Signaler un problème'),
+        content: const Text(
+          'Pour tout problème avec votre billet, contactez notre support :\n\nsupport@thix.com\n+221 78 000 00 00',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addToCalendar() async {
+    final ticket = _controller.ticketData!;
+    
+    // À implémenter avec add_2_calendar
+    // final event = CalendarEvent(
+    //   title: ticket.event.title,
+    //   description: 'Billet THIX: ${ticket.ticketCode}',
+    //   location: ticket.event.venue,
+    //   startDate: ticket.event.eventDate,
+    //   endDate: ticket.event.eventDate.add(const Duration(hours: 2)),
+    // );
+    // await Add2Calendar.addEvent2Cal(event);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Événement ajouté au calendrier'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
 }
 
-// ==================== MODÈLE INTERNE ====================
-class _TicketBundle {
-  final EventItem event;
-  final EventRegistration reg;
-  const _TicketBundle({required this.event, required this.reg});
+// ============================================================================
+// EXTENSIONS ET CONSTANTES
+// ============================================================================
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);
+  static const Color primaryDark = Color(0xFF4F46E5);
+  static const Color textDark = Color(0xFF1E293B);
+}
+
+// Fonction utilitaire pour jsonEncode
+String jsonEncode(Map<String, dynamic> data) {
+  return data.entries.map((e) => '${e.key}:${e.value}').join('|');
 }
