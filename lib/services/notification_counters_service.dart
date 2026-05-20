@@ -3,17 +3,14 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:thix_id/services/admin_metrics_service.dart';
 import 'package:thix_id/services/chat_service.dart';
 import 'package:thix_id/supabase/supabase_config.dart';
 
-/// High-level buckets used by the UI to show per-section badges.
-///
-/// The badge for a section is computed as "items created since the last time the
-/// user opened that section".
-///
-/// This is intentionally lightweight and works even if you don't have a
-/// dedicated push-notification infrastructure.
+// ============================================================================
+// ENUMÉRATION DES SECTIONS
+// ============================================================================
+
+/// Sections de l'application pouvant afficher des badges de notification.
 enum ThixSection {
   messages,
   info,
@@ -23,6 +20,11 @@ enum ThixSection {
   jobs,
 }
 
+// ============================================================================
+// MODÈLE DE DONNÉES
+// ============================================================================
+
+/// Compteurs de badges pour chaque section.
 class SectionBadgeCounts {
   final int messages;
   final int info;
@@ -40,19 +42,35 @@ class SectionBadgeCounts {
     required this.jobs,
   });
 
-  static const zero = SectionBadgeCounts(messages: 0, info: 0, events: 0, formations: 0, opportunities: 0, jobs: 0);
+  /// Compteurs tous à zéro.
+  static const zero = SectionBadgeCounts(
+    messages: 0,
+    info: 0,
+    events: 0,
+    formations: 0,
+    opportunities: 0,
+    jobs: 0,
+  );
 
-  int forSection(ThixSection s) {
-    return switch (s) {
-      ThixSection.messages => messages,
-      ThixSection.info => info,
-      ThixSection.events => events,
-      ThixSection.formations => formations,
-      ThixSection.opportunities => opportunities,
-      ThixSection.jobs => jobs,
-    };
+  /// Retourne le compteur pour une section donnée.
+  int forSection(ThixSection section) {
+    switch (section) {
+      case ThixSection.messages:
+        return messages;
+      case ThixSection.info:
+        return info;
+      case ThixSection.events:
+        return events;
+      case ThixSection.formations:
+        return formations;
+      case ThixSection.opportunities:
+        return opportunities;
+      case ThixSection.jobs:
+        return jobs;
+    }
   }
 
+  /// Crée une copie avec des valeurs modifiées.
   SectionBadgeCounts copyWith({
     int? messages,
     int? info,
@@ -70,184 +88,286 @@ class SectionBadgeCounts {
       jobs: jobs ?? this.jobs,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is SectionBadgeCounts &&
+        other.messages == messages &&
+        other.info == info &&
+        other.events == events &&
+        other.formations == formations &&
+        other.opportunities == opportunities &&
+        other.jobs == jobs;
+  }
+
+  @override
+  int get hashCode => Object.hash(messages, info, events, formations, opportunities, jobs);
 }
 
+// ============================================================================
+// SERVICE PRINCIPAL
+// ============================================================================
+
+/// Service de gestion des compteurs de notifications.
+///
+/// Ce service permet de :
+/// - Compter les nouveaux éléments depuis la dernière visite d'une section
+/// - Marquer une section comme "vue"
+/// - Streamer en temps réel les mises à jour des badges
 class NotificationCountersService {
-  NotificationCountersService({SupabaseClient? client}) : _client = client ?? SupabaseConfig.client;
+  NotificationCountersService({SupabaseClient? client})
+      : _client = client ?? SupabaseConfig.client;
 
   final SupabaseClient _client;
 
-  static const String _prefsPrefix = 'thix_seen_section_v1';
+  // ==========================================================================
+  // CONSTANTES
+  // ==========================================================================
 
-  static const String infoTable = 'thix_info_news';
-  static const String eventsTable = 'thix_events';
-  static const String opportunitiesTable = 'thix_opportunities';
-  static const String jobsTable = 'thix_job_offers';
+  static const String _prefsPrefix = 'thix_seen_section_v2';
+  static const String _infoTable = 'thix_info_news';
+  static const String _eventsTable = 'thix_events';
+  static const String _opportunitiesTable = 'thix_opportunities';
+  static const String _jobsTable = 'thix_job_offers';
+  static const String _formationsTable = 'thix_trainings';
+  static const Duration _pollingInterval = Duration(seconds: 3);
+  static const int _maxCount = 999;
 
-  String _k(String uid, ThixSection section) => '$_prefsPrefix:$uid:${section.name}';
+  // ==========================================================================
+  // MÉTHODES PRIVÉES - STOCKAGE LOCAL
+  // ==========================================================================
 
+  String _prefKey(String uid, ThixSection section) => '$_prefsPrefix:$uid:${section.name}';
+
+  /// Récupère la dernière date de visualisation d'une section.
   Future<DateTime> _getLastSeen(String uid, ThixSection section) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_k(uid, section));
-      final parsed = raw == null ? null : DateTime.tryParse(raw);
-      // Default: only count items from "now" onward (so old content doesn't
-      // create a huge badge the first time the user signs in).
-      return parsed ?? DateTime.now().toUtc();
+      final raw = prefs.getString(_prefKey(uid, section));
+      if (raw != null) {
+        final parsed = DateTime.tryParse(raw);
+        if (parsed != null) return parsed;
+      }
+      // Première visite : ne compte que les éléments créés à partir de maintenant
+      return DateTime.now().toUtc();
     } catch (e) {
-      debugPrint('NotificationCountersService: _getLastSeen failed err=$e');
+      debugPrint('NotificationCountersService: getLastSeen failed err=$e');
       return DateTime.now().toUtc();
     }
   }
 
-  Future<void> markSectionSeen({required String uid, required ThixSection section}) async {
+  /// Enregistre qu'une section a été vue.
+  Future<void> _setLastSeen(String uid, ThixSection section) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_k(uid, section), DateTime.now().toUtc().toIso8601String());
+      await prefs.setString(_prefKey(uid, section), DateTime.now().toUtc().toIso8601String());
     } catch (e) {
-      debugPrint('NotificationCountersService: markSectionSeen failed uid=$uid section=${section.name} err=$e');
+      debugPrint('NotificationCountersService: setLastSeen failed uid=$uid section=${section.name} err=$e');
     }
   }
 
-  Future<int> _countSince({required String table, required DateTime since, String? extraFilterColumn, Object? extraFilterValue}) async {
+  // ==========================================================================
+  // MÉTHODES PRIVÉES - COMPTAGE
+  // ==========================================================================
+
+  /// Compte les entrées d'une table créées après une date donnée.
+  Future<int> _countSince({
+    required String table,
+    required DateTime since,
+    String? filterColumn,
+    Object? filterValue,
+  }) async {
     try {
-      final base = _client.from(table).select('id');
-      final withExtra = (extraFilterColumn != null && extraFilterValue != null) ? base.eq(extraFilterColumn, extraFilterValue) : base;
-      final res = await withExtra.gt('created_at', since.toIso8601String()).limit(500);
-      if (res is List) return res.length;
-      return 0;
+      var query = _client.from(table).select('id').gt('created_at', since.toIso8601String());
+      if (filterColumn != null && filterValue != null) {
+        query = query.eq(filterColumn, filterValue);
+      }
+      final res = await query.limit(_maxCount);
+      return (res is List) ? res.length : 0;
     } catch (e) {
       debugPrint('NotificationCountersService: countSince failed table=$table err=$e');
       return 0;
     }
   }
 
+  /// Compte les nouveaux messages (expéditeur différent de l'utilisateur).
   Future<int> _countMessagesSince({required String uid, required DateTime since}) async {
-    // We count all messages created since [since] where sender != me.
-    // This is a good proxy for "new messages" and works on both canonical and
-    // legacy schemas.
     try {
-      // Detect schema variant: canonical uses `thix_chat_messages`.
-      var legacy = false;
+      // Vérifie si le schéma canonique existe
+      bool useCanonical = true;
       try {
         await _client.from(ChatService.messagesTable).select('id').limit(1);
-        legacy = false;
       } catch (_) {
-        legacy = true;
+        useCanonical = false;
       }
 
-      if (legacy) {
-        // Legacy schema stores messages in thix_chat_chats.
+      if (useCanonical) {
+        final res = await _client
+            .from(ChatService.messagesTable)
+            .select('id')
+            .neq('sender_id', uid)
+            .gt('created_at', since.toIso8601String())
+            .limit(_maxCount);
+        return (res is List) ? res.length : 0;
+      } else {
+        // Fallback pour l'ancien schéma
         final res = await _client
             .from(ChatService.chatsTable)
             .select('id')
             .neq('sender_id', uid)
             .gt('created_at', since.toIso8601String())
-            .limit(500);
-        if (res is List) return res.length;
-        return 0;
+            .limit(_maxCount);
+        return (res is List) ? res.length : 0;
       }
-
-      final res = await _client
-          .from(ChatService.messagesTable)
-          .select('id')
-          .neq('sender_id', uid)
-          .gt('created_at', since.toIso8601String())
-          .limit(500);
-      if (res is List) return res.length;
-      return 0;
     } catch (e) {
-      debugPrint('NotificationCountersService: _countMessagesSince failed err=$e');
+      debugPrint('NotificationCountersService: countMessagesSince failed err=$e');
       return 0;
     }
   }
 
-  /// Stream badge counts for the main app sections.
+  /// Calcule tous les compteurs pour un utilisateur.
+  Future<SectionBadgeCounts> _computeCounts(String uid) async {
+    final [
+      sinceMessages,
+      sinceInfo,
+      sinceEvents,
+      sinceFormations,
+      sinceOpportunities,
+      sinceJobs,
+    ] = await Future.wait([
+      _getLastSeen(uid, ThixSection.messages),
+      _getLastSeen(uid, ThixSection.info),
+      _getLastSeen(uid, ThixSection.events),
+      _getLastSeen(uid, ThixSection.formations),
+      _getLastSeen(uid, ThixSection.opportunities),
+      _getLastSeen(uid, ThixSection.jobs),
+    ]);
+
+    final results = await Future.wait([
+      _countMessagesSince(uid: uid, since: sinceMessages),
+      _countSince(table: _infoTable, since: sinceInfo),
+      _countSince(table: _eventsTable, since: sinceEvents),
+      _countSince(table: _formationsTable, since: sinceFormations),
+      _countSince(table: _opportunitiesTable, since: sinceOpportunities),
+      _countSince(table: _jobsTable, since: sinceJobs),
+    ]);
+
+    return SectionBadgeCounts(
+      messages: results[0].clamp(0, _maxCount),
+      info: results[1].clamp(0, _maxCount),
+      events: results[2].clamp(0, _maxCount),
+      formations: results[3].clamp(0, _maxCount),
+      opportunities: results[4].clamp(0, _maxCount),
+      jobs: results[5].clamp(0, _maxCount),
+    );
+  }
+
+  // ==========================================================================
+  // MÉTHODES PUBLIQUES
+  // ==========================================================================
+
+  /// Marque une section comme vue (réinitialise son badge).
+  Future<void> markSectionSeen({
+    required String uid,
+    required ThixSection section,
+  }) async {
+    await _setLastSeen(uid, section);
+  }
+
+  /// Stream en temps réel des compteurs de badges.
   ///
-  /// Implementation notes:
-  /// - Uses Realtime (postgres_changes) to re-fetch counts.
-  /// - Falls back to polling if Realtime cannot subscribe.
+  /// Utilise Realtime Supabase pour les mises à jour instantanées,
+  /// avec fallback sur le polling si la connexion Realtime échoue.
   Stream<SectionBadgeCounts> streamCounts(String uid) {
-    late final StreamController<SectionBadgeCounts> controller;
+    final controller = StreamController<SectionBadgeCounts>.broadcast();
     RealtimeChannel? channel;
     Timer? pollTimer;
-    var polling = false;
-    var cancelled = false;
+    bool isPolling = false;
+    bool isCancelled = false;
 
-    Future<SectionBadgeCounts> compute() async {
-      final sinceMsg = await _getLastSeen(uid, ThixSection.messages);
-      final sinceInfo = await _getLastSeen(uid, ThixSection.info);
-      final sinceEvents = await _getLastSeen(uid, ThixSection.events);
-      final sinceFormations = await _getLastSeen(uid, ThixSection.formations);
-      final sinceOpp = await _getLastSeen(uid, ThixSection.opportunities);
-      final sinceJobs = await _getLastSeen(uid, ThixSection.jobs);
-
-      final results = await Future.wait<int>([
-        _countMessagesSince(uid: uid, since: sinceMsg),
-        _countSince(table: infoTable, since: sinceInfo),
-        _countSince(table: eventsTable, since: sinceEvents),
-        // Formations: for now we treat them as a subset of official events.
-        // If later you add a dedicated `thix_formations` table, we can switch.
-        _countSince(table: eventsTable, since: sinceFormations),
-        _countSince(table: opportunitiesTable, since: sinceOpp),
-        _countSince(table: jobsTable, since: sinceJobs),
-      ]);
-
-      return SectionBadgeCounts(
-        messages: results[0],
-        info: results[1],
-        events: results[2],
-        formations: results[3],
-        opportunities: results[4],
-        jobs: results[5],
-      );
-    }
-
+    // Émet les compteurs courants
     Future<void> emit() async {
-      final value = await compute();
-      if (!controller.isClosed) controller.add(value);
+      if (controller.isClosed) return;
+      final counts = await _computeCounts(uid);
+      if (!controller.isClosed) controller.add(counts);
     }
 
+    // Démarre le polling (fallback)
     void startPolling() {
-      if (polling) return;
-      polling = true;
+      if (isPolling || isCancelled) return;
+      isPolling = true;
       pollTimer?.cancel();
-      pollTimer = Timer.periodic(const Duration(seconds: 4), (_) => unawaited(emit()));
+      pollTimer = Timer.periodic(_pollingInterval, (_) => unawaited(emit()));
     }
 
-    controller = StreamController<SectionBadgeCounts>.broadcast(
-      onListen: () => unawaited(emit()),
-      onCancel: () async {
-        cancelled = true;
-        pollTimer?.cancel();
-        final ch = channel;
-        if (ch != null) await _client.removeChannel(ch);
-      },
-    );
+    // Arrête le polling
+    void stopPolling() {
+      isPolling = false;
+      pollTimer?.cancel();
+      pollTimer = null;
+    }
 
-    Future<void> subscribeRealtime() async {
-      if (cancelled) return;
-      try {
-        channel = _client.channel('thix:badge_counts:$uid');
-        channel!
-          ..onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: infoTable, callback: (_) => emit())
-          ..onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: eventsTable, callback: (_) => emit())
-          ..onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: opportunitiesTable, callback: (_) => emit())
-          ..onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: jobsTable, callback: (_) => emit())
-          ..onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: ChatService.messagesTable, callback: (_) => emit())
-          ..subscribe((status, err) {
-            debugPrint('NotificationCountersService: realtime status=$status err=$err');
-            final msg = (err ?? '').toString().toLowerCase();
-            final permanent = msg.contains('permission denied') || msg.contains('rls') || msg.contains('does not exist') || msg.contains('schema cache');
-            if (permanent || status == RealtimeSubscribeStatus.channelError) startPolling();
-          });
-      } catch (e) {
-        debugPrint('NotificationCountersService: realtime wiring failed err=$e');
-        startPolling();
+    // Nettoie les ressources
+    Future<void> cleanup() async {
+      isCancelled = true;
+      stopPolling();
+      if (channel != null) {
+        await _client.removeChannel(channel!);
+        channel = null;
       }
     }
 
-    unawaited(subscribeRealtime());
-    return controller.stream.distinct((a, b) => a.messages == b.messages && a.info == b.info && a.events == b.events && a.formations == b.formations && a.opportunities == b.opportunities && a.jobs == b.jobs);
+    // Configure Realtime
+    Future<void> setupRealtime() async {
+      if (isCancelled) return;
+
+      try {
+        channel = _client.channel('thix:badge_counts:$uid');
+        final tables = [
+          _infoTable,
+          _eventsTable,
+          _opportunitiesTable,
+          _jobsTable,
+          _formationsTable,
+          ChatService.messagesTable,
+        ];
+
+        for (final table in tables) {
+          channel!.onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: table,
+            callback: (_) => unawaited(emit()),
+          );
+        }
+
+        await channel!.subscribe((status, error) {
+          debugPrint('NotificationCountersService: realtime status=$status error=$error');
+          final errorMsg = error?.toString().toLowerCase() ?? '';
+          final isPermanent = errorMsg.contains('permission denied') ||
+              errorMsg.contains('rls') ||
+              errorMsg.contains('does not exist');
+
+          if (isPermanent || status == RealtimeSubscribeStatus.channelError) {
+            startPolling();
+          }
+        });
+
+        // Première émission
+        await emit();
+      } catch (e) {
+        debugPrint('NotificationCountersService: realtime setup failed err=$e');
+        startPolling();
+        await emit();
+      }
+    }
+
+    // Gestion du cycle de vie du stream
+    controller
+      ..onListen = () => unawaited(setupRealtime())
+      ..onCancel = () => unawaited(cleanup());
+
+    return controller.stream.distinct();
   }
 }
