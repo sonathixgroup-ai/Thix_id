@@ -1,13 +1,27 @@
 // ============================================================================
-// FICHIER: lib/pages/dashboard/user_event_dashboard.dart
+// FICHIER: lib/presentation/events/user_event_dashboard_page.dart
+// Version corrigée - Plus d'erreurs
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/models/event_item.dart';
 import 'package:thix_id/models/event_registration.dart';
-import 'package:thix_id/nav.dart';
 import 'package:thix_id/services/event_service.dart';
+
+// ============================================================================
+// CONSTANTES (remplace Routes)
+// ============================================================================
+class DashboardRoutes {
+  static const String explore = '/events';
+  static const String ticketDetails = '/events/:eventId/ticket/:registrationId';
+  
+  static String getTicketDetailsPath(String eventId, String registrationId) {
+    return '/events/$eventId/ticket/$registrationId';
+  }
+}
 
 // ============================================================================
 // MODÈLES
@@ -174,18 +188,25 @@ class UserDashboardController extends ChangeNotifier {
 }
 
 // ============================================================================
-// PAGE PRINCIPALE
+// COULEURS
 // ============================================================================
-class UserEventDashboard extends StatefulWidget {
-  final String userId;
-
-  const UserEventDashboard({super.key, required this.userId});
-
-  @override
-  State<UserEventDashboard> createState() => _UserEventDashboardState();
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textLight = Color(0xFF64748B);
 }
 
-class _UserEventDashboardState extends State<UserEventDashboard>
+// ============================================================================
+// PAGE PRINCIPALE
+// ============================================================================
+class UserEventDashboardPage extends StatefulWidget {
+  const UserEventDashboardPage({super.key});
+
+  @override
+  State<UserEventDashboardPage> createState() => _UserEventDashboardPageState();
+}
+
+class _UserEventDashboardPageState extends State<UserEventDashboardPage>
     with SingleTickerProviderStateMixin {
   late UserDashboardController _controller;
   late TabController _tabController;
@@ -193,9 +214,19 @@ class _UserEventDashboardState extends State<UserEventDashboard>
   @override
   void initState() {
     super.initState();
+    // Récupérer l'ID utilisateur depuis Supabase Auth
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      // Rediriger vers login si non connecté
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.go('/login');
+      });
+      return;
+    }
+    
     _controller = UserDashboardController(
-      eventService: context.read<EventService>(),
-      userId: widget.userId,
+      eventService: EventService(Supabase.instance.client),
+      userId: userId,
     );
     _tabController = TabController(length: 3, vsync: this);
     _controller.loadUserTickets();
@@ -490,7 +521,7 @@ class _UserEventDashboardState extends State<UserEventDashboard>
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.push(Routes.explore),
+            onPressed: () => context.push(DashboardRoutes.explore),
             icon: const Icon(Icons.explore),
             label: const Text('Découvrir des événements'),
             style: ElevatedButton.styleFrom(
@@ -576,7 +607,7 @@ class _UserEventDashboardState extends State<UserEventDashboard>
                     // Image ou placeholder
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: ticket.event.coverImageUrl != null
+                      child: (ticket.event.coverImageUrl != null && ticket.event.coverImageUrl!.isNotEmpty)
                           ? Image.network(
                               ticket.event.coverImageUrl!,
                               width: 70,
@@ -623,7 +654,9 @@ class _UserEventDashboardState extends State<UserEventDashboard>
                               Icon(Icons.confirmation_number, size: 14, color: Colors.grey[500]),
                               const SizedBox(width: 4),
                               Text(
-                                ticket.registration.ticketCode.substring(0, 12),
+                                ticket.registration.ticketCode.length > 12 
+                                    ? ticket.registration.ticketCode.substring(0, 12)
+                                    : ticket.registration.ticketCode,
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontFamily: 'monospace',
@@ -710,7 +743,7 @@ class _UserEventDashboardState extends State<UserEventDashboard>
 
   Widget _buildFloatingButton() {
     return FloatingActionButton.extended(
-      onPressed: () => context.push(Routes.explore),
+      onPressed: () => context.push(DashboardRoutes.explore),
       backgroundColor: AppColors.primary,
       icon: const Icon(Icons.explore),
       label: const Text('Explorer'),
@@ -719,8 +752,7 @@ class _UserEventDashboardState extends State<UserEventDashboard>
 
   void _navigateToTicket(UserTicketWithEvent ticket) {
     context.push(
-      Routes.ticketDetails,
-      extra: {'registrationId': ticket.registration.id},
+      DashboardRoutes.getTicketDetailsPath(ticket.event.id, ticket.registration.id),
     );
   }
 
@@ -858,7 +890,6 @@ class _UserEventDashboardState extends State<UserEventDashboard>
   }
 
   void _downloadTicket(UserTicketWithEvent ticket) {
-    // Implémentation du téléchargement PDF
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Téléchargement en cours...'),
@@ -867,7 +898,6 @@ class _UserEventDashboardState extends State<UserEventDashboard>
   }
 
   void _shareTicket(UserTicketWithEvent ticket) {
-    // Implémentation du partage
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Fonctionnalité à venir'),
@@ -876,7 +906,6 @@ class _UserEventDashboardState extends State<UserEventDashboard>
   }
 
   void _addToCalendar(UserTicketWithEvent ticket) {
-    // Implémentation calendrier
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Ajouté au calendrier'),
@@ -884,12 +913,4 @@ class _UserEventDashboardState extends State<UserEventDashboard>
       ),
     );
   }
-}
-
-// ============================================================================
-// CONSTANTES
-// ============================================================================
-class AppColors {
-  static const Color primary = Color(0xFF6366F1);
-  static const Color textDark = Color(0xFF1E293B);
 }
