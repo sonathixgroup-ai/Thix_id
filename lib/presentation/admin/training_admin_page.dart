@@ -1,3 +1,5 @@
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/theme.dart';
@@ -13,6 +15,10 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   final _supabase = Supabase.instance.client;
   List<dynamic> _trainings = [];
   bool _loading = true;
+  String _searchQuery = '';
+  String _filterStatus = 'all'; // all, published, draft
+  String _filterCategory = 'all';
+  List<String> _categories = [];
 
   static const _brandPurple = Color(0xFF6366F1);
   static const _bgLight = Color(0xFFF8FAFC);
@@ -23,120 +29,594 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   void initState() {
     super.initState();
     _loadTrainings();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final res = await _supabase.from('thix_trainings').select('category');
+      if (res is List) {
+        final cats = res.map((e) => e['category'] as String).toSet().toList();
+        setState(() => _categories = cats);
+      }
+    } catch (e) {
+      debugPrint('Error loading categories: $e');
+    }
   }
 
   Future<void> _loadTrainings() async {
     setState(() => _loading = true);
     try {
-      final res = await _supabase.from('thix_trainings').select('*');
+      var query = _supabase.from('thix_trainings').select('*');
+      
+      if (_searchQuery.isNotEmpty) {
+        query = query.ilike('title', '%$_searchQuery%');
+      }
+      
+      final res = await query.order('updated_at', ascending: false);
+      
       if (!mounted) return;
       setState(() => _trainings = res is List ? res : []);
     } catch (e) {
-      debugPrint('Error loading trainings: \$e');
+      debugPrint('Error loading trainings: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: \$e')),
+        SnackBar(content: Text('Error: $e')),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  List<dynamic> get _filteredTrainings {
+    var filtered = List.from(_trainings);
+    
+    // Filtre par statut
+    if (_filterStatus == 'published') {
+      filtered = filtered.where((t) => t['is_published'] == true).toList();
+    } else if (_filterStatus == 'draft') {
+      filtered = filtered.where((t) => t['is_published'] != true).toList();
+    }
+    
+    // Filtre par catégorie
+    if (_filterCategory != 'all') {
+      filtered = filtered.where((t) => t['category'] == _filterCategory).toList();
+    }
+    
+    return filtered;
+  }
+
   void _showCreateTrainingDialog() {
     final titleCtrl = TextEditingController();
+    final taglineCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final priceCtrl = TextEditingController();
+    final categoryCtrl = TextEditingController();
+    final levelCtrl = TextEditingController();
+    final languageCtrl = TextEditingController(text: 'FR');
+    final durationCtrl = TextEditingController();
+    final instructorNameCtrl = TextEditingController();
+    final instructorTitleCtrl = TextEditingController();
+    final requirementsCtrl = TextEditingController();
+    bool isFree = false;
+    bool certificationIncluded = true;
+    bool isFeatured = false;
+    String selectedLevel = 'Beginner';
+    String selectedLanguage = 'FR';
+    String selectedDeliveryMode = 'online';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Créer une formation'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleCtrl,
-                decoration: const InputDecoration(hintText: 'Titre'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Créer une formation'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Titre *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: taglineCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Slogan / Accroche',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: priceCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Prix',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedLanguage,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'FR', child: Text('Français')),
+                            DropdownMenuItem(value: 'EN', child: Text('English')),
+                            DropdownMenuItem(value: 'SW', child: Text('Swahili')),
+                          ],
+                          onChanged: (v) => setDialogState(() => selectedLanguage = v!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedLevel,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'Beginner', child: Text('Débutant')),
+                            DropdownMenuItem(value: 'Intermediate', child: Text('Intermédiaire')),
+                            DropdownMenuItem(value: 'Advanced', child: Text('Avancé')),
+                          ],
+                          onChanged: (v) => setDialogState(() => selectedLevel = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: durationCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Durée (minutes)',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: categoryCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Catégorie',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: instructorNameCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Nom du formateur',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: instructorTitleCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Titre du formateur',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: requirementsCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Prérequis',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchListTile(
+                          title: const Text('Gratuit'),
+                          value: isFree,
+                          onChanged: (v) => setDialogState(() => isFree = v),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      Expanded(
+                        child: SwitchListTile(
+                          title: const Text('Certificat'),
+                          value: certificationIncluded,
+                          onChanged: (v) => setDialogState(() => certificationIncluded = v),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SwitchListTile(
+                    title: const Text('À la une'),
+                    value: isFeatured,
+                    onChanged: (v) => setDialogState(() => isFeatured = v),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      border: Border.all(color: Colors.orange.shade200),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      '⚠️ La formation sera créée en BROUILLON et invisible aux utilisateurs jusqu\'à publication.',
+                      style: TextStyle(
+                        color: Color(0xFF92400e),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: descCtrl,
-                decoration: const InputDecoration(hintText: 'Description'),
-                maxLines: 3,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annuler'),
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: priceCtrl,
-                decoration: const InputDecoration(hintText: 'Prix'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  border: Border.all(color: Colors.orange.shade200),
-                  borderRadius: BorderRadius.circular(8),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await _supabase.from('thix_trainings').insert({
+                      'title': titleCtrl.text,
+                      'tagline': taglineCtrl.text.isEmpty ? null : taglineCtrl.text,
+                      'description': descCtrl.text.isEmpty ? null : descCtrl.text,
+                      'price_amount': isFree ? 0 : double.tryParse(priceCtrl.text),
+                      'currency': 'USD',
+                      'is_free': isFree,
+                      'certification_included': certificationIncluded,
+                      'is_featured': isFeatured,
+                      'is_published': false,
+                      'category': categoryCtrl.text.isEmpty ? 'General' : categoryCtrl.text,
+                      'level': selectedLevel,
+                      'language': selectedLanguage,
+                      'delivery_mode': 'online',
+                      'duration_minutes': int.tryParse(durationCtrl.text),
+                      'instructor_name': instructorNameCtrl.text.isEmpty ? null : instructorNameCtrl.text,
+                      'instructor_title': instructorTitleCtrl.text.isEmpty ? null : instructorTitleCtrl.text,
+                      'requirements': requirementsCtrl.text.isEmpty ? null : requirementsCtrl.text,
+                    });
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Formation créée en brouillon!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    _loadTrainings();
+                  } catch (e) {
+                    debugPrint('Error creating training: $e');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brandPurple,
                 ),
                 child: const Text(
-                  '⚠️ La formation sera créée en BROUILLON et invisible aux utilisateurs jusqu\'à publication.',
-                  style: TextStyle(
-                    color: Color(0xFF92400e),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  'Créer',
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await _supabase.from('thix_trainings').insert({
-                  'title': titleCtrl.text,
-                  'description': descCtrl.text,
-                  'price_amount': double.tryParse(priceCtrl.text),
-                  'is_published': false,
-                  'category': 'General',
-                  'level': 'Beginner',
-                  'language': 'FR',
-                  'delivery_mode': 'online',
-                  'currency': 'USD',
-                  'is_free': false,
-                  'certification_included': true,
-                  'is_featured': false,
-                });
-                if (!mounted) return;
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Formation créée en brouillon!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                _loadTrainings();
-              } catch (e) {
-                debugPrint('Error creating training: \$e');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _brandPurple,
-            ),
-            child: const Text(
-              'Créer',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
+  }
+
+  void _showEditTrainingDialog(dynamic training) {
+    final titleCtrl = TextEditingController(text: training['title']);
+    final taglineCtrl = TextEditingController(text: training['tagline'] ?? '');
+    final descCtrl = TextEditingController(text: training['description'] ?? '');
+    final priceCtrl = TextEditingController(text: training['price_amount']?.toString() ?? '');
+    final categoryCtrl = TextEditingController(text: training['category'] ?? 'General');
+    final levelCtrl = TextEditingController(text: training['level'] ?? 'Beginner');
+    final languageCtrl = TextEditingController(text: training['language'] ?? 'FR');
+    final durationCtrl = TextEditingController(text: training['duration_minutes']?.toString() ?? '');
+    final instructorNameCtrl = TextEditingController(text: training['instructor_name'] ?? '');
+    final instructorTitleCtrl = TextEditingController(text: training['instructor_title'] ?? '');
+    final requirementsCtrl = TextEditingController(text: training['requirements'] ?? '');
+    bool isFree = training['is_free'] ?? false;
+    bool certificationIncluded = training['certification_included'] ?? true;
+    bool isFeatured = training['is_featured'] ?? false;
+    String selectedLevel = training['level'] ?? 'Beginner';
+    String selectedLanguage = training['language'] ?? 'FR';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Modifier la formation'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Titre *',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: taglineCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Slogan / Accroche',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: priceCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Prix',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedLanguage,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'FR', child: Text('Français')),
+                            DropdownMenuItem(value: 'EN', child: Text('English')),
+                            DropdownMenuItem(value: 'SW', child: Text('Swahili')),
+                          ],
+                          onChanged: (v) => setDialogState(() => selectedLanguage = v!),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedLevel,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'Beginner', child: Text('Débutant')),
+                            DropdownMenuItem(value: 'Intermediate', child: Text('Intermédiaire')),
+                            DropdownMenuItem(value: 'Advanced', child: Text('Avancé')),
+                          ],
+                          onChanged: (v) => setDialogState(() => selectedLevel = v!),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: durationCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Durée (minutes)',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: categoryCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Catégorie',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: instructorNameCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Nom du formateur',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: instructorTitleCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Titre du formateur',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: requirementsCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Prérequis',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchListTile(
+                          title: const Text('Gratuit'),
+                          value: isFree,
+                          onChanged: (v) => setDialogState(() => isFree = v),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      Expanded(
+                        child: SwitchListTile(
+                          title: const Text('Certificat'),
+                          value: certificationIncluded,
+                          onChanged: (v) => setDialogState(() => certificationIncluded = v),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SwitchListTile(
+                    title: const Text('À la une'),
+                    value: isFeatured,
+                    onChanged: (v) => setDialogState(() => isFeatured = v),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await _supabase.from('thix_trainings').update({
+                      'title': titleCtrl.text,
+                      'tagline': taglineCtrl.text.isEmpty ? null : taglineCtrl.text,
+                      'description': descCtrl.text.isEmpty ? null : descCtrl.text,
+                      'price_amount': isFree ? 0 : double.tryParse(priceCtrl.text),
+                      'is_free': isFree,
+                      'certification_included': certificationIncluded,
+                      'is_featured': isFeatured,
+                      'category': categoryCtrl.text.isEmpty ? 'General' : categoryCtrl.text,
+                      'level': selectedLevel,
+                      'language': selectedLanguage,
+                      'duration_minutes': int.tryParse(durationCtrl.text),
+                      'instructor_name': instructorNameCtrl.text.isEmpty ? null : instructorNameCtrl.text,
+                      'instructor_title': instructorTitleCtrl.text.isEmpty ? null : instructorTitleCtrl.text,
+                      'requirements': requirementsCtrl.text.isEmpty ? null : requirementsCtrl.text,
+                      'updated_at': DateTime.now().toUtc().toIso8601String(),
+                    }).eq('id', training['id']);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Formation modifiée!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    _loadTrainings();
+                  } catch (e) {
+                    debugPrint('Error updating training: $e');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brandPurple,
+                ),
+                child: const Text(
+                  'Enregistrer',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _uploadCoverImage(dynamic training) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+    
+    if (result == null) return;
+    
+    final file = result.files.first;
+    final bytes = file.bytes;
+    
+    if (bytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible de lire le fichier')),
+      );
+      return;
+    }
+    
+    final storagePath = 'covers/${training['id']}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    
+    try {
+      await _supabase.storage.from('thix-trainings').uploadBinary(
+        storagePath,
+        bytes,
+        fileOptions: const FileOptions(contentType: 'image/jpeg'),
+      );
+      
+      final publicUrl = _supabase.storage.from('thix-trainings').getPublicUrl(storagePath);
+      
+      await _supabase.from('thix_trainings').update({
+        'cover_image_path': storagePath,
+        'cover_image_url': publicUrl,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', training['id']);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Image de couverture ajoutée!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadTrainings();
+    } catch (e) {
+      debugPrint('Error uploading cover: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    }
   }
 
   Future<void> _publishTraining(dynamic training) async {
@@ -154,10 +634,10 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       );
       _loadTrainings();
     } catch (e) {
-      debugPrint('Error publishing: \$e');
+      debugPrint('Error publishing: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: \$e')),
+        SnackBar(content: Text('Erreur: $e')),
       );
     }
   }
@@ -177,10 +657,10 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       );
       _loadTrainings();
     } catch (e) {
-      debugPrint('Error unpublishing: \$e');
+      debugPrint('Error unpublishing: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: \$e')),
+        SnackBar(content: Text('Erreur: $e')),
       );
     }
   }
@@ -190,7 +670,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer cette formation?'),
-        content: Text('Êtes-vous sûr de vouloir supprimer "${training['title']}"?'),
+        content: Text('Êtes-vous sûr de vouloir supprimer "${training['title']}"? Cette action est irréversible.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -221,16 +701,20 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       );
       _loadTrainings();
     } catch (e) {
-      debugPrint('Delete error: \$e');
+      debugPrint('Delete error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: \$e')),
+        SnackBar(content: Text('Erreur: $e')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final filteredTrainings = _filteredTrainings;
+    final publishedCount = _trainings.where((t) => t['is_published'] == true).length;
+    final draftCount = _trainings.where((t) => t['is_published'] != true).length;
+    
     return Scaffold(
       backgroundColor: _bgLight,
       appBar: AppBar(
@@ -251,198 +735,310 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
           ),
         ],
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: _brandPurple),
-            )
-          : ListView(
-              padding: const EdgeInsets.all(14),
+      body: Column(
+        children: [
+          // Search and Filters
+          Container(
+            padding: const EdgeInsets.all(14),
+            color: Colors.white,
+            child: Column(
               children: [
-                // INFORMATION BANNER
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    border: Border.all(color: _brandPurple.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_rounded, color: _brandPurple, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              '📋 Brouillon = Invisible aux utilisateurs',
-                              style: TextStyle(
-                                color: _textDark,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Cliquez "Publier" pour rendre visible dans THIX FORMATION',
-                              style: TextStyle(
-                                color: _textGrey,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                TextField(
+                  onChanged: (value) {
+                    setState(() => _searchQuery = value);
+                    _loadTrainings();
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une formation...',
+                    prefixIcon: const Icon(Icons.search_rounded, color: _brandPurple),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: _bgLight,
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                // STATS
+                const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildStatCard('Total', _trainings.length.toString()),
-                    const SizedBox(width: 12),
-                    _buildStatCard(
-                      'Publiées',
-                      _trainings
-                          .where((t) => t['is_published'] == true)
-                          .length
-                          .toString(),
+                    // Status filter
+                    Expanded(
+                      child: SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(value: 'all', label: Text('Toutes')),
+                          ButtonSegment(value: 'published', label: Text('Publiées')),
+                          ButtonSegment(value: 'draft', label: Text('Brouillons')),
+                        ],
+                        selected: {_filterStatus},
+                        onSelectionChanged: (Set<String> selection) {
+                          setState(() => _filterStatus = selection.first);
+                        },
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    _buildStatCard(
-                      'Brouillons',
-                      _trainings
-                          .where((t) => t['is_published'] != true)
-                          .length
-                          .toString(),
+                    // Category filter
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _filterCategory,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        items: [
+                          const DropdownMenuItem(value: 'all', child: Text('Toutes catégories')),
+                          ..._categories.map((cat) => DropdownMenuItem(
+                            value: cat,
+                            child: Text(cat),
+                          )),
+                        ],
+                        onChanged: (v) => setState(() => _filterCategory = v!),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-
-                // LIST
-                ..._trainings
-                    .map((t) => Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: (t['is_published'] ?? false)
-                                  ? Colors.green.shade300
-                                  : const Color(0xFFE2E8F0),
-                              width: (t['is_published'] ?? false) ? 2 : 1,
-                            ),
+              ],
+            ),
+          ),
+          
+          // Stats
+          Container(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                _buildStatCard('Total', _trainings.length.toString()),
+                const SizedBox(width: 12),
+                _buildStatCard('Publiées', publishedCount.toString()),
+                const SizedBox(width: 12),
+                _buildStatCard('Brouillons', draftCount.toString()),
+              ],
+            ),
+          ),
+          
+          // Information Banner
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF2FF),
+                border: Border.all(color: _brandPurple.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_rounded, color: _brandPurple, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          '📋 Brouillon = Invisible aux utilisateurs',
+                          style: TextStyle(
+                            color: _textDark,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      t['title'] ?? 'Sans titre',
-                                      style: const TextStyle(
-                                        color: _textDark,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: (t['is_published'] ?? false)
-                                          ? Colors.green.shade100
-                                          : Colors.orange.shade100,
-                                      borderRadius:
-                                          BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      (t['is_published'] ?? false)
-                                          ? '✅ Publiée'
-                                          : '📋 Brouillon',
-                                      style: TextStyle(
-                                        color: (t['is_published'] ?? false)
-                                            ? Colors.green
-                                            : Colors.orange,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Cliquez "Publier" pour rendre visible dans THIX FORMATION',
+                          style: TextStyle(
+                            color: _textGrey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 14),
+          
+          // List
+          Expanded(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: _brandPurple),
+                  )
+                : filteredTrainings.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.school_outlined, size: 64, color: _textGrey),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isNotEmpty 
+                                  ? 'Aucune formation trouvée pour "$_searchQuery"'
+                                  : 'Aucune formation disponible',
+                              style: const TextStyle(color: _textGrey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(14),
+                        itemCount: filteredTrainings.length,
+                        itemBuilder: (context, index) {
+                          final t = filteredTrainings[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: (t['is_published'] ?? false)
+                                    ? Colors.green.shade300
+                                    : const Color(0xFFE2E8F0),
+                                width: (t['is_published'] ?? false) ? 2 : 1,
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Cover image preview
+                                if (t['cover_image_url'] != null)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      t['cover_image_url'],
+                                      height: 120,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                if (t['cover_image_url'] != null) const SizedBox(height: 12),
+                                
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        t['title'] ?? 'Sans titre',
+                                        style: const TextStyle(
+                                          color: _textDark,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: (t['is_published'] ?? false)
+                                            ? Colors.green.shade100
+                                            : Colors.orange.shade100,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        (t['is_published'] ?? false)
+                                            ? '✅ Publiée'
+                                            : '📋 Brouillon',
+                                        style: TextStyle(
+                                          color: (t['is_published'] ?? false)
+                                              ? Colors.green
+                                              : Colors.orange,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                if (t['category'] != null)
                                   Text(
-                                    'Prix: ${t['price_amount'] ?? 0} '
-                                    '${t['currency'] ?? 'USD'}',
+                                    '📁 ${t['category']} • ${t['level'] ?? 'Débutant'}',
                                     style: const TextStyle(
                                       color: _textGrey,
                                       fontSize: 11,
                                     ),
                                   ),
-                                  const Spacer(),
-                                  // PUBLISH/UNPUBLISH BUTTON
-                                  if (t['is_published'] == true)
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '💰 ${t['is_free'] == true ? 'Gratuit' : '${t['price_amount'] ?? 0} ${t['currency'] ?? 'USD'}'}',
+                                      style: const TextStyle(
+                                        color: _brandPurple,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    // Upload Cover Button
                                     IconButton(
-                                      onPressed: () => _unpublishTraining(t),
+                                      onPressed: () => _uploadCoverImage(t),
                                       icon: const Icon(
-                                        Icons.visibility_off_rounded,
-                                        color: Colors.orange,
+                                        Icons.image_rounded,
+                                        color: Colors.green,
                                         size: 18,
                                       ),
-                                      tooltip: 'Dépublier',
-                                    )
-                                  else
+                                      tooltip: 'Ajouter une image de couverture',
+                                    ),
+                                    // PUBLISH/UNPUBLISH BUTTON
+                                    if (t['is_published'] == true)
+                                      IconButton(
+                                        onPressed: () => _unpublishTraining(t),
+                                        icon: const Icon(
+                                          Icons.visibility_off_rounded,
+                                          color: Colors.orange,
+                                          size: 18,
+                                        ),
+                                        tooltip: 'Dépublier',
+                                      )
+                                    else
+                                      IconButton(
+                                        onPressed: () => _publishTraining(t),
+                                        icon: const Icon(
+                                          Icons.visibility_rounded,
+                                          color: _brandPurple,
+                                          size: 18,
+                                        ),
+                                        tooltip: 'Publier',
+                                      ),
+                                    // EDIT BUTTON
                                     IconButton(
-                                      onPressed: () => _publishTraining(t),
+                                      onPressed: () => _showEditTrainingDialog(t),
                                       icon: const Icon(
-                                        Icons.visibility_rounded,
+                                        Icons.edit_rounded,
                                         color: _brandPurple,
                                         size: 18,
                                       ),
-                                      tooltip: 'Publier',
+                                      tooltip: 'Éditer',
                                     ),
-                                  // EDIT BUTTON
-                                  IconButton(
-                                    onPressed: () {
-                                      // TODO: Edit training
-                                    },
-                                    icon: const Icon(
-                                      Icons.edit_rounded,
-                                      color: _brandPurple,
-                                      size: 18,
+                                    // DELETE BUTTON
+                                    IconButton(
+                                      onPressed: () => _deleteTraining(t),
+                                      icon: const Icon(
+                                        Icons.delete_rounded,
+                                        color: Colors.red,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Supprimer',
                                     ),
-                                    tooltip: 'Éditer',
-                                  ),
-                                  // DELETE BUTTON
-                                  IconButton(
-                                    onPressed: () => _deleteTraining(t),
-                                    icon: const Icon(
-                                      Icons.delete_rounded,
-                                      color: Colors.red,
-                                      size: 18,
-                                    ),
-                                    tooltip: 'Supprimer',
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ))
-                    .toList(),
-              ],
-            ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _brandPurple,
         onPressed: _showCreateTrainingDialog,
