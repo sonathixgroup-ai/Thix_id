@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/theme.dart';
+import 'package:image_picker/image_picker.dart';
 
 class TrainingAdminPage extends StatefulWidget {
   const TrainingAdminPage({super.key});
@@ -318,58 +319,75 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     );
   }
 
-  Future<void> _uploadCoverImage(dynamic training) async {
-    final trainingId = training['id']?.toString();
-    if (trainingId == null || trainingId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ID de formation invalide')));
+import 'package:image_picker/image_picker.dart'; // Ajoute cet import en haut
+
+Future<void> _uploadCoverImage(dynamic training) async {
+  final String? trainingId = training['id']?.toString();
+  if (trainingId == null || trainingId.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('ID de formation invalide')),
+    );
+    return;
+  }
+
+  try {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    
+    if (image == null) return;
+    
+    final Uint8List bytes = await image.readAsBytes();
+    
+    const int maxSize = 10 * 1024 * 1024;
+    if (bytes.length > maxSize) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Fichier trop volumineux (max 10 MB)')),
+      );
       return;
     }
-
-    try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
-      if (result == null || result.files.isEmpty) return;
-      
-      final file = result.files.first;
-      Uint8List bytes;
-      
-      if (kIsWeb) {
-        if (file.bytes == null) return;
-        bytes = file.bytes!;
-      } else {
-        if (file.path == null) return;
-        bytes = await File(file.path!).readAsBytes();
-      }
-      
-      const maxSize = 10 * 1024 * 1024;
-      if (bytes.length > maxSize) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fichier trop volumineux (max 10 MB)')));
-        return;
-      }
-      
-      if (!mounted) return;
-      setState(() => _loading = true);
-      
-      final storagePath = 'covers/$trainingId/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      await _supabase.storage.from('thix-trainings').uploadBinary(storagePath, bytes, fileOptions: const FileOptions(contentType: 'image/jpeg'));
-      
-      final publicUrl = _supabase.storage.from('thix-trainings').getPublicUrl(storagePath);
-      await _supabase.from('thix_trainings').update({
-        'cover_image_path': storagePath,
-        'cover_image_url': publicUrl,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', trainingId);
-      
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Image de couverture ajoutée !'), backgroundColor: Colors.green));
-      _loadTrainings();
-    } catch (e) {
-      debugPrint('Error uploading cover: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    
+    if (!mounted) return;
+    setState(() => _loading = true);
+    
+    final String storagePath = 'covers/$trainingId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    
+    await _supabase.storage.from('thix-trainings').uploadBinary(
+      storagePath,
+      bytes,
+      fileOptions: const FileOptions(contentType: 'image/jpeg'),
+    );
+    
+    final String publicUrl = _supabase.storage.from('thix-trainings').getPublicUrl(storagePath);
+    
+    await _supabase.from('thix_trainings').update({
+      'cover_image_path': storagePath,
+      'cover_image_url': publicUrl,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    }).eq('id', trainingId);
+    
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ Image de couverture ajoutée !'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    _loadTrainings();
+    
+  } catch (e) {
+    debugPrint('Error uploading cover: $e');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur: ${e.toString()}')),
+    );
+  } finally {
+    if (mounted) setState(() => _loading = false);
   }
+}
 
   Future<void> _publishTraining(dynamic training) async {
     final trainingId = training['id']?.toString();
