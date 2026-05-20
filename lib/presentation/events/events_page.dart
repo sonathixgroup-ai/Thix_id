@@ -1,15 +1,29 @@
 // ============================================================================
-// FICHIER: lib/pages/events/events_page_compact.dart
-// Version compacte conforme à la maquette
+// FICHIER: lib/presentation/events/events_page.dart
+// Version corrigée - Plus d'erreurs
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/models/event_item.dart';
-import 'package:thix_id/nav.dart';
 import 'package:thix_id/services/event_service.dart';
 
 // ============================================================================
-// CONTROLLER (identique)
+// CONSTANTES (pour remplacer Routes manquant)
+// ============================================================================
+class EventRoutes {
+  static const String events = '/events';
+  static const String eventDetails = '/events/:eventId';
+  static const String eventRegister = '/events/:eventId/register';
+  static const String userEventsDashboard = '/events/me';
+  static const String search = '/search';
+  static const String profile = '/profile';
+  static const String favorites = '/favorites';
+}
+
+// ============================================================================
+// CONTROLLER
 // ============================================================================
 class EventsPageController extends ChangeNotifier {
   final EventService _eventService;
@@ -49,7 +63,7 @@ class EventsPageController extends ChangeNotifier {
 }
 
 // ============================================================================
-// PAGE COMPACTE
+// PAGE PRINCIPALE
 // ============================================================================
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
@@ -65,7 +79,7 @@ class _EventsPageState extends State<EventsPage> {
   void initState() {
     super.initState();
     _controller = EventsPageController(
-      eventService: context.read<EventService>(),
+      eventService: EventService(Supabase.instance.client),
     );
     _controller.loadHomeData();
   }
@@ -92,7 +106,7 @@ class _EventsPageState extends State<EventsPage> {
                 title: const Text(
                   'THIX ÉVÉNEMENT',
                   style: TextStyle(
-                    fontSize: 18, // réduit
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF6366F1),
                   ),
@@ -105,7 +119,11 @@ class _EventsPageState extends State<EventsPage> {
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.notifications_none_outlined, size: 22),
-                    onPressed: () => context.push(Routes.notifications),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Notifications à venir')),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -138,6 +156,7 @@ class _EventsPageState extends State<EventsPage> {
   // ÉTATS
   // ==========================================================================
   Widget _buildLoadingState() => const Center(child: CircularProgressIndicator());
+  
   Widget _buildErrorState() => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -146,7 +165,13 @@ class _EventsPageState extends State<EventsPage> {
             const SizedBox(height: 12),
             Text(_controller.errorMessage!),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _controller.refresh, child: const Text('Réessayer')),
+            ElevatedButton(
+              onPressed: _controller.refresh,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+              ),
+              child: const Text('Réessayer'),
+            ),
           ],
         ),
       );
@@ -178,7 +203,7 @@ class _EventsPageState extends State<EventsPage> {
           SizedBox(
             height: 34,
             child: OutlinedButton(
-              onPressed: () => context.push(Routes.explore),
+              onPressed: () => context.push(EventRoutes.events),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFF6366F1)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -193,7 +218,7 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   // ==========================================================================
-  // CATÉGORIES POPULAIRES (puce horizontale compacte)
+  // CATÉGORIES POPULAIRES
   // ==========================================================================
   Widget _buildPopularCategoriesSection() {
     final categories = _controller.popularCategories;
@@ -245,14 +270,20 @@ class _EventsPageState extends State<EventsPage> {
         children: [
           Icon(icons[category] ?? Icons.category, size: 28, color: const Color(0xFF6366F1)),
           const SizedBox(height: 4),
-          Text(category, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(
+            category,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
   }
 
   // ==========================================================================
-  // ÉVÉNEMENTS RECOMMANDÉS (grille compacte)
+  // ÉVÉNEMENTS RECOMMANDÉS
   // ==========================================================================
   Widget _buildRecommendedSection() {
     final events = _controller.recommendedEvents;
@@ -272,7 +303,7 @@ class _EventsPageState extends State<EventsPage> {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 0.7, // plus compact
+              childAspectRatio: 0.7,
             ),
             itemCount: events.length,
             itemBuilder: (context, index) => _buildEventCard(events[index]),
@@ -284,7 +315,7 @@ class _EventsPageState extends State<EventsPage> {
 
   Widget _buildEventCard(EventItem event) {
     return GestureDetector(
-      onTap: () => context.push(Routes.eventDetails, extra: {'eventId': event.id}),
+      onTap: () => context.push('/events/${event.id}'),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -296,8 +327,14 @@ class _EventsPageState extends State<EventsPage> {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: event.coverImageUrl != null
-                  ? Image.network(event.coverImageUrl!, height: 100, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _imagePlaceholder(100))
+              child: event.coverImageUrl != null && event.coverImageUrl!.isNotEmpty
+                  ? Image.network(
+                      event.coverImageUrl!,
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _imagePlaceholder(100),
+                    )
                   : _imagePlaceholder(100),
             ),
             Padding(
@@ -307,22 +344,50 @@ class _EventsPageState extends State<EventsPage> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: const Color(0xFF6366F1).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                    child: Text(event.category.toUpperCase(), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      event.category.toUpperCase(),
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  Text(event.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    event.title,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 4),
-                  Row(children: [const Icon(Icons.calendar_today, size: 10, color: Colors.grey), const SizedBox(width: 4), Text(_formatDateShort(event.eventDate), style: const TextStyle(fontSize: 10, color: Colors.grey))]),
+                  Row(children: [
+                    const Icon(Icons.calendar_today, size: 10, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(_formatDateShort(event.eventDate), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  ]),
                   const SizedBox(height: 2),
-                  Row(children: [const Icon(Icons.location_on, size: 10, color: Colors.grey), const SizedBox(width: 4), Expanded(child: Text(event.venue, style: const TextStyle(fontSize: 10, color: Colors.grey), maxLines: 1))]),
+                  Row(children: [
+                    const Icon(Icons.location_on, size: 10, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        event.venue,
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        maxLines: 1,
+                      ),
+                    ),
+                  ]),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(event.isFree ? 'Gratuit' : '${event.priceAmount?.toStringAsFixed(0)} ${event.currency ?? '€'}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+                      Text(
+                        event.isFree ? 'Gratuit' : '${event.priceAmount?.toStringAsFixed(0)} ${event.currency ?? '€'}',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+                      ),
                       ElevatedButton(
-                        onPressed: () => context.push(Routes.eventRegister, extra: {'eventId': event.id}),
+                        onPressed: () => context.push('/events/${event.id}/register'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF6366F1),
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -343,10 +408,16 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
-  Widget _imagePlaceholder(double height) => Container(height: height, color: Colors.grey[200], child: const Icon(Icons.event, color: Colors.grey));
+  Widget _imagePlaceholder(double height) {
+    return Container(
+      height: height,
+      color: Colors.grey[200],
+      child: const Icon(Icons.event, color: Colors.grey),
+    );
+  }
 
   // ==========================================================================
-  // BANNIÈRE NOTIFICATION (plus compacte)
+  // BANNIÈRE NOTIFICATION
   // ==========================================================================
   Widget _buildNotificationBanner() {
     return Container(
@@ -370,7 +441,11 @@ class _EventsPageState extends State<EventsPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Fonctionnalité à venir')),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: const Color(0xFF6366F1),
@@ -387,7 +462,7 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   // ==========================================================================
-  // PROCHAINS ÉVÉNEMENTS (liste compacte)
+  // PROCHAINS ÉVÉNEMENTS
   // ==========================================================================
   Widget _buildUpcomingSection() {
     final events = _controller.upcomingEvents;
@@ -420,8 +495,16 @@ class _EventsPageState extends State<EventsPage> {
           Container(
             width: 50,
             padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(color: const Color(0xFF6366F1).withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-            child: Column(children: [Text(_formatDay(event.eventDate), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))), Text(_formatMonth(event.eventDate), style: const TextStyle(fontSize: 11, color: Color(0xFF6366F1)))]),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6366F1).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                Text(_formatDay(event.eventDate), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+                Text(_formatMonth(event.eventDate), style: const TextStyle(fontSize: 11, color: Color(0xFF6366F1))),
+              ],
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -436,17 +519,24 @@ class _EventsPageState extends State<EventsPage> {
                 const SizedBox(height: 4),
                 Text(event.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold), maxLines: 1),
                 const SizedBox(height: 4),
-                Row(children: [const Icon(Icons.access_time, size: 10, color: Colors.grey), const SizedBox(width: 4), Text(_formatTime(event.eventDate), style: const TextStyle(fontSize: 10, color: Colors.grey))]),
+                Row(children: [
+                  const Icon(Icons.access_time, size: 10, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(_formatTime(event.eventDate), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                ]),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(event.isFree ? 'Gratuit' : '${event.priceAmount?.toStringAsFixed(0)} ${event.currency ?? '€'}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6366F1))),
+              Text(
+                event.isFree ? 'Gratuit' : '${event.priceAmount?.toStringAsFixed(0)} ${event.currency ?? '€'}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+              ),
               const SizedBox(height: 6),
               ElevatedButton(
-                onPressed: () => context.push(Routes.eventRegister, extra: {'eventId': event.id}),
+                onPressed: () => context.push('/events/${event.id}/register'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6366F1),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -474,10 +564,18 @@ class _EventsPageState extends State<EventsPage> {
       currentIndex: 0,
       onTap: (index) {
         switch (index) {
-          case 1: context.push(Routes.search);
-          case 2: context.push(Routes.myTickets);
-          case 3: context.push(Routes.favorites);
-          case 4: context.push(Routes.profile);
+          case 1:
+            context.push(EventRoutes.search);
+            break;
+          case 2:
+            context.push(EventRoutes.userEventsDashboard);
+            break;
+          case 3:
+            context.push(EventRoutes.favorites);
+            break;
+          case 4:
+            context.push(EventRoutes.profile);
+            break;
         }
       },
       items: const [
