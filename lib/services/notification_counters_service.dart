@@ -366,7 +366,7 @@ class NotificationCountersService {
     // Gestion du cycle de vie du stream
     controller
       ..onListen = () => unawaited(setupRealtime())
-      ..onCancel = () => unawaited(cleanup());
+      ..onCancel = cleanup;
 
     return controller.stream.distinct();
   }
