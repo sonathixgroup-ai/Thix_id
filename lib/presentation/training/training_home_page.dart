@@ -265,7 +265,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
 
   Widget _buildHeroBanner(VoidCallback? onExplore) {
     return Container(
-      height: 160,
+      height: 130,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFEEF2FF), Color(0xE0E0E7FF)],
