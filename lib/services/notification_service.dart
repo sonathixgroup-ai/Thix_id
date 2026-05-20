@@ -123,10 +123,9 @@ class NotificationService {
         final response = await _client
     .from(_table)
     .select('*')
-    .isNull('user_id')
+    .filter('user_id', 'is', null)
     .order('created_at', ascending: false)
     .limit(_maxNotifications);
-
         final notifications = response is List
             ? response
                 .map((e) => _normalizeRow(e as Map<String, dynamic>))
