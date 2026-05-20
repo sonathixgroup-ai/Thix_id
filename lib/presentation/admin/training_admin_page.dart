@@ -901,7 +901,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      // L'erreur critique "const" a été supprimée ici pour permettre un affichage dynamique fluide
                       children: const <Widget>[
                         Text(
                           '📋 Brouillon = Invisible aux utilisateurs',
@@ -971,4 +970,70 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                if (t['cover_image_url'] != null) ...
+                                if (t['cover_image_url'] != null) ...[
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      t['cover_image_url'],
+                                      height: 120,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        t['title'] ?? 'Sans titre',
+                                        style: const TextStyle(
+                                          color: _textDark,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: (t['is_published'] ?? false)
+                                            ? Colors.green.shade100
+                                            : Colors.orange.shade100,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        (t['is_published'] ?? false)
+                                            ? '✅ Publiée'
+                                            : '📋 Brouillon',
+                                        style: TextStyle(
+                                          color: (t['is_published'] ?? false)
+                                              ? Colors.green
+                                              : Colors.orange,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                if (t['category'] != null)
+                                  Text(
+                                    '📁 ${t['category']} • ${t['level'] ?? 'Débutant'}',
+                                    style: const TextStyle(
+                                      color: _textGrey,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: <Widget>[
+                                    Text(
+                                      '💰 ${t['is_free'] == true ? 'Gratuit' : '${t['price_amount'] ?? 0} ${t['currency'] ?? 'USD'}'}',
