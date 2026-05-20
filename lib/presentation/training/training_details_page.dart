@@ -437,7 +437,7 @@ class _TrainingDetailsPageState extends State<TrainingDetailsPage> {
                           const Text(
                             '✓ Certificat inclus',
                             style: TextStyle(
-                              color: Colors.emerald,
+                              color: _emerald,
                               fontSize: 10,
                             ),
                           ),
