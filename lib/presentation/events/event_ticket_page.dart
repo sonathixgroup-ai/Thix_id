@@ -1,5 +1,6 @@
 // ============================================================================
-// FICHIER: lib/pages/event/event_ticket_page.dart
+// FICHIER: lib/presentation/events/event_ticket_page.dart
+// Version corrigée avec AppColors et AppConstants
 // ============================================================================
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/foundation.dart';
@@ -9,8 +10,36 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thix_id/models/event_item.dart';
 import 'package:thix_id/models/event_registration.dart';
-import 'package:thix_id/nav.dart';
 import 'package:thix_id/services/event_service.dart';
+
+// ============================================================================
+// CONSTANTES (à placer dans un fichier séparé normalement)
+// ============================================================================
+class AppConstants {
+  static const String appName = 'THIX';
+  static const String ticketPrefix = 'THIX-EVT';
+  static const double coverImageHeight = 280;
+  static const double footerHeight = 100;
+  static const double buttonWidth = 180;
+  static const double defaultPadding = 20;
+  static const double smallPadding = 12;
+  static const double borderRadius = 12;
+}
+
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);  // Violet THIX
+  static const Color primaryLight = Color(0xFF818CF8);
+  static const Color primaryDark = Color(0xFF4F46E5);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textLight = Color(0xFF64748B);
+  static const Color backgroundLight = Color(0xFFF1F5F9);
+  static const Color backgroundGrey = Color(0xFFF8FAFC);
+  static const Color success = Color(0xFF22C55E);
+  static const Color error = Color(0xFFEF4444);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color white = Colors.white;
+  static const Color black = Colors.black;
+}
 
 // ============================================================================
 // MODÈLE POUR L'AFFICHAGE DU TICKET
@@ -109,7 +138,7 @@ class EventTicketController extends ChangeNotifier {
   }
 
   String _generateQRData(EventRegistration registration, EventItem event) {
-    return jsonEncode({
+    return _jsonEncode({
       'ticket_id': registration.id,
       'ticket_code': registration.ticketCode,
       'event_id': event.id,
@@ -124,6 +153,10 @@ class EventTicketController extends ChangeNotifier {
     return registration.ticketCode;
   }
 
+  String _jsonEncode(Map<String, dynamic> data) {
+    return data.entries.map((e) => '${e.key}:${e.value}').join('|');
+  }
+
   Future<void> saveToWallet() async {
     _isSavingToWallet = true;
     notifyListeners();
@@ -132,13 +165,7 @@ class EventTicketController extends ChangeNotifier {
       if (kIsWeb) {
         throw Exception('Fonctionnalité disponible uniquement sur mobile');
       }
-
-      // Simulation - À implémenter avec wallet_pass ou passkit
       await Future.delayed(const Duration(seconds: 1));
-      
-      // Ici, intégration avec Apple Wallet / Google Pay
-      // await _walletService.addPass(_ticketData!);
-      
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -173,7 +200,7 @@ THIX - Vivez l'exceptionnel
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -183,7 +210,6 @@ THIX - Vivez l'exceptionnel
   }
 
   Future<void> downloadTicket() async {
-    // À implémenter avec path_provider et image_gallery_saver
     debugPrint('Download ticket - À implémenter');
   }
 
@@ -197,11 +223,13 @@ THIX - Vivez l'exceptionnel
 // PAGE PRINCIPALE
 // ============================================================================
 class EventTicketPage extends StatefulWidget {
+  final String eventId;
   final String registrationId;
   final bool showBackButton;
 
   const EventTicketPage({
     super.key,
+    required this.eventId,
     required this.registrationId,
     this.showBackButton = true,
   });
@@ -221,7 +249,7 @@ class _EventTicketPageState extends State<EventTicketPage>
   void initState() {
     super.initState();
     _controller = EventTicketController(
-      eventService: context.read<EventService>(),
+      eventService: EventService(Supabase.instance.client),
     );
     _controller.loadTicket(widget.registrationId);
     
@@ -352,7 +380,7 @@ class _EventTicketPageState extends State<EventTicketPage>
           const Text('Aucun billet trouvé'),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => context.go(Routes.home),
+            onPressed: () => context.go('/'),
             child: const Text('Retour à l\'accueil'),
           ),
         ],
@@ -415,11 +443,7 @@ class _EventTicketPageState extends State<EventTicketPage>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset(
-                        'assets/images/thix_logo_white.png',
-                        height: 32,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                      ),
+                      const Icon(Icons.qr_code, color: Colors.white, size: 32),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -622,7 +646,7 @@ class _EventTicketPageState extends State<EventTicketPage>
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Billet ajouté au portefeuille'),
-                              backgroundColor: Colors.green,
+                              backgroundColor: AppColors.success,
                             ),
                           );
                         }
@@ -631,7 +655,7 @@ class _EventTicketPageState extends State<EventTicketPage>
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Erreur: $e'),
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppColors.error,
                             ),
                           );
                         }
@@ -766,7 +790,7 @@ class _EventTicketPageState extends State<EventTicketPage>
               title: const Text('À propos de THIX'),
               onTap: () {
                 Navigator.pop(context);
-                context.push(Routes.about);
+                context.go('/');
               },
             ),
             const SizedBox(height: 8),
@@ -823,39 +847,13 @@ class _EventTicketPageState extends State<EventTicketPage>
   }
 
   void _addToCalendar() async {
-    final ticket = _controller.ticketData!;
-    
-    // À implémenter avec add_2_calendar
-    // final event = CalendarEvent(
-    //   title: ticket.event.title,
-    //   description: 'Billet THIX: ${ticket.ticketCode}',
-    //   location: ticket.event.venue,
-    //   startDate: ticket.event.eventDate,
-    //   endDate: ticket.event.eventDate.add(const Duration(hours: 2)),
-    // );
-    // await Add2Calendar.addEvent2Cal(event);
-    
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Événement ajouté au calendrier'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
     }
   }
-}
-
-// ============================================================================
-// EXTENSIONS ET CONSTANTES
-// ============================================================================
-class AppColors {
-  static const Color primary = Color(0xFF6366F1);
-  static const Color primaryDark = Color(0xFF4F46E5);
-  static const Color textDark = Color(0xFF1E293B);
-}
-
-// Fonction utilitaire pour jsonEncode
-String jsonEncode(Map<String, dynamic> data) {
-  return data.entries.map((e) => '${e.key}:${e.value}').join('|');
 }
