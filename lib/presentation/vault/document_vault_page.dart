@@ -620,7 +620,7 @@ class _DocumentVaultPageState extends State<DocumentVaultPage> {
                         try {
                           final docRowId = (row['id'] ?? '').toString();
                           if (docRowId.trim().isEmpty) throw Exception('id manquant');
-                          await _docs.deleteDocument(uid: me.id, docDocId: docRowId, storagePath: storagePath);
+                          await _docs.deleteDocument(uid: me.id, documentId: docRowId, storagePath: storagePath);
                           if (!mounted) return;
                           context.pop();
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document supprimé.')));
