@@ -19,17 +19,23 @@ class AdminTrainingService {
 
   static const String coverBucketDefault = 'thix-trainings';
 
+  /// Liste toutes les formations (pour l'admin)
   Future<List<Map<String, dynamic>>> listTrainings({int limit = 300}) async {
     try {
-      final res = await _client.from(trainingsStatusView).select('*').order('updated_at', ascending: false).limit(limit);
+      final res = await _client
+          .from(trainingsTable)  // ← Utilise trainingsTable directement
+          .select('*')
+          .order('updated_at', ascending: false)
+          .limit(limit);
       if (res is List) return res.cast<Map<String, dynamic>>();
-      return const [];
+      return [];
     } catch (e) {
       debugPrint('AdminTrainingService.listTrainings failed err=$e');
       rethrow;
     }
   }
 
+  /// Crée ou met à jour une formation
   Future<String> upsertTraining({
     String? id,
     required String title,
@@ -81,16 +87,21 @@ class AdminTrainingService {
       'institution_name': (institutionName ?? '').trim().isEmpty ? null : institutionName!.trim(),
       'institution_logo_url': (institutionLogoUrl ?? '').trim().isEmpty ? null : institutionLogoUrl!.trim(),
       'requirements': (requirements ?? '').trim().isEmpty ? null : requirements!.trim(),
-      'skills': (skills ?? const []).where((s) => s.trim().isNotEmpty).toList(growable: false),
+      'skills': (skills ?? []).where((s) => s.trim().isNotEmpty).toList(),
       'start_date': startDate?.toUtc().toIso8601String(),
-      if (coverImageBucket != null) 'cover_image_bucket': coverImageBucket.trim().isEmpty ? null : coverImageBucket.trim(),
-      if (coverImagePath != null) 'cover_image_path': coverImagePath.trim().isEmpty ? null : coverImagePath.trim(),
+      if (coverImageBucket != null && coverImageBucket.trim().isNotEmpty) 'cover_image_bucket': coverImageBucket.trim(),
+      if (coverImagePath != null && coverImagePath.trim().isNotEmpty) 'cover_image_path': coverImagePath.trim(),
       'updated_at': now.toIso8601String(),
     };
 
     try {
-      final res = await _client.from(trainingsTable).upsert(payload).select('id').maybeSingle();
+      final res = await _client
+          .from(trainingsTable)
+          .upsert(payload)
+          .select('id')
+          .maybeSingle();
       final trainingId = (res?['id'] ?? id ?? '').toString();
+      
       await _audit.log(
         action: (id == null || id.trim().isEmpty) ? 'training_create' : 'training_update',
         entityType: trainingsTable,
@@ -115,15 +126,25 @@ class AdminTrainingService {
     }
   }
 
-  Future<void> updateCoverImage({required String trainingId, required String bucket, required String storagePath, String? actorRole}) async {
+  /// Met à jour l'image de couverture
+  Future<void> updateCoverImage({
+    required String trainingId,
+    required String bucket,
+    required String storagePath,
+    String? actorRole,
+  }) async {
     final id = trainingId.trim();
     if (id.isEmpty) return;
     try {
-      await _client.from(trainingsTable).update({
-        'cover_image_bucket': bucket.trim().isEmpty ? coverBucketDefault : bucket.trim(),
-        'cover_image_path': storagePath.trim(),
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', id);
+      await _client
+          .from(trainingsTable)
+          .update({
+            'cover_image_bucket': bucket.trim().isEmpty ? coverBucketDefault : bucket.trim(),
+            'cover_image_path': storagePath.trim(),
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', id);
+          
       await _audit.log(
         action: 'training_cover_update',
         entityType: trainingsTable,
@@ -137,12 +158,21 @@ class AdminTrainingService {
     }
   }
 
-  Future<void> deleteTraining({required String id, String? actorRole}) async {
+  /// Supprime une formation
+  Future<void> deleteTraining({
+    required String id,
+    String? actorRole,
+  }) async {
     final tid = id.trim();
     if (tid.isEmpty) return;
     try {
       await _client.from(trainingsTable).delete().eq('id', tid);
-      await _audit.log(action: 'training_delete', entityType: trainingsTable, entityId: tid, actorRole: actorRole);
+      await _audit.log(
+        action: 'training_delete',
+        entityType: trainingsTable,
+        entityId: tid,
+        actorRole: actorRole,
+      );
     } catch (e) {
       debugPrint('AdminTrainingService.deleteTraining failed err=$e');
       rethrow;
