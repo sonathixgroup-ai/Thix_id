@@ -1,3 +1,6 @@
+// ============================================================================
+// FICHIER: lib/pages/event/event_register_page.dart
+// ============================================================================
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -8,259 +11,935 @@ import 'package:thix_id/services/event_service.dart';
 import 'package:thix_id/services/profile_service.dart';
 import 'package:thix_id/services/thix_id_service.dart';
 
-// ==================== COULEURS PREMIUM ====================
-class PremiumColors {
-  static const Color primaryDark = Color(0xFF071B8C);
-  static const Color primaryElectric = Color(0xFF2E5BFF);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color backgroundLight = Color(0xFFF6F8FC);
-  static const Color gold = Color(0xFFD4AF37);
-  static const Color goldDark = Color(0xFFB8860B);
-  static const Color textPrimary = Color(0xFF1A1A2E);
-  static const Color textSecondary = Color(0xFF6C6C7A);
-  static const Color success = Color(0xFF10B981);
-  static const Color error = Color(0xFFEF4444);
+// ============================================================================
+// MODÈLES
+// ============================================================================
+enum TicketType {
+  standard('Standard', 1.0, Icons.confirmation_num_outlined),
+  vip('VIP', 2.5, Icons.star_outline),
+  premium('Premium', 4.0, Icons.workspace_premium_outlined);
+
+  final String label;
+  final double multiplier;
+  final IconData icon;
+
+  const TicketType(this.label, this.multiplier, this.icon);
+
+  double calculatePrice(double basePrice) => basePrice * multiplier;
+
+  String getFormattedPrice(double basePrice) {
+    final price = calculatePrice(basePrice);
+    return '${price.toStringAsFixed(0)} FCFA';
+  }
 }
 
-// ==================== PAGE D’INSCRIPTION ====================
+enum PaymentMethod {
+  orangeMoney('Orange Money', Icons.phone_android_rounded, 'OM'),
+  wave('Wave', Icons.waves_rounded, 'Wave'),
+  card('Carte Bancaire', Icons.credit_card_rounded, 'Card');
+
+  final String label;
+  final IconData icon;
+  final String code;
+
+  const PaymentMethod(this.label, this.icon, this.code);
+}
+
+class RegistrationData {
+  final String eventId;
+  final String eventTitle;
+  final TicketType ticketType;
+  final int quantity;
+  final PaymentMethod paymentMethod;
+  final double totalPrice;
+  final String? promoCode;
+  final Map<String, dynamic> attendeeInfo;
+
+  RegistrationData({
+    required this.eventId,
+    required this.eventTitle,
+    required this.ticketType,
+    required this.quantity,
+    required this.paymentMethod,
+    required this.totalPrice,
+    this.promoCode,
+    this.attendeeInfo = const {},
+  });
+
+  Map<String, dynamic> toJson() => {
+    'event_id': eventId,
+    'event_title': eventTitle,
+    'ticket_type': ticketType.label,
+    'quantity': quantity,
+    'payment_method': paymentMethod.code,
+    'total_price': totalPrice,
+    'promo_code': promoCode,
+    'attendee_info': attendeeInfo,
+    'created_at': DateTime.now().toIso8601String(),
+  };
+}
+
+// ============================================================================
+// PROVIDER / CONTROLLER
+// ============================================================================
+class EventRegistrationController extends ChangeNotifier {
+  final EventService _eventService;
+  final ProfileService _profileService;
+  final ThixIdService _thixIdService;
+
+  RegistrationData? _currentRegistration;
+  bool _isLoading = false;
+  String? _errorMessage;
+  double? _appliedDiscount;
+
+  EventRegistrationController({
+    required EventService eventService,
+    required ProfileService profileService,
+    required ThixIdService thixIdService,
+  }) : _eventService = eventService,
+       _profileService = profileService,
+       _thixIdService = thixIdService;
+
+  RegistrationData? get currentRegistration => _currentRegistration;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  double? get appliedDiscount => _appliedDiscount;
+  double get discountMultiplier => _appliedDiscount != null ? (100 - _appliedDiscount!) / 100 : 1.0;
+
+  void initializeRegistration(String eventId, String eventTitle, double basePrice) {
+    _currentRegistration = RegistrationData(
+      eventId: eventId,
+      eventTitle: eventTitle,
+      ticketType: TicketType.standard,
+      quantity: 1,
+      paymentMethod: PaymentMethod.wave,
+      totalPrice: basePrice,
+    );
+    notifyListeners();
+  }
+
+  void updateTicketType(TicketType type) {
+    if (_currentRegistration == null) return;
+    final newTotal = _calculateTotal(
+      type.calculatePrice(_getBasePrice()),
+      _currentRegistration!.quantity,
+    );
+    _currentRegistration = _currentRegistration!.copyWith(
+      ticketType: type,
+      totalPrice: newTotal,
+    );
+    notifyListeners();
+  }
+
+  void updateQuantity(int quantity) {
+    if (_currentRegistration == null) return;
+    final newTotal = _calculateTotal(
+      _getPricePerTicket(),
+      quantity,
+    );
+    _currentRegistration = _currentRegistration!.copyWith(
+      quantity: quantity,
+      totalPrice: newTotal,
+    );
+    notifyListeners();
+  }
+
+  void updatePaymentMethod(PaymentMethod method) {
+    if (_currentRegistration == null) return;
+    _currentRegistration = _currentRegistration!.copyWith(
+      paymentMethod: method,
+    );
+    notifyListeners();
+  }
+
+  Future<bool> applyPromoCode(String code) async {
+    if (_currentRegistration == null) return false;
+    
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final discount = await _eventService.validatePromoCode(code, _currentRegistration!.eventId);
+      if (discount != null && discount > 0) {
+        _appliedDiscount = discount;
+        final newTotal = _currentRegistration!.totalPrice * ((100 - discount) / 100);
+        _currentRegistration = _currentRegistration!.copyWith(
+          promoCode: code,
+          totalPrice: newTotal,
+        );
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _errorMessage = 'Code promo invalide';
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> register(BuildContext context) async {
+    if (_currentRegistration == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final authController = context.read<AuthController>();
+      final userId = authController.currentUser?.id;
+      
+      if (userId == null) {
+        _errorMessage = 'Veuillez vous connecter';
+        return false;
+      }
+
+      // Vérifier si l'utilisateur a déjà un billet
+      final hasTicket = await _eventService.hasUserTicket(
+        userId, 
+        _currentRegistration!.eventId,
+      );
+      
+      if (hasTicket) {
+        _errorMessage = 'Vous avez déjà réservé pour cet événement';
+        return false;
+      }
+
+      // Générer un code Thix ID unique
+      final thixCode = await _thixIdService.generateEventCode(
+        userId: userId,
+        eventId: _currentRegistration!.eventId,
+      );
+
+      // Créer la réservation
+      final ticketCode = await _eventService.createRegistration(
+        _currentRegistration!.toJson(),
+        userId: userId,
+      );
+
+      // Naviguer vers la page de succès
+      if (context.mounted) {
+        context.push(Routes.ticketSuccess, extra: {
+          'ticketCode': ticketCode,
+          'thixCode': thixCode,
+          'event': _currentRegistration!.toJson(),
+        });
+      }
+
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  double _getBasePrice() {
+    // Récupérer le prix de base depuis l'événement
+    return 10000; // À remplacer par la vraie valeur
+  }
+
+  double _getPricePerTicket() {
+    return _currentRegistration!.ticketType.calculatePrice(_getBasePrice());
+  }
+
+  double _calculateTotal(double pricePerTicket, int quantity) {
+    return (pricePerTicket * quantity) * discountMultiplier;
+  }
+
+  void reset() {
+    _currentRegistration = null;
+    _isLoading = false;
+    _errorMessage = null;
+    _appliedDiscount = null;
+    notifyListeners();
+  }
+}
+
+extension RegistrationDataCopy on RegistrationData {
+  RegistrationData copyWith({
+    String? eventId,
+    String? eventTitle,
+    TicketType? ticketType,
+    int? quantity,
+    PaymentMethod? paymentMethod,
+    double? totalPrice,
+    String? promoCode,
+    Map<String, dynamic>? attendeeInfo,
+  }) {
+    return RegistrationData(
+      eventId: eventId ?? this.eventId,
+      eventTitle: eventTitle ?? this.eventTitle,
+      ticketType: ticketType ?? this.ticketType,
+      quantity: quantity ?? this.quantity,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      totalPrice: totalPrice ?? this.totalPrice,
+      promoCode: promoCode ?? this.promoCode,
+      attendeeInfo: attendeeInfo ?? this.attendeeInfo,
+    );
+  }
+}
+
+// ============================================================================
+// WIDGETS UI
+// ============================================================================
 class EventRegisterPage extends StatefulWidget {
   final String eventId;
-  const EventRegisterPage({super.key, required this.eventId});
+  final String eventTitle;
+  final double basePrice;
+  final String? coverImageUrl;
+
+  const EventRegisterPage({
+    super.key,
+    required this.eventId,
+    required this.eventTitle,
+    required this.basePrice,
+    this.coverImageUrl,
+  });
 
   @override
   State<EventRegisterPage> createState() => _EventRegisterPageState();
 }
 
 class _EventRegisterPageState extends State<EventRegisterPage> {
-  final _eventService = EventService();
-  final _profileService = ProfileService();
-  final _thixCtrl = TextEditingController();
-  final _noteCtrl = TextEditingController();
-  int _tickets = 1;
-  bool _loading = false;
-  String? _error;
+  late EventRegistrationController _controller;
+  final _formKey = GlobalKey<FormState>();
+  final _promoCodeController = TextEditingController();
+  bool _showPromoField = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = EventRegistrationController(
+      eventService: context.read<EventService>(),
+      profileService: context.read<ProfileService>(),
+      thixIdService: context.read<ThixIdService>(),
+    );
+    _controller.initializeRegistration(
+      widget.eventId,
+      widget.eventTitle,
+      widget.basePrice,
+    );
+  }
 
   @override
   void dispose() {
-    _thixCtrl.dispose();
-    _noteCtrl.dispose();
+    _controller.dispose();
+    _promoCodeController.dispose();
     super.dispose();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final auth = context.read<AuthController>();
-    final thixId = auth.currentUser?.thixId ?? '';
-    if (_thixCtrl.text.trim().isEmpty && thixId.trim().isNotEmpty) {
-      _thixCtrl.text = thixId;
-    }
-  }
-
-  Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _error = null;
-      _loading = true;
-    });
-
-    try {
-      final canonical = ThixIdService.canonicalizeOrNull(_thixCtrl.text);
-      if (canonical == null || !ThixIdService.isValid(canonical)) {
-        setState(() => _error = 'THIX ID invalide. Exemple: ${ThixIdService.exampleV2}');
-        return;
-      }
-
-      final profile = await _profileService.fetchPublicProfileByThixId(canonical);
-      if (profile == null) {
-        setState(() => _error = 'Aucun profil trouvé pour ce THIX ID.');
-        return;
-      }
-
-      final reg = await _eventService.register(
-        eventId: widget.eventId,
-        attendeeThixId: canonical,
-        tickets: _tickets,
-        note: _noteCtrl.text,
-      );
-      if (!mounted) return;
-      context.go('/events/${widget.eventId}/ticket/${reg.id}');
-    } catch (e) {
-      debugPrint('EventRegisterPage.submit failed err=$e');
-      if (!mounted) return;
-      setState(() => _error = 'Erreur lors de l’inscription. Réessaie.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PremiumColors.backgroundLight,
-      body: SafeArea(
-        child: FutureBuilder(
-          future: _eventService.fetchEvent(widget.eventId),
-          builder: (context, snap) {
-            final event = snap.data;
-            if (snap.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator(color: PremiumColors.primaryElectric));
-            }
-            if (event == null) {
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    _TopBar(eventId: widget.eventId),
-                    const Spacer(),
-                    Text('Événement introuvable.', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () => context.popOrGo(AppRoutes.events),
-                        child: const Text('Retour'),
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: _buildAppBar(),
+        body: _buildBody(),
+        bottomNavigationBar: _buildBottomBar(),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('Réserver ma place'),
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      foregroundColor: AppColors.textDark,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        onPressed: () => context.pop(),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    return Consumer<EventRegistrationController>(
+      builder: (context, controller, child) {
+        if (controller.currentRegistration == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildEventHeader(),
+                const SizedBox(height: 24),
+                _buildTicketTypeSelector(controller),
+                const SizedBox(height: 20),
+                _buildQuantitySelector(controller),
+                const SizedBox(height: 20),
+                _buildPaymentMethodSelector(controller),
+                const SizedBox(height: 20),
+                _buildPromoCodeSection(controller),
+                const SizedBox(height: 20),
+                _buildAttendeeInfoForm(),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEventHeader() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary.withOpacity(0.1), AppColors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: widget.coverImageUrl != null
+                ? Image.network(
+                    widget.coverImageUrl!,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    width: 60,
+                    height: 60,
+                    color: AppColors.backgroundLight,
+                    child: const Icon(Icons.event, size: 30),
+                  ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.eventTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 4),
+                Consumer<EventRegistrationController>(
+                  builder: (context, controller, _) => Text(
+                    '${controller.currentRegistration?.quantity ?? 0} place(s) · ${controller.currentRegistration?.ticketType.label ?? "Standard"}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textLight,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketTypeSelector(EventRegistrationController controller) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundGrey,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Type de billet',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...TicketType.values.map((type) => RadioListTile<TicketType>(
+                value: type,
+                groupValue: controller.currentRegistration?.ticketType,
+                onChanged: (value) {
+                  if (value != null) controller.updateTicketType(value);
+                },
+                title: Text(type.label),
+                subtitle: Text(
+                  type.getFormattedPrice(widget.basePrice),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                secondary: Icon(type.icon, color: AppColors.primary),
+                contentPadding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuantitySelector(EventRegistrationController controller) {
+    return QuantitySelector(
+      quantity: controller.currentRegistration?.quantity ?? 1,
+      minQuantity: 1,
+      maxQuantity: 10,
+      pricePerTicket: widget.basePrice *
+          (controller.currentRegistration?.ticketType.multiplier ?? 1),
+      onQuantityChanged: (qty) => controller.updateQuantity(qty),
+    );
+  }
+
+  Widget _buildPaymentMethodSelector(EventRegistrationController controller) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundGrey,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Moyen de paiement',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...PaymentMethod.values.map((method) => RadioListTile<PaymentMethod>(
+                value: method,
+                groupValue: controller.currentRegistration?.paymentMethod,
+                onChanged: (value) {
+                  if (value != null) controller.updatePaymentMethod(value);
+                },
+                title: Text(method.label),
+                secondary: Icon(method.icon, color: AppColors.primary),
+                contentPadding: EdgeInsets.zero,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromoCodeSection(EventRegistrationController controller) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundGrey,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Code promo',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () => setState(() => _showPromoField = !_showPromoField),
+                icon: Icon(
+                  _showPromoField ? Icons.keyboard_arrow_up : Icons.local_offer_outlined,
+                  size: 18,
+                ),
+                label: Text(_showPromoField ? 'Fermer' : 'Ajouter'),
+              ),
+            ],
+          ),
+          if (_showPromoField) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _promoCodeController,
+                    decoration: InputDecoration(
+                      hintText: 'Entrez votre code',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                     ),
-                    const Spacer(),
-                  ],
+                  ),
                 ),
-              );
-            }
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _TopBar(eventId: widget.eventId),
-                  const SizedBox(height: 16),
-                  Text('Inscription', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: PremiumColors.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text(event.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: PremiumColors.textSecondary, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 24),
-                  // Carte principale
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.verified_user_rounded, color: PremiumColors.success),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text('THIX ID requis', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800, color: PremiumColors.textPrimary)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _thixCtrl,
-                          textCapitalization: TextCapitalization.characters,
-                          decoration: InputDecoration(
-                            labelText: 'THIX ID',
-                            hintText: ThixIdService.exampleV2,
-                            prefixIcon: const Icon(Icons.badge_rounded),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          onChanged: (_) {
-                            if (_error != null) setState(() => _error = null);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        // Sélecteur de billets
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text('Billets', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800, color: PremiumColors.textPrimary)),
-                            ),
-                            IconButton(
-                              onPressed: _loading || _tickets <= 1 ? null : () => setState(() => _tickets -= 1),
-                              icon: const Icon(Icons.remove_circle_outline_rounded),
-                            ),
-                            Container(
-                              width: 56,
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                border: Border.all(color: PremiumColors.textSecondary.withOpacity(0.3)),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: controller.isLoading
+                      ? null
+                      : () async {
+                          final success = await controller.applyPromoCode(
+                            _promoCodeController.text,
+                          );
+                          if (success && mounted) {
+                            _promoCodeController.clear();
+                            setState(() => _showPromoField = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Code promo appliqué !'),
+                                backgroundColor: Colors.green,
                               ),
-                              child: Text('$_tickets', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                            ),
-                            IconButton(
-                              onPressed: _loading ? null : () => setState(() => _tickets += 1),
-                              icon: const Icon(Icons.add_circle_outline_rounded),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _noteCtrl,
-                          minLines: 2,
-                          maxLines: 5,
-                          decoration: InputDecoration(
-                            labelText: 'Note (optionnel)',
-                            hintText: 'Allergies, besoins spécifiques, entreprise…',
-                            prefixIcon: const Icon(Icons.edit_note_rounded),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                            );
+                          } else if (mounted && controller.errorMessage != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(controller.errorMessage!),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: controller.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
                           ),
-                        ),
-                        if (_error != null) ...[
-                          const SizedBox(height: 16),
-                          Text(_error!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: PremiumColors.error, fontWeight: FontWeight.w700)),
-                        ],
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          height: 52,
-                          child: FilledButton(
-                            onPressed: _loading ? null : _submit,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: PremiumColors.primaryElectric,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        )
+                      : const Text('Appliquer'),
+                ),
+              ],
+            ),
+          ],
+          if (controller.appliedDiscount != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Réduction de ${controller.appliedDiscount!.toInt()}% appliquée',
+                    style: const TextStyle(color: Colors.green),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendeeInfoForm() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundGrey,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Informations du participant',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Nom complet',
+              hintText: 'Entrez votre nom complet',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.person_outline),
+            ),
+            validator: (value) =>
+                value?.isEmpty == true ? 'Champ requis' : null,
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Email',
+              hintText: 'votre@email.com',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.email_outlined),
+            ),
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value?.isEmpty == true) return 'Champ requis';
+              if (!value!.contains('@')) return 'Email invalide';
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'Téléphone',
+              hintText: '77 123 45 67',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefixIcon: const Icon(Icons.phone_outlined),
+            ),
+            keyboardType: TextInputType.phone,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return Consumer<EventRegistrationController>(
+      builder: (context, controller, child) {
+        final registration = controller.currentRegistration;
+        if (registration == null) return const SizedBox.shrink();
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total à payer',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (controller.appliedDiscount != null)
+                          Text(
+                            '${registration.totalPrice.toStringAsFixed(0)} FCFA',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              decoration: TextDecoration.lineThrough,
+                              color: Colors.grey,
                             ),
-                            child: _loading
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : const Text('Confirmer mon inscription', style: TextStyle(fontWeight: FontWeight.w800)),
+                          ),
+                        Text(
+                          '${registration.totalPrice.toStringAsFixed(0)} FCFA',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: controller.isLoading ? null : () => _submitRegistration(controller),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: controller.isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Confirmer et payer',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
-                ],
-              ),
-            );
-          },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _submitRegistration(EventRegistrationController controller) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final success = await controller.register(context);
+    
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(controller.errorMessage ?? 'Erreur lors de la réservation'),
+          backgroundColor: Colors.red,
         ),
+      );
+    }
+  }
+}
+
+// ============================================================================
+// WIDGET: QuantitySelector
+// ============================================================================
+class QuantitySelector extends StatelessWidget {
+  final int quantity;
+  final int minQuantity;
+  final int maxQuantity;
+  final double pricePerTicket;
+  final ValueChanged<int> onQuantityChanged;
+
+  const QuantitySelector({
+    super.key,
+    required this.quantity,
+    required this.minQuantity,
+    required this.maxQuantity,
+    required this.pricePerTicket,
+    required this.onQuantityChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundGrey,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Nombre de places',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildButton(
+                icon: Icons.remove_rounded,
+                onPressed: quantity > minQuantity ? () => onQuantityChanged(quantity - 1) : null,
+              ),
+              Container(
+                width: 60,
+                alignment: Alignment.center,
+                child: Text(
+                  '$quantity',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+              _buildButton(
+                icon: Icons.add_rounded,
+                onPressed: quantity < maxQuantity ? () => onQuantityChanged(quantity + 1) : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Prix unitaire: ${pricePerTicket.toStringAsFixed(0)} FCFA',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textLight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButton({required IconData icon, VoidCallback? onPressed}) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: onPressed != null ? AppColors.primary : AppColors.backgroundLight,
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: onPressed != null ? AppColors.white : AppColors.textLight),
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 40, height: 40),
       ),
     );
   }
 }
 
-// ==================== BARRE DE RETOUR ====================
-class _TopBar extends StatelessWidget {
-  final String eventId;
-  const _TopBar({required this.eventId});
+// ============================================================================
+// COULEURS (à mettre dans vos constantes)
+// ============================================================================
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textLight = Color(0xFF64748B);
+  static const Color backgroundGrey = Color(0xFFF8FAFC);
+  static const Color backgroundLight = Color(0xFFF1F5F9);
+  static const Color white = Colors.white;
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => context.popOrGo('/events/$eventId'),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: PremiumColors.textPrimary),
-        ),
-        Expanded(
-          child: Text('THIX Register', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: PremiumColors.textPrimary)),
-        ),
-      ],
-    );
-  }
+// ============================================================================
+// ROUTES (à ajouter dans votre fichier nav.dart)
+// ============================================================================
+extension Routes {
+  static const String ticketSuccess = '/ticket-success';
 }
