@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/theme.dart';
 
@@ -583,34 +584,15 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     }
 
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
       );
       
-      if (result == null || result.files.isEmpty) return;
+      if (image == null) return;
       
-      final PlatformFile file = result.files.first;
-      
-      Uint8List bytes;
-      if (kIsWeb) {
-        if (file.bytes == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Impossible de lire le fichier sur Web')),
-          );
-          return;
-        }
-        bytes = file.bytes!;
-      } else {
-        if (file.path == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Chemin du fichier invalide')),
-          );
-          return;
-        }
-        final File imageFile = File(file.path!);
-        bytes = await imageFile.readAsBytes();
-      }
+      final Uint8List bytes = await image.readAsBytes();
       
       const int maxSize = 10 * 1024 * 1024;
       if (bytes.length > maxSize) {
