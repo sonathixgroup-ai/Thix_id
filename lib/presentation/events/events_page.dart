@@ -157,7 +157,7 @@ class _EventPageState extends State<EventPage> {
                 RichText(
                   text: const TextSpan(
                     text: 'THIX ',
-                    style: TextStyle(fontWeight: FontWeight.black, fontSize: 19, color: Color(0xFF1E293B), fontFamily: 'Poppins'),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 19, color: Color(0xFF1E293B), fontFamily: 'Poppins'),
                     children: [
                       TextSpan(text: 'ÉVÉNEMENT', style: TextStyle(color: Color(0xFF6320EE), fontWeight: FontWeight.bold)),
                     ],
@@ -453,9 +453,9 @@ class _EventPageState extends State<EventPage> {
                       _buildRowInfo(Icons.location_on_outlined, event['location']),
                       const SizedBox(height: 14),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.between,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(event['price'], style: TextStyle(color: event['color'], fontWeight: FontWeight.black, fontSize: 14)),
+                          Text(event['price'], style: TextStyle(color: event['color'], fontWeight: FontWeight.w900, fontSize: 14)),
                           SizedBox(
                             height: 32,
                             child: ElevatedButton(
@@ -575,7 +575,7 @@ class _EventPageState extends State<EventPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(item['price']!, style: const TextStyle(fontWeight: FontWeight.black, color: Color(0xFF6320EE), fontSize: 12.5)),
+                  Text(item['price']!, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF6320EE), fontSize: 12.5)),
                   const SizedBox(height: 6),
                   SizedBox(
                     height: 30,
@@ -604,7 +604,7 @@ class _EventPageState extends State<EventPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.between,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
           GestureDetector(
@@ -645,7 +645,7 @@ class _EventPageState extends State<EventPage> {
         unselectedItemColor: const Color(0xFF94A3B8),
         selectedFontSize: 10,
         unselectedFontSize: 10,
-        selectedTextStyle: const TextStyle(fontWeight: FontWeight.bold),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
         items: [
           const BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Accueil'),
           const BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Rechercher'),
