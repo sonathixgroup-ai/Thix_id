@@ -265,7 +265,7 @@ class _LessonPlayerPageState extends State<LessonPlayerPage> {
                       ElevatedButton(
                         onPressed: _markComplete,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.emerald,
+                          backgroundColor: _emerald,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text(
