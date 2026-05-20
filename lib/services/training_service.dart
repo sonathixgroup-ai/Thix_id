@@ -27,9 +27,18 @@ class TrainingService {
 
   Future<List<TrainingItem>> listPublishedTrainings({int limit = 200}) async {
     try {
-      final res = await _client.from(trainingsStatusView).select('*').eq('is_published', true).order('is_featured', ascending: false).order('updated_at', ascending: false).limit(limit);
+      final res = await _client
+          .from(trainingsTable)
+          .select('*')
+          .eq('is_published', true)
+          .order('is_featured', ascending: false)
+          .order('updated_at', ascending: false)
+          .limit(limit);
       if (res is! List) return const [];
-      return res.map((e) => TrainingItem.fromJson((e as Map).cast<String, dynamic>())).where((t) => t.id.trim().isNotEmpty).toList(growable: false);
+      return res
+          .map((e) => TrainingItem.fromJson((e as Map).cast<String, dynamic>()))
+          .where((t) => t.id.trim().isNotEmpty)
+          .toList(growable: false);
     } catch (e) {
       debugPrint('TrainingService.listPublishedTrainings failed err=$e');
       return _localSeedTrainings();
@@ -40,7 +49,12 @@ class TrainingService {
     final id = trainingId.trim();
     if (id.isEmpty) return null;
     try {
-      final row = await _client.from(trainingsStatusView).select('*').eq('id', id).maybeSingle();
+      final row = await _client
+          .from(trainingsTable)
+          .select('*')
+          .eq('id', id)
+          .eq('is_published', true)
+          .maybeSingle();
       if (row == null) return null;
       return TrainingItem.fromJson((row as Map).cast<String, dynamic>());
     } catch (e) {
@@ -58,9 +72,17 @@ class TrainingService {
     final id = trainingId.trim();
     if (id.isEmpty) return const [];
     try {
-      final res = await _client.from(lessonsTable).select('*').eq('training_id', id).order('module_index', ascending: true).order('lesson_index', ascending: true).limit(500);
+      final res = await _client
+          .from(lessonsTable)
+          .select('*')
+          .eq('training_id', id)
+          .order('lesson_order', ascending: true)
+          .limit(500);
       if (res is! List) return const [];
-      return res.map((e) => TrainingLesson.fromJson((e as Map).cast<String, dynamic>())).where((l) => l.id.trim().isNotEmpty).toList(growable: false);
+      return res
+          .map((e) => TrainingLesson.fromJson((e as Map).cast<String, dynamic>()))
+          .where((l) => l.id.trim().isNotEmpty)
+          .toList(growable: false);
     } catch (e) {
       debugPrint('TrainingService.listLessons failed training=$id err=$e');
       return const [];
@@ -72,7 +94,12 @@ class TrainingService {
     final tid = trainingId.trim();
     if (uid.isEmpty || tid.isEmpty) return null;
     try {
-      final row = await _client.from(enrollmentsTable).select('*').eq('user_id', uid).eq('training_id', tid).maybeSingle();
+      final row = await _client
+          .from(enrollmentsTable)
+          .select('*')
+          .eq('user_id', uid)
+          .eq('training_id', tid)
+          .maybeSingle();
       if (row == null) return null;
       return TrainingEnrollment.fromJson((row as Map).cast<String, dynamic>());
     } catch (e) {
@@ -85,7 +112,11 @@ class TrainingService {
     final id = enrollmentId.trim();
     if (id.isEmpty) return null;
     try {
-      final row = await _client.from(enrollmentsTable).select('*').eq('id', id).maybeSingle();
+      final row = await _client
+          .from(enrollmentsTable)
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
       if (row == null) return null;
       return TrainingEnrollment.fromJson((row as Map).cast<String, dynamic>());
     } catch (e) {
@@ -100,7 +131,6 @@ class TrainingService {
     if (uid.isEmpty || tid.isEmpty) throw Exception('Missing userId/trainingId');
     final now = DateTime.now().toUtc();
     try {
-      // Upsert ensures idempotency.
       final res = await _client
           .from(enrollmentsTable)
           .upsert({
@@ -155,12 +185,18 @@ class TrainingService {
       yield const [];
       return;
     }
-    // Polling-based stream (web + mobile safe). Can be replaced by Realtime.
     while (true) {
       try {
-        final res = await _client.from(enrollmentsTable).select('*').eq('user_id', uid).order('updated_at', ascending: false).limit(200);
+        final res = await _client
+            .from(enrollmentsTable)
+            .select('*')
+            .eq('user_id', uid)
+            .order('updated_at', ascending: false)
+            .limit(200);
         if (res is List) {
-          yield res.map((e) => TrainingEnrollment.fromJson((e as Map).cast<String, dynamic>())).toList(growable: false);
+          yield res
+              .map((e) => TrainingEnrollment.fromJson((e as Map).cast<String, dynamic>()))
+              .toList(growable: false);
         } else {
           yield const [];
         }
@@ -180,9 +216,16 @@ class TrainingService {
     }
     while (true) {
       try {
-        final res = await _client.from(certificatesTable).select('*').eq('user_id', uid).order('issued_at', ascending: false).limit(200);
+        final res = await _client
+            .from(certificatesTable)
+            .select('*')
+            .eq('user_id', uid)
+            .order('issued_at', ascending: false)
+            .limit(200);
         if (res is List) {
-          yield res.map((e) => TrainingCertificate.fromJson((e as Map).cast<String, dynamic>())).toList(growable: false);
+          yield res
+              .map((e) => TrainingCertificate.fromJson((e as Map).cast<String, dynamic>()))
+              .toList(growable: false);
         } else {
           yield const [];
         }
@@ -195,13 +238,10 @@ class TrainingService {
   }
 
   List<TrainingItem> _localSeedTrainings() {
-    // Persist seed once to allow basic demo even before SQL is applied.
-    // This avoids a totally empty screen in early setup.
     return _seedCached().toList(growable: false);
   }
 
   List<TrainingItem> _seedCached() {
-    // Best-effort caching; never crash UI.
     final now = DateTime.now().toUtc();
     final seeded = <TrainingItem>[
       TrainingItem(
