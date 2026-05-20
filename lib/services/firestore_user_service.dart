@@ -367,7 +367,7 @@ class FirestoreUserService {
       // We use a DB-side unique constraint (migration) + retry loop to handle
       // concurrency races safely.
       for (var i = 0; i < 20; i++) {
-        final candidate = ThixIdService.generateV2(countryCode: cc, displayName: nameForId).toUpperCase();
+        final candidate = ThixIdService.generate(countryCode: cc).toUpperCase();
         try {
           await SupabaseSafeWrite.upsert(
             client: _client,
