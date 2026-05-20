@@ -123,7 +123,7 @@ class NotificationService {
         final response = await _client
             .from(_table)
             .select('*')
-            .is_('user_id', null)
+            .isNull('user_id')
             .order('created_at', ascending: false)
             .limit(_maxNotifications);
 
