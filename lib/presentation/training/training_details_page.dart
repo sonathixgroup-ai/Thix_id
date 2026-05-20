@@ -29,6 +29,7 @@ class _TrainingDetailsPageState extends State<TrainingDetailsPage> {
   static const _bgLight = Color(0xFFF8FAFC);
   static const _textDark = Color(0xFF1E293B);
   static const _textGrey = Color(0xFF64748B);
+  static const Color _emerald = Color(0xFF10B981);
 
   @override
   void initState() {
