@@ -569,8 +569,7 @@ class _EventsPageState extends State<EventsPage> {
                   width: 72, 
                   height: 72, 
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(width: 72, height: 72, color: Colors.grey[200], child: const Icon(Icons.image_broken_path)),
+                  errorBuilder: (context, error, stackTrace) => Container(width: 72, height: 72, color: Colors.grey[200], child: const Icon(Icons.image_broken)),
                   },
                 ),
               ),
