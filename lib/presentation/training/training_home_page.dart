@@ -37,6 +37,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   static const _bgLight = Color(0xFFF8FAFC);
   static const _textDark = Color(0xFF1E293B);
   static const _textGrey = Color(0xFF64748B);
+  static const _emerald = Color(0xFF10B981); // Ajouté pour remplacer Colors.emerald
 
   @override
   void initState() {
@@ -360,7 +361,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
       {'icon': Icons.school_rounded, 'label': 'Certifications', 'color': const Color(0xFFEFF6FF), 'iconColor': Colors.blue},
       {'icon': Icons.local_fire_department_rounded, 'label': 'Populaires', 'color': const Color(0xFFFFF7ED), 'iconColor': Colors.orange},
       {'icon': Icons.bookmark_rounded, 'label': 'Mes favoris', 'color': const Color(0xFFFDF2F8), 'iconColor': Colors.pink},
-      {'icon': Icons.access_time_filled_rounded, 'label': 'Reprendre', 'color': const Color(0xFFECFDF5), 'iconColor': Colors.emerald},
+      {'icon': Icons.access_time_filled_rounded, 'label': 'Reprendre', 'color': const Color(0xFFECFDF5), 'iconColor': _emerald},
       {'icon': Icons.more_horiz_rounded, 'label': 'Plus', 'color': const Color(0xFFF8FAFC), 'iconColor': _textGrey},
     ];
 
@@ -405,7 +406,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
   Widget _buildPopularCategoriesRow() {
     final List<Map<String, dynamic>> cats = [
       {'name': 'Développement Web', 'icon': Icons.code_rounded, 'color': const Color(0xFFEFF6FF), 'text': Colors.blue},
-      {'name': 'Marketing Digital', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFECFDF5), 'text': Colors.emerald},
+      {'name': 'Marketing Digital', 'icon': Icons.campaign_rounded, 'color': const Color(0xFFECFDF5), 'text': _emerald},
       {'name': 'Design Graphique', 'icon': Icons.palette_rounded, 'color': const Color(0xFFF5F3FF), 'text': _brandPurple},
       {'name': 'Business & Entrepreneuriat', 'icon': Icons.business_center_rounded, 'color': const Color(0xFFFFF7ED), 'text': Colors.orange},
     ];
@@ -617,7 +618,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.bullseye, color: Colors.emerald, size: 18),
+                child: const Icon(Icons.bolt, color: _emerald, size: 18),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -634,9 +635,9 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Expanded(child: LinearProgressIndicator(value: 0.65, backgroundColor: Color(0xFFF1F5F9), color: Colors.emerald, minHeight: 4)),
+              const Expanded(child: LinearProgressIndicator(value: 0.65, backgroundColor: Color(0xFFF1F5F9), color: _emerald, minHeight: 4)),
               const SizedBox(width: 8),
-              Text('65%', style: TextStyle(color: Colors.emerald.shade700, fontSize: 9, fontWeight: FontWeight.bold)),
+              Text('65%', style: TextStyle(color: _emerald, fontSize: 9, fontWeight: FontWeight.bold)),
             ],
           )
         ],
@@ -670,7 +671,7 @@ class _TrainingHomePageState extends State<TrainingHomePage> {
                   SizedBox(width: 60, child: LinearProgressIndicator(value: 0.6, color: _brandPurple, backgroundColor: Color(0xFFF1F5F9))),
                 ],
               ),
-              const Icon(Icons.track_changes_rounded, color: Colors.redAccent, size: 36),
+              const Icon(Icons.flag_rounded, color: Colors.redAccent, size: 36),
             ],
           )
         ],
