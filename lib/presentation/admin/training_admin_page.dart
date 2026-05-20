@@ -15,18 +15,18 @@ class TrainingAdminPage extends StatefulWidget {
 }
 
 class _TrainingAdminPageState extends State<TrainingAdminPage> {
-  final _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase = Supabase.instance.client;
   List<dynamic> _trainings = [];
   bool _loading = true;
   String _searchQuery = '';
-  String _filterStatus = 'all'; // all, published, draft
+  String _filterStatus = 'all';
   String _filterCategory = 'all';
   List<String> _categories = [];
 
-  static const _brandPurple = Color(0xFF6366F1);
-  static const _bgLight = Color(0xFFF8FAFC);
-  static const _textDark = Color(0xFF1E293B);
-  static const _textGrey = Color(0xFF64748B);
+  static const Color _brandPurple = Color(0xFF6366F1);
+  static const Color _bgLight = Color(0xFFF8FAFC);
+  static const Color _textDark = Color(0xFF1E293B);
+  static const Color _textGrey = Color(0xFF64748B);
 
   @override
   void initState() {
@@ -89,15 +89,15 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   void _showCreateTrainingDialog() {
-    final titleCtrl = TextEditingController();
-    final taglineCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final priceCtrl = TextEditingController();
-    final categoryCtrl = TextEditingController();
-    final durationCtrl = TextEditingController();
-    final instructorNameCtrl = TextEditingController();
-    final instructorTitleCtrl = TextEditingController();
-    final requirementsCtrl = TextEditingController();
+    final TextEditingController titleCtrl = TextEditingController();
+    final TextEditingController taglineCtrl = TextEditingController();
+    final TextEditingController descCtrl = TextEditingController();
+    final TextEditingController priceCtrl = TextEditingController();
+    final TextEditingController categoryCtrl = TextEditingController();
+    final TextEditingController durationCtrl = TextEditingController();
+    final TextEditingController instructorNameCtrl = TextEditingController();
+    final TextEditingController instructorTitleCtrl = TextEditingController();
+    final TextEditingController requirementsCtrl = TextEditingController();
     bool isFree = false;
     bool certificationIncluded = true;
     bool isFeatured = false;
@@ -106,14 +106,14 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
+      builder: (BuildContext context) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setDialogState) {
           return AlertDialog(
             title: const Text('Créer une formation'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                children: <Widget>[
                   TextField(
                     controller: titleCtrl,
                     decoration: const InputDecoration(
@@ -140,7 +140,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: TextField(
                           controller: priceCtrl,
@@ -158,31 +158,31 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'FR', child: Text('Français')),
-                            DropdownMenuItem(value: 'EN', child: Text('English')),
-                            DropdownMenuItem(value: 'SW', child: Text('Swahili')),
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(value: 'FR', child: Text('Français')),
+                            DropdownMenuItem<String>(value: 'EN', child: Text('English')),
+                            DropdownMenuItem<String>(value: 'SW', child: Text('Swahili')),
                           ],
-                          onChanged: (v) => setDialogState(() => selectedLanguage = v!),
+                          onChanged: (String? v) => setDialogState(() => selectedLanguage = v!),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: selectedLevel,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'Beginner', child: Text('Débutant')),
-                            DropdownMenuItem(value: 'Intermediate', child: Text('Intermédiaire')),
-                            DropdownMenuItem(value: 'Advanced', child: Text('Avancé')),
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(value: 'Beginner', child: Text('Débutant')),
+                            DropdownMenuItem<String>(value: 'Intermediate', child: Text('Intermédiaire')),
+                            DropdownMenuItem<String>(value: 'Advanced', child: Text('Avancé')),
                           ],
-                          onChanged: (v) => setDialogState(() => selectedLevel = v!),
+                          onChanged: (String? v) => setDialogState(() => selectedLevel = v!),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -233,12 +233,12 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: SwitchListTile(
                           title: const Text('Gratuit'),
                           value: isFree,
-                          onChanged: (v) => setDialogState(() => isFree = v),
+                          onChanged: (bool v) => setDialogState(() => isFree = v),
                           dense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -247,7 +247,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                         child: SwitchListTile(
                           title: const Text('Certificat'),
                           value: certificationIncluded,
-                          onChanged: (v) => setDialogState(() => certificationIncluded = v),
+                          onChanged: (bool v) => setDialogState(() => certificationIncluded = v),
                           dense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -257,7 +257,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   SwitchListTile(
                     title: const Text('À la une'),
                     value: isFeatured,
-                    onChanged: (v) => setDialogState(() => isFeatured = v),
+                    onChanged: (bool v) => setDialogState(() => isFeatured = v),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -281,7 +281,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                 ],
               ),
             ),
-            actions: [
+            actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Annuler'),
@@ -341,15 +341,15 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   void _showEditTrainingDialog(dynamic training) {
-    final titleCtrl = TextEditingController(text: training['title']);
-    final taglineCtrl = TextEditingController(text: training['tagline'] ?? '');
-    final descCtrl = TextEditingController(text: training['description'] ?? '');
-    final priceCtrl = TextEditingController(text: training['price_amount']?.toString() ?? '');
-    final categoryCtrl = TextEditingController(text: training['category'] ?? 'General');
-    final durationCtrl = TextEditingController(text: training['duration_minutes']?.toString() ?? '');
-    final instructorNameCtrl = TextEditingController(text: training['instructor_name'] ?? '');
-    final instructorTitleCtrl = TextEditingController(text: training['instructor_title'] ?? '');
-    final requirementsCtrl = TextEditingController(text: training['requirements'] ?? '');
+    final TextEditingController titleCtrl = TextEditingController(text: training['title']);
+    final TextEditingController taglineCtrl = TextEditingController(text: training['tagline'] ?? '');
+    final TextEditingController descCtrl = TextEditingController(text: training['description'] ?? '');
+    final TextEditingController priceCtrl = TextEditingController(text: training['price_amount']?.toString() ?? '');
+    final TextEditingController categoryCtrl = TextEditingController(text: training['category'] ?? 'General');
+    final TextEditingController durationCtrl = TextEditingController(text: training['duration_minutes']?.toString() ?? '');
+    final TextEditingController instructorNameCtrl = TextEditingController(text: training['instructor_name'] ?? '');
+    final TextEditingController instructorTitleCtrl = TextEditingController(text: training['instructor_title'] ?? '');
+    final TextEditingController requirementsCtrl = TextEditingController(text: training['requirements'] ?? '');
     bool isFree = training['is_free'] ?? false;
     bool certificationIncluded = training['certification_included'] ?? true;
     bool isFeatured = training['is_featured'] ?? false;
@@ -358,14 +358,14 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
+      builder: (BuildContext context) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setDialogState) {
           return AlertDialog(
             title: const Text('Modifier la formation'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                children: <Widget>[
                   TextField(
                     controller: titleCtrl,
                     decoration: const InputDecoration(
@@ -392,7 +392,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: TextField(
                           controller: priceCtrl,
@@ -410,31 +410,31 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'FR', child: Text('Français')),
-                            DropdownMenuItem(value: 'EN', child: Text('English')),
-                            DropdownMenuItem(value: 'SW', child: Text('Swahili')),
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(value: 'FR', child: Text('Français')),
+                            DropdownMenuItem<String>(value: 'EN', child: Text('English')),
+                            DropdownMenuItem<String>(value: 'SW', child: Text('Swahili')),
                           ],
-                          onChanged: (v) => setDialogState(() => selectedLanguage = v!),
+                          onChanged: (String? v) => setDialogState(() => selectedLanguage = v!),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: selectedLevel,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'Beginner', child: Text('Débutant')),
-                            DropdownMenuItem(value: 'Intermediate', child: Text('Intermédiaire')),
-                            DropdownMenuItem(value: 'Advanced', child: Text('Avancé')),
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(value: 'Beginner', child: Text('Débutant')),
+                            DropdownMenuItem<String>(value: 'Intermediate', child: Text('Intermédiaire')),
+                            DropdownMenuItem<String>(value: 'Advanced', child: Text('Avancé')),
                           ],
-                          onChanged: (v) => setDialogState(() => selectedLevel = v!),
+                          onChanged: (String? v) => setDialogState(() => selectedLevel = v!),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -485,12 +485,12 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Expanded(
                         child: SwitchListTile(
                           title: const Text('Gratuit'),
                           value: isFree,
-                          onChanged: (v) => setDialogState(() => isFree = v),
+                          onChanged: (bool v) => setDialogState(() => isFree = v),
                           dense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -499,7 +499,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                         child: SwitchListTile(
                           title: const Text('Certificat'),
                           value: certificationIncluded,
-                          onChanged: (v) => setDialogState(() => certificationIncluded = v),
+                          onChanged: (bool v) => setDialogState(() => certificationIncluded = v),
                           dense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -509,14 +509,14 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                   SwitchListTile(
                     title: const Text('À la une'),
                     value: isFeatured,
-                    onChanged: (v) => setDialogState(() => isFeatured = v),
+                    onChanged: (bool v) => setDialogState(() => isFeatured = v),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
                 ],
               ),
             ),
-            actions: [
+            actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Annuler'),
@@ -574,7 +574,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   Future<void> _uploadCoverImage(dynamic training) async {
-    final trainingId = training['id']?.toString();
+    final String? trainingId = training['id']?.toString();
     if (trainingId == null || trainingId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ID de formation invalide')),
@@ -583,14 +583,14 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     }
 
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );
       
       if (result == null || result.files.isEmpty) return;
       
-      final file = result.files.first;
+      final PlatformFile file = result.files.first;
       
       Uint8List bytes;
       if (kIsWeb) {
@@ -608,10 +608,11 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
           );
           return;
         }
-        bytes = await File(file.path!).readAsBytes();
+        final File imageFile = File(file.path!);
+        bytes = await imageFile.readAsBytes();
       }
       
-      const maxSize = 10 * 1024 * 1024;
+      const int maxSize = 10 * 1024 * 1024;
       if (bytes.length > maxSize) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Fichier trop volumineux (max 10 MB)')),
@@ -619,9 +620,10 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
         return;
       }
       
+      if (!mounted) return;
       setState(() => _loading = true);
       
-      final storagePath = 'covers/$trainingId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String storagePath = 'covers/$trainingId/${DateTime.now().millisecondsSinceEpoch}.jpg';
       
       await _supabase.storage.from('thix-trainings').uploadBinary(
         storagePath,
@@ -629,7 +631,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
         fileOptions: const FileOptions(contentType: 'image/jpeg'),
       );
       
-      final publicUrl = _supabase.storage.from('thix-trainings').getPublicUrl(storagePath);
+      final String publicUrl = _supabase.storage.from('thix-trainings').getPublicUrl(storagePath);
       
       await _supabase.from('thix_trainings').update({
         'cover_image_path': storagePath,
@@ -659,8 +661,8 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   Future<void> _publishTraining(dynamic training) async {
-    final trainingId = training['id']?.toString();
-    final trainingTitle = training['title']?.toString() ?? 'Formation';
+    final String? trainingId = training['id']?.toString();
+    final String trainingTitle = training['title']?.toString() ?? 'Formation';
     
     if (trainingId == null || trainingId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -670,6 +672,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     }
     
     try {
+      if (!mounted) return;
       setState(() => _loading = true);
       
       await _supabase
@@ -699,8 +702,8 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   Future<void> _unpublishTraining(dynamic training) async {
-    final trainingId = training['id']?.toString();
-    final trainingTitle = training['title']?.toString() ?? 'Formation';
+    final String? trainingId = training['id']?.toString();
+    final String trainingTitle = training['title']?.toString() ?? 'Formation';
     
     if (trainingId == null || trainingId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -710,6 +713,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     }
     
     try {
+      if (!mounted) return;
       setState(() => _loading = true);
       
       await _supabase
@@ -739,17 +743,17 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   Future<void> _deleteTraining(dynamic training) async {
-    final trainingId = training['id']?.toString();
-    final trainingTitle = training['title']?.toString() ?? 'cette formation';
+    final String? trainingId = training['id']?.toString();
+    final String trainingTitle = training['title']?.toString() ?? 'cette formation';
     
     if (trainingId == null || trainingId.isEmpty) return;
     
-    final confirmed = await showDialog<bool>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Supprimer cette formation ?'),
         content: Text('Êtes-vous sûr de vouloir supprimer "$trainingTitle" ? Cette action est irréversible.'),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Annuler'),
@@ -766,6 +770,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     if (confirmed != true) return;
 
     try {
+      if (!mounted) return;
       setState(() => _loading = true);
       
       await _supabase
@@ -796,9 +801,9 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredTrainings = _filteredTrainings;
-    final publishedCount = _trainings.where((t) => t['is_published'] == true).length;
-    final draftCount = _trainings.where((t) => t['is_published'] != true).length;
+    final List<dynamic> filteredTrainings = _filteredTrainings;
+    final int publishedCount = _trainings.where((t) => t['is_published'] == true).length;
+    final int draftCount = _trainings.where((t) => t['is_published'] != true).length;
     
     return Scaffold(
       backgroundColor: _bgLight,
@@ -813,7 +818,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
+        actions: <Widget>[
           IconButton(
             onPressed: _loadTrainings,
             icon: const Icon(Icons.refresh_rounded, color: _brandPurple),
@@ -821,14 +826,14 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
         ],
       ),
       body: Column(
-        children: [
+        children: <Widget>[
           Container(
             padding: const EdgeInsets.all(14),
             color: Colors.white,
             child: Column(
-              children: [
+              children: <Widget>[
                 TextField(
-                  onChanged: (value) {
+                  onChanged: (String value) {
                     setState(() => _searchQuery = value);
                     _loadTrainings();
                   },
@@ -845,15 +850,15 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  children: [
+                  children: <Widget>[
                     Expanded(
                       child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'all', label: Text('Toutes')),
-                          ButtonSegment(value: 'published', label: Text('Publiées')),
-                          ButtonSegment(value: 'draft', label: Text('Brouillons')),
+                        segments: const <ButtonSegment<String>>[
+                          ButtonSegment<String>(value: 'all', label: Text('Toutes')),
+                          ButtonSegment<String>(value: 'published', label: Text('Publiées')),
+                          ButtonSegment<String>(value: 'draft', label: Text('Brouillons')),
                         ],
-                        selected: {_filterStatus},
+                        selected: <String>{_filterStatus},
                         onSelectionChanged: (Set<String> selection) {
                           setState(() => _filterStatus = selection.first);
                         },
@@ -869,14 +874,14 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
-                        items: [
-                          const DropdownMenuItem(value: 'all', child: Text('Toutes catégories')),
-                          ..._categories.map((cat) => DropdownMenuItem(
+                        items: <DropdownMenuItem<String>>[
+                          const DropdownMenuItem<String>(value: 'all', child: Text('Toutes catégories')),
+                          ..._categories.map((String cat) => DropdownMenuItem<String>(
                             value: cat,
                             child: Text(cat),
                           )),
                         ],
-                        onChanged: (v) => setState(() => _filterCategory = v!),
+                        onChanged: (String? v) => setState(() => _filterCategory = v!),
                       ),
                     ),
                   ],
@@ -888,7 +893,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
           Container(
             padding: const EdgeInsets.all(14),
             child: Row(
-              children: [
+              children: <Widget>[
                 _buildStatCard('Total', _trainings.length.toString()),
                 const SizedBox(width: 12),
                 _buildStatCard('Publiées', publishedCount.toString()),
@@ -908,13 +913,13 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
-                children: [
+                children: <Widget>[
                   const Icon(Icons.info_rounded, color: _brandPurple, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: const <Widget>[
                         Text(
                           '📋 Brouillon = Invisible aux utilisateurs',
                           style: TextStyle(
@@ -950,7 +955,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                          children: <Widget>[
                             const Icon(Icons.school_outlined, size: 64, color: _textGrey),
                             const SizedBox(height: 16),
                             Text(
@@ -965,8 +970,8 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                     : ListView.builder(
                         padding: const EdgeInsets.all(14),
                         itemCount: filteredTrainings.length,
-                        itemBuilder: (context, index) {
-                          final t = filteredTrainings[index];
+                        itemBuilder: (BuildContext context, int index) {
+                          final dynamic t = filteredTrainings[index];
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(12),
@@ -982,7 +987,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: <Widget>[
                                 if (t['cover_image_url'] != null) ...[
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
@@ -999,7 +1004,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                 
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
+                                  children: <Widget>[
                                     Expanded(
                                       child: Text(
                                         t['title'] ?? 'Sans titre',
@@ -1047,7 +1052,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                   ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  children: [
+                                  children: <Widget>[
                                     Text(
                                       '💰 ${t['is_free'] == true ? 'Gratuit' : '${t['price_amount'] ?? 0} ${t['currency'] ?? 'USD'}'}',
                                       style: const TextStyle(
@@ -1133,7 +1138,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(
               label,
               style: const TextStyle(
