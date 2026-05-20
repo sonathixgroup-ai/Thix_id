@@ -121,11 +121,11 @@ class NotificationService {
       if (isCancelled) return;
       try {
         final response = await _client
-            .from(_table)
-            .select('*')
-            .isNull('user_id')
-            .order('created_at', ascending: false)
-            .limit(_maxNotifications);
+    .from(_table)
+    .select('*')
+    .isNull('user_id')
+    .order('created_at', ascending: false)
+    .limit(_maxNotifications);
 
         final notifications = response is List
             ? response
