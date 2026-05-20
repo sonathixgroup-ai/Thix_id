@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +40,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       final res = await _supabase.from('thix_trainings').select('category');
       if (res is List) {
         final cats = res.map((e) => e['category'] as String).toSet().toList();
-        setState(() => _categories = cats);
+        if (mounted) setState(() => _categories = cats);
       }
     } catch (e) {
       debugPrint('Error loading categories: $e');
@@ -45,6 +48,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   Future<void> _loadTrainings() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       var query = _supabase.from('thix_trainings').select('*');
@@ -71,14 +75,12 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   List<dynamic> get _filteredTrainings {
     var filtered = List.from(_trainings);
     
-    // Filtre par statut
     if (_filterStatus == 'published') {
       filtered = filtered.where((t) => t['is_published'] == true).toList();
     } else if (_filterStatus == 'draft') {
       filtered = filtered.where((t) => t['is_published'] != true).toList();
     }
     
-    // Filtre par catégorie
     if (_filterCategory != 'all') {
       filtered = filtered.where((t) => t['category'] == _filterCategory).toList();
     }
@@ -92,8 +94,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     final descCtrl = TextEditingController();
     final priceCtrl = TextEditingController();
     final categoryCtrl = TextEditingController();
-    final levelCtrl = TextEditingController();
-    final languageCtrl = TextEditingController(text: 'FR');
     final durationCtrl = TextEditingController();
     final instructorNameCtrl = TextEditingController();
     final instructorTitleCtrl = TextEditingController();
@@ -103,7 +103,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     bool isFeatured = false;
     String selectedLevel = 'Beginner';
     String selectedLanguage = 'FR';
-    String selectedDeliveryMode = 'online';
 
     showDialog(
       context: context,
@@ -320,6 +319,10 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                     _loadTrainings();
                   } catch (e) {
                     debugPrint('Error creating training: $e');
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur: $e')),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -343,8 +346,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     final descCtrl = TextEditingController(text: training['description'] ?? '');
     final priceCtrl = TextEditingController(text: training['price_amount']?.toString() ?? '');
     final categoryCtrl = TextEditingController(text: training['category'] ?? 'General');
-    final levelCtrl = TextEditingController(text: training['level'] ?? 'Beginner');
-    final languageCtrl = TextEditingController(text: training['language'] ?? 'FR');
     final durationCtrl = TextEditingController(text: training['duration_minutes']?.toString() ?? '');
     final instructorNameCtrl = TextEditingController(text: training['instructor_name'] ?? '');
     final instructorTitleCtrl = TextEditingController(text: training['instructor_title'] ?? '');
@@ -551,6 +552,10 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                     _loadTrainings();
                   } catch (e) {
                     debugPrint('Error updating training: $e');
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur: $e')),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -569,26 +574,55 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
   }
 
   Future<void> _uploadCoverImage(dynamic training) async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
-    );
-    
-    if (result == null) return;
-    
-    final file = result.files.first;
-    final bytes = file.bytes;
-    
-    if (bytes == null) {
+    final trainingId = training['id']?.toString();
+    if (trainingId == null || trainingId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossible de lire le fichier')),
+        const SnackBar(content: Text('ID de formation invalide')),
       );
       return;
     }
-    
-    final storagePath = 'covers/${training['id']}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-    
+
     try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+      
+      if (result == null || result.files.isEmpty) return;
+      
+      final file = result.files.first;
+      
+      Uint8List bytes;
+      if (kIsWeb) {
+        if (file.bytes == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Impossible de lire le fichier sur Web')),
+          );
+          return;
+        }
+        bytes = file.bytes!;
+      } else {
+        if (file.path == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Chemin du fichier invalide')),
+          );
+          return;
+        }
+        bytes = await File(file.path!).readAsBytes();
+      }
+      
+      const maxSize = 10 * 1024 * 1024;
+      if (bytes.length > maxSize) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fichier trop volumineux (max 10 MB)')),
+        );
+        return;
+      }
+      
+      setState(() => _loading = true);
+      
+      final storagePath = 'covers/$trainingId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      
       await _supabase.storage.from('thix-trainings').uploadBinary(
         storagePath,
         bytes,
@@ -601,76 +635,120 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
         'cover_image_path': storagePath,
         'cover_image_url': publicUrl,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', training['id']);
+      }).eq('id', trainingId);
       
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ Image de couverture ajoutée!'),
+          content: Text('✅ Image de couverture ajoutée !'),
           backgroundColor: Colors.green,
         ),
       );
       _loadTrainings();
+      
     } catch (e) {
       debugPrint('Error uploading cover: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _publishTraining(dynamic training) async {
+    final trainingId = training['id']?.toString();
+    final trainingTitle = training['title']?.toString() ?? 'Formation';
+    
+    if (trainingId == null || trainingId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID de formation invalide')),
+      );
+      return;
+    }
+    
     try {
+      setState(() => _loading = true);
+      
       await _supabase
           .from('thix_trainings')
           .update({'is_published': true})
-          .eq('id', training['id']);
+          .eq('id', trainingId);
+      
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ "${training['title']}" publiée!'),
+          content: Text('✅ "$trainingTitle" publiée !'),
           backgroundColor: Colors.green,
         ),
       );
       _loadTrainings();
+      
     } catch (e) {
       debugPrint('Error publishing: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _unpublishTraining(dynamic training) async {
+    final trainingId = training['id']?.toString();
+    final trainingTitle = training['title']?.toString() ?? 'Formation';
+    
+    if (trainingId == null || trainingId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID de formation invalide')),
+      );
+      return;
+    }
+    
     try {
+      setState(() => _loading = true);
+      
       await _supabase
           .from('thix_trainings')
           .update({'is_published': false})
-          .eq('id', training['id']);
+          .eq('id', trainingId);
+      
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⏸️ "${training['title']}" dépubliée'),
+          content: Text('⏸️ "$trainingTitle" dépubliée'),
           backgroundColor: Colors.orange,
         ),
       );
       _loadTrainings();
+      
     } catch (e) {
       debugPrint('Error unpublishing: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _deleteTraining(dynamic training) async {
+    final trainingId = training['id']?.toString();
+    final trainingTitle = training['title']?.toString() ?? 'cette formation';
+    
+    if (trainingId == null || trainingId.isEmpty) return;
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer cette formation?'),
-        content: Text('Êtes-vous sûr de vouloir supprimer "${training['title']}"? Cette action est irréversible.'),
+        title: const Text('Supprimer cette formation ?'),
+        content: Text('Êtes-vous sûr de vouloir supprimer "$trainingTitle" ? Cette action est irréversible.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -688,11 +766,15 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     if (confirmed != true) return;
 
     try {
+      setState(() => _loading = true);
+      
       await _supabase
           .from('thix_trainings')
           .delete()
-          .eq('id', training['id']);
+          .eq('id', trainingId);
+      
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ Formation supprimée'),
@@ -700,12 +782,15 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
         ),
       );
       _loadTrainings();
+      
     } catch (e) {
       debugPrint('Delete error: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -737,7 +822,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       ),
       body: Column(
         children: [
-          // Search and Filters
           Container(
             padding: const EdgeInsets.all(14),
             color: Colors.white,
@@ -762,7 +846,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    // Status filter
                     Expanded(
                       child: SegmentedButton<String>(
                         segments: const [
@@ -777,7 +860,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Category filter
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _filterCategory,
@@ -803,7 +885,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
             ),
           ),
           
-          // Stats
           Container(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -817,7 +898,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
             ),
           ),
           
-          // Information Banner
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Container(
@@ -861,7 +941,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
           
           const SizedBox(height: 14),
           
-          // List
           Expanded(
             child: _loading
                 ? const Center(
@@ -904,8 +983,7 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Cover image preview
-                                if (t['cover_image_url'] != null)
+                                if (t['cover_image_url'] != null) ...[
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
@@ -916,7 +994,8 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                       errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                     ),
                                   ),
-                                if (t['cover_image_url'] != null) const SizedBox(height: 12),
+                                  const SizedBox(height: 12),
+                                ],
                                 
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -978,7 +1057,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                       ),
                                     ),
                                     const Spacer(),
-                                    // Upload Cover Button
                                     IconButton(
                                       onPressed: () => _uploadCoverImage(t),
                                       icon: const Icon(
@@ -988,7 +1066,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                       ),
                                       tooltip: 'Ajouter une image de couverture',
                                     ),
-                                    // PUBLISH/UNPUBLISH BUTTON
                                     if (t['is_published'] == true)
                                       IconButton(
                                         onPressed: () => _unpublishTraining(t),
@@ -1009,7 +1086,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                         ),
                                         tooltip: 'Publier',
                                       ),
-                                    // EDIT BUTTON
                                     IconButton(
                                       onPressed: () => _showEditTrainingDialog(t),
                                       icon: const Icon(
@@ -1019,7 +1095,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
                                       ),
                                       tooltip: 'Éditer',
                                     ),
-                                    // DELETE BUTTON
                                     IconButton(
                                       onPressed: () => _deleteTraining(t),
                                       icon: const Icon(
