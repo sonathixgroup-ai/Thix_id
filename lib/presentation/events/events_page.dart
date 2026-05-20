@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 
-class EventsPage extends StatefulWidget {  // ← ajout du 's'
+class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
 
   @override
-  State<EventsPage> createState() => _EventsPageState();  // ← ajout du 's'
+  State<EventsPage> createState() => _EventsPageState();
 }
 
-class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
+class _EventsPageState extends State<EventsPage> {
   String selectedCategory = 'Tous les événements';
-  int _currentIndex = 2;
+  int _currentIndex = 2; // Sélectionne par défaut "Mes billets"
   final Set<String> favoriteEvents = {};
-  int _bannerPageIndex = 1;
+  final int _bannerPageIndex = 1;
 
-  // ... le reste de ton code reste IDENTIQUE
-
-  // Données exactes de ton image
+  // Données de tests sécurisées avec Fallback si l'image crash (HTTP 404)
   final List<Map<String, dynamic>> featuredEvents = [
     {
       'id': '1',
@@ -81,7 +79,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFDFD), // Fond ultra-clair et propre
+      backgroundColor: const Color(0xFFFDFDFD),
       appBar: _buildAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -90,9 +88,9 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              _buildHeroBanner(),
+              _buildHeroBanner(), // Hauteur corrigée pour éviter l'overflow
               const SizedBox(height: 20),
-              _buildMainCategoriesGrid(),
+              _buildMainCategoriesGrid(), // Rétabli en Grille 2x3 d'après ta capture
               const SizedBox(height: 24),
               _buildSectionHeader('Catégories populaires'),
               const SizedBox(height: 14),
@@ -116,7 +114,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- APP BAR (Fidèle aux espacements et icônes) ---
+  // --- APP BAR ---
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: const Color(0xFFFDFDFD),
@@ -201,13 +199,13 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- HERO BANNER (Avec l'ajout des dots sous le texte) ---
+  // --- HERO BANNER (Correction de la hauteur pour éviter le Layout Overflow) ---
   Widget _buildHeroBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Container(
         width: double.infinity,
-        height: 190,
+        height: 215, // Augmenté de 190 à 215 pour encaisser les widgets enfants sans déborder
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           image: const DecorationImage(
@@ -219,12 +217,12 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             gradient: LinearGradient(
-              colors: [Colors.black.withOpacity(0.82), Colors.transparent],
+              colors: [Colors.black.withOpacity(0.85), Colors.transparent],
               begin: Alignment.bottomLeft,
               end: Alignment.topRight,
             ),
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -233,13 +231,12 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
                 decoration: BoxDecoration(color: const Color(0xFF6320EE), borderRadius: BorderRadius.circular(6)),
                 child: const Text('★ À LA UNE', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
               ),
-              const SizedBox(height: 10),
-              const Text('Vivez des moments\ninoubliables.', style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold, height: 1.2)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              const Text('Vivez des moments\ninoubliables.', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.2)),
+              const SizedBox(height: 4),
               Text('Concerts, festivals, conférences, spectacles et plus encore.', style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 11)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               
-              // INDICATEURS DE PAGES (DOTS BLANCS)
               Row(
                 children: List.generate(4, (index) {
                   return Container(
@@ -303,7 +300,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
         ),
         itemBuilder: (context, index) {
           String catLabel = categories[index]['label'] as String;
-          bool isSelected = (catLabel.contains('Tous') && selectedCategory == 'Tous les événements') || (selectedCategory == catLabel);
+          bool isSelected = (catLabel.contains('Tous') && selectedCategory == 'Tous les événements') || (selectedCategory == catLabel.replaceAll('\n', ' '));
 
           return GestureDetector(
             onTap: () => setState(() => selectedCategory = catLabel.replaceAll('\n', ' ')),
@@ -319,7 +316,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
                 children: [
                   Icon(
                     categories[index]['icon'] as IconData,
-                    color: const Color(0xFF6320EE), // Violet identique à l'image
+                    color: const Color(0xFF6320EE),
                     size: 24,
                   ),
                   const SizedBox(height: 8),
@@ -342,7 +339,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- CATÉGORIES POPULAIRES CORRIGÉES ---
+  // --- CATÉGORIES POPULAIRES ---
   Widget _buildPopularHorizontalList() {
     final popularSub = [
       {'icon': Icons.library_music_rounded, 'label': 'Musique & Concerts', 'color': const Color(0xFF6320EE)},
@@ -384,7 +381,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- CARTES RECOMMANDATIONS ---
+  // --- CARTES RECOMMANDATIONS (Sécurisées contre les crashs HTTP 404 d'images) ---
   Widget _buildRecommendedHorizontalList() {
     return SizedBox(
       height: 295,
@@ -412,7 +409,20 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
                   children: [
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                      child: Image.network(event['image'], height: 125, width: double.infinity, fit: BoxFit.cover),
+                      child: Image.network(
+                        event['image'], 
+                        height: 125, 
+                        width: double.infinity, 
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Évite l'affichage du texte rouge moche de l'erreur 404 sur l'interface
+                          return Container(
+                            height: 125,
+                            color: event['color'].withOpacity(0.2),
+                            child: Icon(Icons.image_not_supported_rounded, color: event['color']),
+                          );
+                        },
+                      ),
                     ),
                     Positioned(
                       top: 10,
@@ -484,7 +494,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- BANNIÈRE VIOLETTE CORRIGÉE (Bouton épuré sans icône) ---
+  // --- BANNIÈRE DE NOTIFICATION ---
   Widget _buildNotificationBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -533,7 +543,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- PROCHAINS ÉVÉNEMENTS (Liste Basse) ---
+  // --- PROCHAINS ÉVÉNEMENTS ---
   Widget _buildUpcomingVerticalList() {
     return ListView.builder(
       shrinkWrap: true,
@@ -554,7 +564,15 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(item['image']!, width: 72, height: 72, fit: BoxFit.cover),
+                child: Image.network(
+                  item['image']!, 
+                  width: 72, 
+                  height: 72, 
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(width: 72, height: 72, color: Colors.grey[200], child: const Icon(Icons.image_broken_path));
+                  },
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -601,7 +619,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
-  // --- OUTILS COMPOSANTS ---
+  // --- HEADER DE SECTIONS ---
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -633,6 +651,7 @@ class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
     );
   }
 
+  // --- BOTTOM NAV BAR ---
   Widget _buildBottomNavBar() {
     return Container(
       decoration: BoxDecoration(
