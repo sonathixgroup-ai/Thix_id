@@ -1,105 +1,692 @@
+// ============================================================================
+// FICHIER: lib/pages/dashboard/user_event_dashboard.dart
+// ============================================================================
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:thix_id/models/event_item.dart';
 import 'package:thix_id/models/event_registration.dart';
 import 'package:thix_id/nav.dart';
 import 'package:thix_id/services/event_service.dart';
 
-// ==================== COULEURS PREMIUM ====================
-class PremiumColors {
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color backgroundLight = Color(0xFFF8F9FA);
-  static const Color gold = Color(0xFFD4AF37);
-  static const Color goldDark = Color(0xFFB8860B);
-  static const Color goldLight = Color(0xFFFFE066);
-  static const Color textPrimary = Color(0xFF1A1A2E);
-  static const Color textSecondary = Color(0xFF6C6C7A);
-  static const Color success = Color(0xFF10B981);
-  static const Color error = Color(0xFFEF4444);
-  static const Color stroke = Color(0xFFE2E8F0);
+// ============================================================================
+// MODÈLES
+// ============================================================================
+enum TicketStatus {
+  upcoming('À venir', Icons.event_available, Colors.green),
+  today('Aujourd\'hui', Icons.today, Colors.orange),
+  past('Passé', Icons.history, Colors.grey),
+  cancelled('Annulé', Icons.cancel, Colors.red);
+
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const TicketStatus(this.label, this.icon, this.color);
 }
 
-// ==================== PAGE TABLEAU DE BORD ÉVÉNEMENTS ====================
-class UserEventDashboardPage extends StatefulWidget {
-  const UserEventDashboardPage({super.key});
+class UserTicketWithEvent {
+  final EventRegistration registration;
+  final EventItem event;
+  final TicketStatus status;
+
+  UserTicketWithEvent({
+    required this.registration,
+    required this.event,
+    required this.status,
+  });
+
+  bool get isUpcoming => status == TicketStatus.upcoming;
+  bool get isToday => status == TicketStatus.today;
+  bool get isPast => status == TicketStatus.past;
+  bool get isCancelled => status == TicketStatus.cancelled;
+}
+
+// ============================================================================
+// CONTROLLER
+// ============================================================================
+class UserDashboardController extends ChangeNotifier {
+  final EventService _eventService;
+  final String userId;
+
+  List<UserTicketWithEvent> _allTickets = [];
+  List<UserTicketWithEvent> _filteredTickets = [];
+  TicketStatus _selectedFilter = TicketStatus.upcoming;
+  bool _isLoading = true;
+  String? _errorMessage;
+  String _searchQuery = '';
+
+  UserDashboardController({
+    required EventService eventService,
+    required this.userId,
+  }) : _eventService = eventService;
+
+  List<UserTicketWithEvent> get displayedTickets => _filteredTickets;
+  TicketStatus get selectedFilter => _selectedFilter;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  String get searchQuery => _searchQuery;
+
+  int get upcomingCount => _allTickets.where((t) => t.isUpcoming).length;
+  int get todayCount => _allTickets.where((t) => t.isToday).length;
+  int get pastCount => _allTickets.where((t) => t.isPast).length;
+  int get totalTickets => _allTickets.length;
+
+  Future<void> loadUserTickets() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final registrations = await _eventService.getUserRegistrations(userId);
+      final List<UserTicketWithEvent> tickets = [];
+
+      for (final registration in registrations) {
+        final event = await _eventService.getEventById(registration.eventId);
+        if (event != null) {
+          tickets.add(UserTicketWithEvent(
+            registration: registration,
+            event: event,
+            status: _determineTicketStatus(event),
+          ));
+        }
+      }
+
+      tickets.sort((a, b) => a.event.eventDate.compareTo(b.event.eventDate));
+      _allTickets = tickets;
+      _applyFilters();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  TicketStatus _determineTicketStatus(EventItem event) {
+    final now = DateTime.now();
+    final eventDate = event.eventDate;
+
+    if (eventDate.isBefore(now)) {
+      return TicketStatus.past;
+    }
+
+    if (DateFormat('yyyyMMdd').format(eventDate) ==
+        DateFormat('yyyyMMdd').format(now)) {
+      return TicketStatus.today;
+    }
+
+    return TicketStatus.upcoming;
+  }
+
+  void filterByStatus(TicketStatus status) {
+    _selectedFilter = status;
+    _applyFilters();
+    notifyListeners();
+  }
+
+  void searchTickets(String query) {
+    _searchQuery = query;
+    _applyFilters();
+    notifyListeners();
+  }
+
+  void _applyFilters() {
+    _filteredTickets = _allTickets.where((ticket) {
+      // Filtre par statut
+      if (ticket.status != _selectedFilter) return false;
+
+      // Filtre par recherche
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        final titleMatch = ticket.event.title.toLowerCase().contains(query);
+        final venueMatch = ticket.event.venue.toLowerCase().contains(query);
+        final codeMatch = ticket.registration.ticketCode
+            .toLowerCase()
+            .contains(query);
+        if (!titleMatch && !venueMatch && !codeMatch) return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  Future<void> cancelTicket(String registrationId) async {
+    try {
+      await _eventService.cancelRegistration(registrationId);
+      await loadUserTickets();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  void refresh() {
+    loadUserTickets();
+  }
 
   @override
-  State<UserEventDashboardPage> createState() => _UserEventDashboardPageState();
+  void dispose() {
+    super.dispose();
+  }
 }
 
-class _UserEventDashboardPageState extends State<UserEventDashboardPage> {
-  final _svc = EventService();
+// ============================================================================
+// PAGE PRINCIPALE
+// ============================================================================
+class UserEventDashboard extends StatefulWidget {
+  final String userId;
+
+  const UserEventDashboard({super.key, required this.userId});
+
+  @override
+  State<UserEventDashboard> createState() => _UserEventDashboardState();
+}
+
+class _UserEventDashboardState extends State<UserEventDashboard>
+    with SingleTickerProviderStateMixin {
+  late UserDashboardController _controller;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = UserDashboardController(
+      eventService: context.read<EventService>(),
+      userId: widget.userId,
+    );
+    _tabController = TabController(length: 3, vsync: this);
+    _controller.loadUserTickets();
+
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        final status = _getStatusFromTabIndex(_tabController.index);
+        _controller.filterByStatus(status);
+      }
+    });
+  }
+
+  TicketStatus _getStatusFromTabIndex(int index) {
+    switch (index) {
+      case 0:
+        return TicketStatus.upcoming;
+      case 1:
+        return TicketStatus.today;
+      case 2:
+        return TicketStatus.past;
+      default:
+        return TicketStatus.upcoming;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PremiumColors.backgroundLight,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+      backgroundColor: Colors.grey[50],
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          _buildStatsHeader(),
+          _buildSearchBar(),
+          _buildTabBar(),
+          Expanded(
+            child: ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) {
+                if (_controller.isLoading) {
+                  return _buildLoadingState();
+                }
+
+                if (_controller.errorMessage != null) {
+                  return _buildErrorState();
+                }
+
+                if (_controller.displayedTickets.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return _buildTicketList();
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: _buildFloatingButton(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('Mes billets'),
+      centerTitle: false,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      foregroundColor: AppColors.textDark,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: () => _controller.refresh(),
+          tooltip: 'Actualiser',
+        ),
+        IconButton(
+          icon: const Icon(Icons.filter_alt_outlined),
+          onPressed: () => _showFilterDialog(),
+          tooltip: 'Filtrer',
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(height: 1, color: Colors.grey[200]),
+      ),
+    );
+  }
+
+  Widget _buildStatsHeader() {
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          color: Colors.white,
+          child: Row(
             children: [
-              // Barre de retour et titre
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.popOrGo(AppRoutes.events),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: PremiumColors.textPrimary),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Mes événements',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: PremiumColors.textPrimary,
-                          ),
-                    ),
-                  ),
-                ],
+              _buildStatCard(
+                'À venir',
+                _controller.upcomingCount,
+                TicketStatus.upcoming.color,
+                Icons.event_upcoming,
               ),
-              const SizedBox(height: 24),
-              // Onglets
-              Expanded(
-                child: DefaultTabController(
-                  length: 3,
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: PremiumColors.stroke),
-                        ),
-                        child: TabBar(
-                          indicator: BoxDecoration(
-                            color: PremiumColors.gold,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          dividerColor: Colors.transparent,
-                          labelColor: Colors.white,
-                          unselectedLabelColor: PremiumColors.textSecondary,
-                          labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                          tabs: const [
-                            Tab(text: 'Inscrit'),
-                            Tab(text: 'Sauvegardés'),
-                            Tab(text: 'Historique'),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _RegisteredTab(service: _svc),
-                            _SavedTab(service: _svc),
-                            _HistoryTab(service: _svc),
-                          ],
-                        ),
-                      ),
-                    ],
+              const SizedBox(width: 12),
+              _buildStatCard(
+                'Aujourd\'hui',
+                _controller.todayCount,
+                TicketStatus.today.color,
+                Icons.today,
+              ),
+              const SizedBox(width: 12),
+              _buildStatCard(
+                'Passés',
+                _controller.pastCount,
+                TicketStatus.past.color,
+                Icons.history,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard(String label, int count, Color color, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Rechercher un événement, lieu ou code...',
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          suffixIcon: ListenableBuilder(
+            listenable: _controller,
+            builder: (context, _) {
+              if (_controller.searchQuery.isNotEmpty) {
+                return IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _controller.searchTickets('');
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey[100],
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        onChanged: (query) => _controller.searchTickets(query),
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        indicatorColor: AppColors.primary,
+        labelColor: AppColors.primary,
+        unselectedLabelColor: Colors.grey,
+        tabs: const [
+          Tab(text: 'À venir'),
+          Tab(text: 'Aujourd\'hui'),
+          Tab(text: 'Passés'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Chargement de vos billets...'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            _controller.errorMessage ?? 'Une erreur est survenue',
+            style: const TextStyle(color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _controller.loadUserTickets(),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    String message;
+    String submessage;
+
+    switch (_controller.selectedFilter) {
+      case TicketStatus.upcoming:
+        message = 'Aucun billet à venir';
+        submessage = 'Réservez votre prochain événement';
+        break;
+      case TicketStatus.today:
+        message = 'Aucun événement aujourd\'hui';
+        submessage = 'Profitez pour découvrir nos prochains événements';
+        break;
+      case TicketStatus.past:
+        message = 'Aucun billet passé';
+        submessage = 'Vos historiques apparaîtront ici';
+        break;
+      default:
+        message = 'Aucun billet trouvé';
+        submessage = '';
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.confirmation_number_outlined,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            submessage,
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => context.push(Routes.explore),
+            icon: const Icon(Icons.explore),
+            label: const Text('Découvrir des événements'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketList() {
+    return RefreshIndicator(
+      onRefresh: () async => _controller.loadUserTickets(),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _controller.displayedTickets.length,
+        itemBuilder: (context, index) {
+          final ticket = _controller.displayedTickets[index];
+          return _buildTicketCard(ticket);
+        },
+      ),
+    );
+  }
+
+  Widget _buildTicketCard(UserTicketWithEvent ticket) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => _navigateToTicket(ticket),
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            children: [
+              // En-tête avec statut
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: ticket.status.color.withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(ticket.status.icon, color: ticket.status.color, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      ticket.status.label,
+                      style: TextStyle(
+                        color: ticket.status.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      DateFormat('dd MMM yyyy').format(ticket.event.eventDate),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Contenu principal
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Image ou placeholder
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: ticket.event.coverImageUrl != null
+                          ? Image.network(
+                              ticket.event.coverImageUrl!,
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                            )
+                          : _buildPlaceholder(),
+                    ),
+                    const SizedBox(width: 16),
+                    
+                    // Infos
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ticket.event.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  ticket.event.venue,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.confirmation_number, size: 14, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Text(
+                                ticket.registration.ticketCode.substring(0, 12),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontFamily: 'monospace',
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Badge quantité
+                    if (ticket.registration.quantity > 1)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'x${ticket.registration.quantity}',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              
+              // Actions
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () => _navigateToTicket(ticket),
+                        icon: const Icon(Icons.qr_code_scanner, size: 18),
+                        label: const Text('Voir billet'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    Container(width: 1, height: 30, color: Colors.grey[200]),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () => _showTicketOptions(ticket),
+                        icon: const Icon(Icons.more_horiz, size: 18),
+                        label: const Text('Options'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -108,259 +695,201 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage> {
       ),
     );
   }
-}
 
-// ==================== ONGLET "INSCRIT" ====================
-class _RegisteredTab extends StatelessWidget {
-  final EventService service;
-  const _RegisteredTab({required this.service});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<EventRegistration>>(
-      future: service.listMyRegistrations(),
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator(color: PremiumColors.gold));
-        }
-        final regs = snap.data ?? [];
-        if (regs.isEmpty) return const _EmptyMessage(label: 'Aucune inscription pour le moment.');
-        return ListView.separated(
-          itemCount: regs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, i) => _RegistrationTile(reg: regs[i]),
-        );
-      },
-    );
-  }
-}
-
-// ==================== CARTE D’INSCRIPTION ====================
-class _RegistrationTile extends StatelessWidget {
-  final EventRegistration reg;
-  const _RegistrationTile({required this.reg});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPlaceholder() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: 70,
+      height: 70,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
-        border: Border.all(color: PremiumColors.stroke),
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [PremiumColors.goldLight, PremiumColors.gold]),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(Icons.confirmation_number_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Billet • ${reg.status}',
-                  style: const TextStyle(fontWeight: FontWeight.w900, color: PremiumColors.textPrimary),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Événement: ${reg.eventId}',
-                  style: const TextStyle(fontSize: 12, color: PremiumColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () => context.push('/events/${reg.eventId}/ticket/${reg.id}'),
-            icon: const Icon(Icons.qr_code_rounded, color: PremiumColors.gold),
-            label: const Text('Pass'),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: PremiumColors.stroke),
-              foregroundColor: PremiumColors.textPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ==================== ONGLET "SAUVEGARDÉS" ====================
-class _SavedTab extends StatefulWidget {
-  final EventService service;
-  const _SavedTab({required this.service});
-
-  @override
-  State<_SavedTab> createState() => _SavedTabState();
-}
-
-class _SavedTabState extends State<_SavedTab> {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<({List<EventItem> events, Set<String> savedIds})>(
-      future: _load(),
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator(color: PremiumColors.gold));
-        }
-        final data = snap.data;
-        if (data == null) return const _EmptyMessage(label: 'Aucun événement sauvegardé.');
-        final savedEvents = data.events.where((e) => data.savedIds.contains(e.id)).toList();
-        if (savedEvents.isEmpty) return const _EmptyMessage(label: 'Aucun événement sauvegardé.');
-        return ListView.separated(
-          itemCount: savedEvents.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, i) {
-            final e = savedEvents[i];
-            return _EventMiniTile(
-              event: e,
-              trailing: IconButton(
-                onPressed: () async {
-                  await widget.service.toggleSaveEvent(eventId: e.id, saved: false);
-                  if (mounted) setState(() {});
-                },
-                icon: const Icon(Icons.bookmark_remove_rounded, color: PremiumColors.gold),
-              ),
-              onTap: () => context.push('/events/${e.id}'),
-            );
-          },
-        );
-      },
+      child: const Icon(Icons.event, color: Colors.grey),
     );
   }
 
-  Future<({List<EventItem> events, Set<String> savedIds})> _load() async {
-    final results = await Future.wait([
-      widget.service.listEvents(),
-      widget.service.listSavedEventIds(),
-    ]);
-    return (events: results[0] as List<EventItem>, savedIds: results[1] as Set<String>);
+  Widget _buildFloatingButton() {
+    return FloatingActionButton.extended(
+      onPressed: () => context.push(Routes.explore),
+      backgroundColor: AppColors.primary,
+      icon: const Icon(Icons.explore),
+      label: const Text('Explorer'),
+    );
   }
-}
 
-// ==================== CARTE MINIATURE ÉVÉNEMENT ====================
-class _EventMiniTile extends StatelessWidget {
-  final EventItem event;
-  final Widget trailing;
-  final VoidCallback onTap;
-  const _EventMiniTile({required this.event, required this.trailing, required this.onTap});
+  void _navigateToTicket(UserTicketWithEvent ticket) {
+    context.push(
+      Routes.ticketDetails,
+      extra: {'registrationId': ticket.registration.id},
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
-          border: Border.all(color: PremiumColors.stroke),
-        ),
-        child: Row(
+  void _showFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: SizedBox(
-                width: 56,
-                height: 56,
-                child: event.imageAssetPath != null && event.imageAssetPath!.isNotEmpty
-                    ? Image.asset(event.imageAssetPath!, fit: BoxFit.cover)
-                    : Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [PremiumColors.goldLight, PremiumColors.gold]),
-                        ),
-                        child: const Icon(Icons.event_rounded, color: Colors.white),
-                      ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Filtrer par',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w900, color: PremiumColors.textPrimary),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${event.dateLabel} • ${event.location}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: PremiumColors.textSecondary),
-                  ),
-                ],
-              ),
+            ...TicketStatus.values.map((status) {
+              return ListTile(
+                leading: Icon(status.icon, color: status.color),
+                title: Text(status.label),
+                trailing: _controller.selectedFilter == status
+                    ? const Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                onTap: () {
+                  _controller.filterByStatus(status);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.clear_all),
+              title: const Text('Afficher tout'),
+              onTap: () {
+                _controller.filterByStatus(TicketStatus.upcoming);
+                Navigator.pop(context);
+              },
             ),
-            trailing,
           ],
         ),
       ),
     );
   }
-}
 
-// ==================== ONGLET "HISTORIQUE" ====================
-class _HistoryTab extends StatelessWidget {
-  final EventService service;
-  const _HistoryTab({required this.service});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<EventRegistration>>(
-      future: service.listMyRegistrations(),
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator(color: PremiumColors.gold));
-        }
-        final regs = (snap.data ?? []).where((r) => r.status != 'registered').toList();
-        if (regs.isEmpty) return const _EmptyMessage(label: 'L’historique apparaîtra après validation des présences.');
-        return ListView.separated(
-          itemCount: regs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, i) => _RegistrationTile(reg: regs[i]),
-        );
-      },
-    );
-  }
-}
-
-// ==================== COMPOSANT "VIDE" ====================
-class _EmptyMessage extends StatelessWidget {
-  final String label;
-  const _EmptyMessage({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8)],
-        border: Border.all(color: PremiumColors.stroke),
+  void _showTicketOptions(UserTicketWithEvent ticket) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: PremiumColors.textSecondary),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (ticket.isUpcoming) ...[
+              ListTile(
+                leading: const Icon(Icons.cancel_outlined, color: Colors.red),
+                title: const Text('Annuler ma réservation'),
+                subtitle: const Text('Cette action est irréversible'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCancelConfirmation(ticket);
+                },
+              ),
+              const Divider(),
+            ],
+            ListTile(
+              leading: const Icon(Icons.download_outlined),
+              title: const Text('Télécharger le billet (PDF)'),
+              onTap: () {
+                Navigator.pop(context);
+                _downloadTicket(ticket);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share_outlined),
+              title: const Text('Partager le billet'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareTicket(ticket);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.calendar_month_outlined),
+              title: const Text('Ajouter au calendrier'),
+              onTap: () {
+                Navigator.pop(context);
+                _addToCalendar(ticket);
+              },
+            ),
+          ],
         ),
       ),
     );
   }
+
+  void _showCancelConfirmation(UserTicketWithEvent ticket) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Annuler la réservation'),
+        content: Text(
+          'Êtes-vous sûr de vouloir annuler votre billet pour "${ticket.event.title}" ? Cette action est irréversible.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Non, garder'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _controller.cancelTicket(ticket.registration.id);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Réservation annulée'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Oui, annuler'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _downloadTicket(UserTicketWithEvent ticket) {
+    // Implémentation du téléchargement PDF
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Téléchargement en cours...'),
+      ),
+    );
+  }
+
+  void _shareTicket(UserTicketWithEvent ticket) {
+    // Implémentation du partage
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Fonctionnalité à venir'),
+      ),
+    );
+  }
+
+  void _addToCalendar(UserTicketWithEvent ticket) {
+    // Implémentation calendrier
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Ajouté au calendrier'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// CONSTANTES
+// ============================================================================
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);
+  static const Color textDark = Color(0xFF1E293B);
 }
