@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
-class EventPage extends StatefulWidget {
-  const EventPage({super.key});
+class EventsPage extends StatefulWidget {  // ← ajout du 's'
+  const EventsPage({super.key});
 
   @override
-  State<EventPage> createState() => _EventPageState();
+  State<EventsPage> createState() => _EventsPageState();  // ← ajout du 's'
 }
 
-class _EventPageState extends State<EventPage> {
+class _EventsPageState extends State<EventsPage> {  // ← ajout du 's'
   String selectedCategory = 'Tous les événements';
-  int _currentIndex = 2; // Bloqué sur "Mes billets" au centre comme sur la photo
+  int _currentIndex = 2;
   final Set<String> favoriteEvents = {};
-  int _bannerPageIndex = 1; // Pour simuler le point actif de la bannière
+  int _bannerPageIndex = 1;
+
+  // ... le reste de ton code reste IDENTIQUE
 
   // Données exactes de ton image
   final List<Map<String, dynamic>> featuredEvents = [
