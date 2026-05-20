@@ -561,18 +561,22 @@ class _EventsPageState extends State<EventsPage> {
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 10, offset: const Offset(0, 2))],
           ),
           child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  item['image']!, 
-                  width: 72, 
-                  height: 72, 
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(width: 72, height: 72, color: Colors.grey[200], child: const Icon(Icons.image_broken)),
-                  },
-                ),
-              ),
+  children: [
+    ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Image.network(
+        item['image']!,
+        width: 72,
+        height: 72,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          width: 72,
+          height: 72,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image),
+        ),
+      ),
+    ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
