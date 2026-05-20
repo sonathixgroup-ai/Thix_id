@@ -318,7 +318,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     );
   }
 
-  // ==================== MÉTHODE MODIFIÉE AVEC FILE PICKER ====================
   Future<void> _uploadCoverImage(dynamic training) async {
     final String? trainingId = training['id']?.toString();
     if (trainingId == null || trainingId.isEmpty) {
@@ -329,7 +328,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
     }
 
     try {
-      // Utilisation de FilePicker à la place de ImagePicker
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
@@ -405,7 +403,6 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       if (mounted) setState(() => _loading = false);
     }
   }
-  // ==================== FIN DE LA MÉTHODE MODIFIÉE ====================
 
   Future<void> _publishTraining(dynamic training) async {
     final String? trainingId = training['id']?.toString();
@@ -550,105 +547,357 @@ class _TrainingAdminPageState extends State<TrainingAdminPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Gestion des Formations', style: TextStyle(color: _textDark, fontWeight: FontWeight.bold)),
-        actions: [IconButton(onPressed: _loadTrainings, icon: const Icon(Icons.refresh_rounded, color: _brandPurple))],
-      ),
-      body: Column(children: [
-        Container(padding: const EdgeInsets.all(14), color: Colors.white, child: Column(children: [
-          TextField(onChanged: (value) { setState(() => _searchQuery = value); _loadTrainings(); },
-            decoration: InputDecoration(hintText: 'Rechercher une formation...', prefixIcon: const Icon(Icons.search_rounded, color: _brandPurple), border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none), filled: true, fillColor: _bgLight),
+        scrolledUnderElevation: 0,
+        title: const Text(
+          'Gestion des Formations',
+          style: TextStyle(
+            color: _textDark,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: SegmentedButton<String>(
-              segments: const [ButtonSegment(value: 'all', label: Text('Toutes')), ButtonSegment(value: 'published', label: Text('Publiées')), ButtonSegment(value: 'draft', label: Text('Brouillons'))],
-              selected: {_filterStatus},
-              onSelectionChanged: (selection) => setState(() => _filterStatus = selection.first),
-            )),
-            const SizedBox(width: 12),
-            Expanded(child: DropdownButtonFormField<String>(
-              value: _filterCategory,
-              decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
-              items: [const DropdownMenuItem(value: 'all', child: Text('Toutes catégories')), ..._categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))],
-              onChanged: (v) => setState(() => _filterCategory = v!),
-            )),
-          ]),
-        ])),
-        Container(padding: const EdgeInsets.all(14), child: Row(children: [
-          _buildStatCard('Total', _trainings.length.toString()),
-          const SizedBox(width: 12),
-          _buildStatCard('Publiées', publishedCount.toString()),
-          const SizedBox(width: 12),
-          _buildStatCard('Brouillons', draftCount.toString()),
-        ])),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFEEF2FF), border: Border.all(color: _brandPurple.withOpacity(0.3)), borderRadius: BorderRadius.circular(10)),
-          child: Row(children: [
-            const Icon(Icons.info_rounded, color: _brandPurple, size: 20),
-            const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
-              Text('📋 Brouillon = Invisible aux utilisateurs', style: TextStyle(color: _textDark, fontWeight: FontWeight.bold, fontSize: 12)),
-              SizedBox(height: 4),
-              Text('Cliquez "Publier" pour rendre visible dans THIX FORMATION', style: TextStyle(color: _textGrey, fontSize: 11)),
-            ])),
-          ]),
-        )),
-        const SizedBox(height: 14),
-        Expanded(
-          child: _loading ? const Center(child: CircularProgressIndicator(color: _brandPurple))
-              : filteredTrainings.isEmpty ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.school_outlined, size: 64, color: _textGrey),
-                  const SizedBox(height: 16),
-                  Text(_searchQuery.isNotEmpty ? 'Aucune formation trouvée pour "$_searchQuery"' : 'Aucune formation disponible', style: const TextStyle(color: _textGrey)),
-                ]))
-              : ListView.builder(padding: const EdgeInsets.all(14), itemCount: filteredTrainings.length,
-                  itemBuilder: (context, index) {
-                    final t = filteredTrainings[index];
-                    return Container(margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: (t['is_published'] ?? false) ? Colors.green.shade300 : const Color(0xFFE2E8F0), width: (t['is_published'] ?? false) ? 2 : 1),
-                      ),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        if (t['cover_image_url'] != null) ...[
-                          ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(t['cover_image_url'], height: 120, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink())),
-                          const SizedBox(height: 12),
-                        ],
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          Expanded(child: Text(t['title'] ?? 'Sans titre', style: const TextStyle(color: _textDark, fontWeight: FontWeight.w600, fontSize: 15))),
-                          Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: (t['is_published'] ?? false) ? Colors.green.shade100 : Colors.orange.shade100, borderRadius: BorderRadius.circular(4)),
-                            child: Text((t['is_published'] ?? false) ? '✅ Publiée' : '📋 Brouillon', style: TextStyle(color: (t['is_published'] ?? false) ? Colors.green : Colors.orange, fontSize: 10, fontWeight: FontWeight.bold)),
-                          ),
-                        ]),
-                        const SizedBox(height: 4),
-                        if (t['category'] != null) Text('📁 ${t['category']} • ${t['level'] ?? 'Débutant'}', style: const TextStyle(color: _textGrey, fontSize: 11)),
-                        const SizedBox(height: 8),
-                        Row(children: [
-                          Text('💰 ${t['is_free'] == true ? 'Gratuit' : '${t['price_amount'] ?? 0} ${t['currency'] ?? 'USD'}'}', style: const TextStyle(color: _brandPurple, fontSize: 12, fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          IconButton(onPressed: () => _uploadCoverImage(t), icon: const Icon(Icons.image_rounded, color: Colors.green, size: 18), tooltip: 'Ajouter une image'),
-                          if (t['is_published'] == true) IconButton(onPressed: () => _unpublishTraining(t), icon: const Icon(Icons.visibility_off_rounded, color: Colors.orange, size: 18), tooltip: 'Dépublier')
-                          else IconButton(onPressed: () => _publishTraining(t), icon: const Icon(Icons.visibility_rounded, color: _brandPurple, size: 18), tooltip: 'Publier'),
-                          IconButton(onPressed: () => _showEditTrainingDialog(t), icon: const Icon(Icons.edit_rounded, color: _brandPurple, size: 18), tooltip: 'Éditer'),
-                          IconButton(onPressed: () => _deleteTraining(t), icon: const Icon(Icons.delete_rounded, color: Colors.red, size: 18), tooltip: 'Supprimer'),
-                        ]),
-                      ]),
-                    );
-                  },
-                ),
         ),
-      ]),
-      floatingActionButton: FloatingActionButton(backgroundColor: _brandPurple, onPressed: _showCreateTrainingDialog, child: const Icon(Icons.add_rounded, color: Colors.white)),
+        actions: [
+          IconButton(
+            onPressed: _loadTrainings,
+            icon: const Icon(Icons.refresh_rounded, color: _brandPurple),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Barre de recherche et filtres
+          Container(
+            padding: const EdgeInsets.all(14),
+            color: Colors.white,
+            child: Column(
+              children: [
+                TextField(
+                  onChanged: (value) {
+                    setState(() => _searchQuery = value);
+                    _loadTrainings();
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher une formation...',
+                    prefixIcon: const Icon(Icons.search_rounded, color: _brandPurple),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: _bgLight,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(value: 'all', label: Text('Toutes')),
+                          ButtonSegment(value: 'published', label: Text('Publiées')),
+                          ButtonSegment(value: 'draft', label: Text('Brouillons')),
+                        ],
+                        selected: {_filterStatus},
+                        onSelectionChanged: (selection) {
+                          setState(() => _filterStatus = selection.first);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _filterCategory,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        items: [
+                          const DropdownMenuItem(value: 'all', child: Text('Toutes catégories')),
+                          ..._categories.map((cat) => DropdownMenuItem(
+                            value: cat,
+                            child: Text(cat),
+                          )),
+                        ],
+                        onChanged: (v) => setState(() => _filterCategory = v!),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Cartes statistiques
+          Container(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                _buildStatCard('Total', _trainings.length.toString()),
+                const SizedBox(width: 12),
+                _buildStatCard('Publiées', publishedCount.toString()),
+                const SizedBox(width: 12),
+                _buildStatCard('Brouillons', draftCount.toString()),
+              ],
+            ),
+          ),
+          
+          // Bannière d'information
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF2FF),
+                border: Border.all(color: _brandPurple.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_rounded, color: _brandPurple, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          '📋 Brouillon = Invisible aux utilisateurs',
+                          style: TextStyle(
+                            color: _textDark,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Cliquez "Publier" pour rendre visible dans THIX FORMATION',
+                          style: TextStyle(
+                            color: _textGrey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 14),
+          
+          // Liste des formations
+          Expanded(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: _brandPurple),
+                  )
+                : filteredTrainings.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.school_outlined, size: 64, color: _textGrey),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isNotEmpty 
+                                  ? 'Aucune formation trouvée pour "$_searchQuery"'
+                                  : 'Aucune formation disponible',
+                              style: const TextStyle(color: _textGrey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(14),
+                        itemCount: filteredTrainings.length,
+                        itemBuilder: (context, index) {
+                          final t = filteredTrainings[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: (t['is_published'] ?? false)
+                                    ? Colors.green.shade300
+                                    : const Color(0xFFE2E8F0),
+                                width: (t['is_published'] ?? false) ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (t['cover_image_url'] != null) ...[
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      t['cover_image_url'],
+                                      height: 120,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        t['title'] ?? 'Sans titre',
+                                        style: const TextStyle(
+                                          color: _textDark,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: (t['is_published'] ?? false)
+                                            ? Colors.green.shade100
+                                            : Colors.orange.shade100,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        (t['is_published'] ?? false)
+                                            ? '✅ Publiée'
+                                            : '📋 Brouillon',
+                                        style: TextStyle(
+                                          color: (t['is_published'] ?? false)
+                                              ? Colors.green
+                                              : Colors.orange,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                if (t['category'] != null)
+                                  Text(
+                                    '📁 ${t['category']} • ${t['level'] ?? 'Débutant'}',
+                                    style: const TextStyle(
+                                      color: _textGrey,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '💰 ${t['is_free'] == true ? 'Gratuit' : '${t['price_amount'] ?? 0} ${t['currency'] ?? 'USD'}'}',
+                                      style: const TextStyle(
+                                        color: _brandPurple,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      onPressed: () => _uploadCoverImage(t),
+                                      icon: const Icon(
+                                        Icons.image_rounded,
+                                        color: Colors.green,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Ajouter une image de couverture',
+                                    ),
+                                    if (t['is_published'] == true)
+                                      IconButton(
+                                        onPressed: () => _unpublishTraining(t),
+                                        icon: const Icon(
+                                          Icons.visibility_off_rounded,
+                                          color: Colors.orange,
+                                          size: 18,
+                                        ),
+                                        tooltip: 'Dépublier',
+                                      )
+                                    else
+                                      IconButton(
+                                        onPressed: () => _publishTraining(t),
+                                        icon: const Icon(
+                                          Icons.visibility_rounded,
+                                          color: _brandPurple,
+                                          size: 18,
+                                        ),
+                                        tooltip: 'Publier',
+                                      ),
+                                    IconButton(
+                                      onPressed: () => _showEditTrainingDialog(t),
+                                      icon: const Icon(
+                                        Icons.edit_rounded,
+                                        color: _brandPurple,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Éditer',
+                                    ),
+                                    IconButton(
+                                      onPressed: () => _deleteTraining(t),
+                                      icon: const Icon(
+                                        Icons.delete_rounded,
+                                        color: Colors.red,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Supprimer',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _brandPurple,
+        onPressed: _showCreateTrainingDialog,
+        child: const Icon(Icons.add_rounded, color: Colors.white),
+      ),
     );
   }
 
   Widget _buildStatCard(String label, String value) {
     return Expanded(
-      child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE2E8F0))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(color: _textGrey, fontSize: 11)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(color: _brandPurple, fontSize: 24, fontWeight: FontWeight.w900)),
-        ]),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: _textGrey,
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                color: _brandPurple,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
