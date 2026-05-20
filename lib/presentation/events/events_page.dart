@@ -9,10 +9,11 @@ class EventPage extends StatefulWidget {
 
 class _EventPageState extends State<EventPage> {
   String selectedCategory = 'Tous les événements';
-  int _currentIndex = 2; // Positionné sur "Mes billets" comme sur ton design
+  int _currentIndex = 2; // Bloqué sur "Mes billets" au centre comme sur la photo
   final Set<String> favoriteEvents = {};
+  int _bannerPageIndex = 1; // Pour simuler le point actif de la bannière
 
-  // Données fidèles à tes maquettes
+  // Données exactes de ton image
   final List<Map<String, dynamic>> featuredEvents = [
     {
       'id': '1',
@@ -78,7 +79,7 @@ class _EventPageState extends State<EventPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FC),
+      backgroundColor: const Color(0xFFFDFDFD), // Fond ultra-clair et propre
       appBar: _buildAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -86,24 +87,25 @@ class _EventPageState extends State<EventPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildHeroBanner(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _buildMainCategoriesGrid(),
               const SizedBox(height: 24),
               _buildSectionHeader('Catégories populaires'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildPopularHorizontalList(),
               const SizedBox(height: 24),
               _buildSectionHeader('Événements recommandés'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildRecommendedHorizontalList(),
               const SizedBox(height: 24),
               _buildNotificationBanner(),
               const SizedBox(height: 24),
               _buildSectionHeader('Prochains événements'),
+              const SizedBox(height: 6),
               _buildUpcomingVerticalList(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -112,26 +114,36 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- STRUCTURE : APP BAR ---
+  // --- APP BAR (Fidèle aux espacements et icônes) ---
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFFF8F9FC),
+      backgroundColor: const Color(0xFFFDFDFD),
       elevation: 0,
       scrolledUnderElevation: 0,
       leading: Padding(
-        padding: const EdgeInsets.only(left: 12.0),
+        padding: const EdgeInsets.only(left: 16.0),
         child: IconButton(
-          icon: const Icon(Icons.menu, color: Color(0xFF1E293B), size: 26),
+          icon: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(width: 22, height: 2.5, decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 4),
+              Container(width: 15, height: 2.5, decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 4),
+              Container(width: 19, height: 2.5, decoration: BoxDecoration(color: const Color(0xFF1E293B), borderRadius: BorderRadius.circular(2))),
+            ],
+          ),
           onPressed: () {},
         ),
       ),
-      titleSpacing: 0,
+      titleSpacing: 8,
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: const Color(0xFF6320EE).withOpacity(0.1),
+              color: const Color(0xFF6320EE).withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.calendar_month_rounded, color: Color(0xFF6320EE), size: 22),
@@ -145,13 +157,13 @@ class _EventPageState extends State<EventPage> {
                 RichText(
                   text: const TextSpan(
                     text: 'THIX ',
-                    style: TextStyle(fontWeight: FontWeight.black, fontSize: 18, color: Color(0xFF1E293B), fontFamily: 'Poppins'),
+                    style: TextStyle(fontWeight: FontWeight.black, fontSize: 19, color: Color(0xFF1E293B), fontFamily: 'Poppins'),
                     children: [
                       TextSpan(text: 'ÉVÉNEMENT', style: TextStyle(color: Color(0xFF6320EE), fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
-                const Text("Découvrez, réservez, vivez l'exceptionnel.", style: TextStyle(fontSize: 10, color: Color(0xFF64748B), height: 1.2)),
+                const Text("Découvrez, réservez, vivez l'exceptionnel.", style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B), height: 1.1)),
               ],
             ),
           ),
@@ -166,20 +178,20 @@ class _EventPageState extends State<EventPage> {
               onPressed: () {},
             ),
             Positioned(
-              right: 8,
-              top: 8,
+              right: 10,
+              top: 10,
               child: Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(3.5),
                 decoration: const BoxDecoration(color: Color(0xFF6320EE), shape: BoxShape.circle),
-                child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold)),
               ),
             )
           ],
         ),
         const Padding(
-          padding: EdgeInsets.only(right: 16.0, left: 6.0),
+          padding: EdgeInsets.only(right: 16.0, left: 4.0),
           child: CircleAvatar(
-            radius: 18,
+            radius: 17.5,
             backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80'),
           ),
         ),
@@ -187,15 +199,15 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- BLOC 1 : HERO BANNER ---
+  // --- HERO BANNER (Avec l'ajout des dots sous le texte) ---
   Widget _buildHeroBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Container(
         width: double.infinity,
-        height: 185,
+        height: 190,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           image: const DecorationImage(
             image: NetworkImage('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80'),
             fit: BoxFit.cover,
@@ -203,9 +215,9 @@ class _EventPageState extends State<EventPage> {
         ),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             gradient: LinearGradient(
-              colors: [Colors.black.withOpacity(0.85), Colors.transparent],
+              colors: [Colors.black.withOpacity(0.82), Colors.transparent],
               begin: Alignment.bottomLeft,
               end: Alignment.topRight,
             ),
@@ -215,21 +227,38 @@ class _EventPageState extends State<EventPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
                 decoration: BoxDecoration(color: const Color(0xFF6320EE), borderRadius: BorderRadius.circular(6)),
-                child: const Text('★ À LA UNE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                child: const Text('★ À LA UNE', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
               ),
               const SizedBox(height: 10),
-              const Text('Vivez des moments\ninoubliables.', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.2)),
-              const SizedBox(height: 4),
+              const Text('Vivez des moments\ninoubliables.', style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold, height: 1.2)),
+              const SizedBox(height: 6),
               Text('Concerts, festivals, conférences, spectacles et plus encore.', style: TextStyle(color: Colors.white.withOpacity(0.75), fontSize: 11)),
+              const SizedBox(height: 12),
+              
+              // INDICATEURS DE PAGES (DOTS BLANCS)
+              Row(
+                children: List.generate(4, (index) {
+                  return Container(
+                    margin: const EdgeInsets.only(right: 5),
+                    width: index == _bannerPageIndex ? 14 : 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: index == _bannerPageIndex ? Colors.white : Colors.white.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                }),
+              ),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6320EE),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  elevation: 0,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -247,7 +276,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- BLOC 2 : GRILLE DES CATÉGORIES PRINCIPALES (Fidèle aux boutons blancs) ---
+  // --- GRILLE DES 6 BOUTONS BLANCS ---
   Widget _buildMainCategoriesGrid() {
     final categories = [
       {'icon': Icons.calendar_today_rounded, 'label': 'Tous les\névénements'},
@@ -281,14 +310,14 @@ class _EventPageState extends State<EventPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isSelected ? const Color(0xFF6320EE) : Colors.transparent, width: 1.5),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.025), blurRadius: 10, offset: const Offset(0, 3))],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     categories[index]['icon'] as IconData,
-                    color: isSelected ? const Color(0xFF6320EE) : const Color(0xFF6320EE), // Violet icône identique partout
+                    color: const Color(0xFF6320EE), // Violet identique à l'image
                     size: 24,
                   ),
                   const SizedBox(height: 8),
@@ -296,8 +325,8 @@ class _EventPageState extends State<EventPage> {
                     catLabel,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                       color: isSelected ? const Color(0xFF6320EE) : const Color(0xFF334155),
                       height: 1.2,
                     ),
@@ -311,10 +340,10 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- BLOC 3 : CATÉGORIES POPULAIRES (Horizontal & Coloré) ---
+  // --- CATÉGORIES POPULAIRES CORRIGÉES ---
   Widget _buildPopularHorizontalList() {
     final popularSub = [
-      {'icon': Icons.library_music_rounded, 'label': 'Musique & Concerts', 'color': const Color(0xFF9C27B0)},
+      {'icon': Icons.library_music_rounded, 'label': 'Musique & Concerts', 'color': const Color(0xFF6320EE)},
       {'icon': Icons.business_center_rounded, 'label': 'Conférences & Séminaires', 'color': const Color(0xFF2196F3)},
       {'icon': Icons.color_lens_rounded, 'label': 'Culture & Art', 'color': const Color(0xFFFF9800)},
       {'icon': Icons.sports_basketball_rounded, 'label': 'Sport & Loisirs', 'color': const Color(0xFF4CAF50)},
@@ -322,7 +351,7 @@ class _EventPageState extends State<EventPage> {
     ];
 
     return SizedBox(
-      height: 42,
+      height: 44,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -337,7 +366,7 @@ class _EventPageState extends State<EventPage> {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: color.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: color.withOpacity(0.12), width: 1),
             ),
             child: Row(
@@ -353,7 +382,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- BLOC 4 : ÉVÉNEMENTS RECOMMANDÉS (Cartes Horizontales) ---
+  // --- CARTES RECOMMANDATIONS ---
   Widget _buildRecommendedHorizontalList() {
     return SizedBox(
       height: 295,
@@ -371,7 +400,7 @@ class _EventPageState extends State<EventPage> {
             margin: const EdgeInsets.only(right: 14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
             ),
             child: Column(
@@ -380,7 +409,7 @@ class _EventPageState extends State<EventPage> {
                 Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                       child: Image.network(event['image'], height: 125, width: double.infinity, fit: BoxFit.cover),
                     ),
                     Positioned(
@@ -393,14 +422,14 @@ class _EventPageState extends State<EventPage> {
                       ),
                     ),
                     Positioned(
-                      top: 6,
-                      right: 6,
+                      top: 8,
+                      right: 8,
                       child: CircleAvatar(
                         backgroundColor: Colors.black.withOpacity(0.2),
-                        radius: 15,
+                        radius: 14,
                         child: IconButton(
                           padding: EdgeInsets.zero,
-                          icon: Icon(isFav ? Icons.favorite : Icons.favorite_border_rounded, color: isFav ? Colors.red : Colors.white, size: 18),
+                          icon: Icon(isFav ? Icons.favorite : Icons.favorite_border_rounded, color: isFav ? Colors.red : Colors.white, size: 16),
                           onPressed: () {
                             setState(() {
                               if (isFav) favoriteEvents.remove(event['id']);
@@ -453,7 +482,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- BLOC 5 : BANNIÈRE DE NOTIFICATION (Dégradé Violet) ---
+  // --- BANNIÈRE VIOLETTE CORRIGÉE (Bouton épuré sans icône) ---
   Widget _buildNotificationBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -465,38 +494,36 @@ class _EventPageState extends State<EventPage> {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.confirmation_number_outlined, color: Colors.white, size: 28),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.16), borderRadius: BorderRadius.circular(14)),
+              child: const Icon(Icons.confirmation_number_outlined, color: Colors.white, size: 26),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Ne manquez aucun événement !', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                  const Text('Ne manquez aucun événement !', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
                   const SizedBox(height: 3),
-                  Text('Activez les notifications pour être informé des nouveaux événements près de chez vous.', style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10)),
+                  Text('Activez les notifications pour être informé des nouveaux événements près de vous.', style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10)),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF6320EE),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 elevation: 0,
               ),
-              icon: const Icon(Icons.notifications_active_outlined, size: 14),
-              label: const Text('Activer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+              child: const Text('Activer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Color(0xFF6320EE))),
             )
           ],
         ),
@@ -504,7 +531,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- BLOC 6 : PROCHAINS ÉVÉNEMENTS (Liste Verticale Basse) ---
+  // --- PROCHAINS ÉVÉNEMENTS (Liste Basse) ---
   Widget _buildUpcomingVerticalList() {
     return ListView.builder(
       shrinkWrap: true,
@@ -572,7 +599,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  // --- COMPOSANTS OUTILS (Headers, Rangées, Navigation) ---
+  // --- OUTILS COMPOSANTS ---
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -607,7 +634,7 @@ class _EventPageState extends State<EventPage> {
   Widget _buildBottomNavBar() {
     return Container(
       decoration: BoxDecoration(
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, -2))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.025), blurRadius: 15, offset: const Offset(0, -2))],
       ),
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
