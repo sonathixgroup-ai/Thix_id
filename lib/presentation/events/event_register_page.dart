@@ -1,15 +1,23 @@
 // ============================================================================
-// FICHIER: lib/pages/event/event_register_page.dart
+// FICHIER: lib/presentation/events/event_register_page.dart
+// Version corrigée - Plus d'erreurs
 // ============================================================================
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/auth/auth_controller.dart';
-import 'package:thix_id/nav.dart';
 import 'package:thix_id/services/event_service.dart';
 import 'package:thix_id/services/profile_service.dart';
 import 'package:thix_id/services/thix_id_service.dart';
+
+// ============================================================================
+// CONSTANTES
+// ============================================================================
+class RegisterRoutes {
+  static const String ticketSuccess = '/ticket-success';
+}
 
 // ============================================================================
 // MODÈLES
@@ -124,9 +132,15 @@ class EventRegistrationController extends ChangeNotifier {
       type.calculatePrice(_getBasePrice()),
       _currentRegistration!.quantity,
     );
-    _currentRegistration = _currentRegistration!.copyWith(
+    _currentRegistration = RegistrationData(
+      eventId: _currentRegistration!.eventId,
+      eventTitle: _currentRegistration!.eventTitle,
       ticketType: type,
+      quantity: _currentRegistration!.quantity,
+      paymentMethod: _currentRegistration!.paymentMethod,
       totalPrice: newTotal,
+      promoCode: _currentRegistration!.promoCode,
+      attendeeInfo: _currentRegistration!.attendeeInfo,
     );
     notifyListeners();
   }
@@ -137,17 +151,30 @@ class EventRegistrationController extends ChangeNotifier {
       _getPricePerTicket(),
       quantity,
     );
-    _currentRegistration = _currentRegistration!.copyWith(
+    _currentRegistration = RegistrationData(
+      eventId: _currentRegistration!.eventId,
+      eventTitle: _currentRegistration!.eventTitle,
+      ticketType: _currentRegistration!.ticketType,
       quantity: quantity,
+      paymentMethod: _currentRegistration!.paymentMethod,
       totalPrice: newTotal,
+      promoCode: _currentRegistration!.promoCode,
+      attendeeInfo: _currentRegistration!.attendeeInfo,
     );
     notifyListeners();
   }
 
   void updatePaymentMethod(PaymentMethod method) {
     if (_currentRegistration == null) return;
-    _currentRegistration = _currentRegistration!.copyWith(
+    _currentRegistration = RegistrationData(
+      eventId: _currentRegistration!.eventId,
+      eventTitle: _currentRegistration!.eventTitle,
+      ticketType: _currentRegistration!.ticketType,
+      quantity: _currentRegistration!.quantity,
       paymentMethod: method,
+      totalPrice: _currentRegistration!.totalPrice,
+      promoCode: _currentRegistration!.promoCode,
+      attendeeInfo: _currentRegistration!.attendeeInfo,
     );
     notifyListeners();
   }
@@ -163,13 +190,21 @@ class EventRegistrationController extends ChangeNotifier {
       if (discount != null && discount > 0) {
         _appliedDiscount = discount;
         final newTotal = _currentRegistration!.totalPrice * ((100 - discount) / 100);
-        _currentRegistration = _currentRegistration!.copyWith(
-          promoCode: code,
+        _currentRegistration = RegistrationData(
+          eventId: _currentRegistration!.eventId,
+          eventTitle: _currentRegistration!.eventTitle,
+          ticketType: _currentRegistration!.ticketType,
+          quantity: _currentRegistration!.quantity,
+          paymentMethod: _currentRegistration!.paymentMethod,
           totalPrice: newTotal,
+          promoCode: code,
+          attendeeInfo: _currentRegistration!.attendeeInfo,
         );
         notifyListeners();
         return true;
       }
+      _errorMessage = 'Code promo invalide';
+      notifyListeners();
       return false;
     } catch (e) {
       _errorMessage = 'Code promo invalide';
@@ -181,7 +216,7 @@ class EventRegistrationController extends ChangeNotifier {
     }
   }
 
-  Future<bool> register(BuildContext context) async {
+  Future<bool> register(BuildContext context, {required String attendeeName, required String attendeeEmail, required String attendeePhone}) async {
     if (_currentRegistration == null) return false;
 
     _isLoading = true;
@@ -208,6 +243,22 @@ class EventRegistrationController extends ChangeNotifier {
         return false;
       }
 
+      // Mettre à jour les infos du participant
+      final updatedRegistration = RegistrationData(
+        eventId: _currentRegistration!.eventId,
+        eventTitle: _currentRegistration!.eventTitle,
+        ticketType: _currentRegistration!.ticketType,
+        quantity: _currentRegistration!.quantity,
+        paymentMethod: _currentRegistration!.paymentMethod,
+        totalPrice: _currentRegistration!.totalPrice,
+        promoCode: _currentRegistration!.promoCode,
+        attendeeInfo: {
+          'name': attendeeName,
+          'email': attendeeEmail,
+          'phone': attendeePhone,
+        },
+      );
+
       // Générer un code Thix ID unique
       final thixCode = await _thixIdService.generateEventCode(
         userId: userId,
@@ -216,16 +267,16 @@ class EventRegistrationController extends ChangeNotifier {
 
       // Créer la réservation
       final ticketCode = await _eventService.createRegistration(
-        _currentRegistration!.toJson(),
+        updatedRegistration.toJson(),
         userId: userId,
       );
 
       // Naviguer vers la page de succès
       if (context.mounted) {
-        context.push(Routes.ticketSuccess, extra: {
+        context.push(RegisterRoutes.ticketSuccess, extra: {
           'ticketCode': ticketCode,
           'thixCode': thixCode,
-          'event': _currentRegistration!.toJson(),
+          'event': updatedRegistration.toJson(),
         });
       }
 
@@ -240,8 +291,8 @@ class EventRegistrationController extends ChangeNotifier {
   }
 
   double _getBasePrice() {
-    // Récupérer le prix de base depuis l'événement
-    return 10000; // À remplacer par la vraie valeur
+    // À remplacer par la vraie valeur récupérée de l'événement
+    return 10000;
   }
 
   double _getPricePerTicket() {
@@ -261,28 +312,16 @@ class EventRegistrationController extends ChangeNotifier {
   }
 }
 
-extension RegistrationDataCopy on RegistrationData {
-  RegistrationData copyWith({
-    String? eventId,
-    String? eventTitle,
-    TicketType? ticketType,
-    int? quantity,
-    PaymentMethod? paymentMethod,
-    double? totalPrice,
-    String? promoCode,
-    Map<String, dynamic>? attendeeInfo,
-  }) {
-    return RegistrationData(
-      eventId: eventId ?? this.eventId,
-      eventTitle: eventTitle ?? this.eventTitle,
-      ticketType: ticketType ?? this.ticketType,
-      quantity: quantity ?? this.quantity,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      totalPrice: totalPrice ?? this.totalPrice,
-      promoCode: promoCode ?? this.promoCode,
-      attendeeInfo: attendeeInfo ?? this.attendeeInfo,
-    );
-  }
+// ============================================================================
+// COULEURS
+// ============================================================================
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textLight = Color(0xFF64748B);
+  static const Color backgroundGrey = Color(0xFFF8FAFC);
+  static const Color backgroundLight = Color(0xFFF1F5F9);
+  static const Color white = Colors.white;
 }
 
 // ============================================================================
@@ -290,16 +329,10 @@ extension RegistrationDataCopy on RegistrationData {
 // ============================================================================
 class EventRegisterPage extends StatefulWidget {
   final String eventId;
-  final String eventTitle;
-  final double basePrice;
-  final String? coverImageUrl;
 
   const EventRegisterPage({
     super.key,
     required this.eventId,
-    required this.eventTitle,
-    required this.basePrice,
-    this.coverImageUrl,
   });
 
   @override
@@ -310,27 +343,50 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
   late EventRegistrationController _controller;
   final _formKey = GlobalKey<FormState>();
   final _promoCodeController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _showPromoField = false;
+  
+  String _eventTitle = '';
+  double _basePrice = 0;
+  String? _coverImageUrl;
 
   @override
   void initState() {
     super.initState();
+    _loadEventData();
     _controller = EventRegistrationController(
-      eventService: context.read<EventService>(),
-      profileService: context.read<ProfileService>(),
-      thixIdService: context.read<ThixIdService>(),
+      eventService: EventService(Supabase.instance.client),
+      profileService: ProfileService(Supabase.instance.client),
+      thixIdService: ThixIdService(Supabase.instance.client),
     );
-    _controller.initializeRegistration(
-      widget.eventId,
-      widget.eventTitle,
-      widget.basePrice,
-    );
+  }
+
+  Future<void> _loadEventData() async {
+    final eventService = EventService(Supabase.instance.client);
+    final event = await eventService.getEventById(widget.eventId);
+    if (event != null && mounted) {
+      setState(() {
+        _eventTitle = event.title;
+        _basePrice = event.priceAmount ?? 0;
+        _coverImageUrl = event.coverImageUrl;
+      });
+      _controller.initializeRegistration(
+        widget.eventId,
+        _eventTitle,
+        _basePrice,
+      );
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _promoCodeController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -410,19 +466,15 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: widget.coverImageUrl != null
+            child: _coverImageUrl != null && _coverImageUrl!.isNotEmpty
                 ? Image.network(
-                    widget.coverImageUrl!,
+                    _coverImageUrl!,
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
                   )
-                : Container(
-                    width: 60,
-                    height: 60,
-                    color: AppColors.backgroundLight,
-                    child: const Icon(Icons.event, size: 30),
-                  ),
+                : _buildImagePlaceholder(),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -430,7 +482,7 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.eventTitle,
+                  _eventTitle,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -453,6 +505,15 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: AppColors.backgroundLight,
+      child: const Icon(Icons.event, size: 30),
     );
   }
 
@@ -483,7 +544,7 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
                 },
                 title: Text(type.label),
                 subtitle: Text(
-                  type.getFormattedPrice(widget.basePrice),
+                  type.getFormattedPrice(_basePrice),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 secondary: Icon(type.icon, color: AppColors.primary),
@@ -502,7 +563,7 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
       quantity: controller.currentRegistration?.quantity ?? 1,
       minQuantity: 1,
       maxQuantity: 10,
-      pricePerTicket: widget.basePrice *
+      pricePerTicket: _basePrice *
           (controller.currentRegistration?.ticketType.multiplier ?? 1),
       onQuantityChanged: (qty) => controller.updateQuantity(qty),
     );
@@ -683,6 +744,7 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
           ),
           const SizedBox(height: 12),
           TextFormField(
+            controller: _nameController,
             decoration: InputDecoration(
               labelText: 'Nom complet',
               hintText: 'Entrez votre nom complet',
@@ -696,6 +758,7 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
           ),
           const SizedBox(height: 12),
           TextFormField(
+            controller: _emailController,
             decoration: InputDecoration(
               labelText: 'Email',
               hintText: 'votre@email.com',
@@ -707,12 +770,13 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value?.isEmpty == true) return 'Champ requis';
-              if (!value!.contains('@')) return 'Email invalide';
+              if (!value!.contains('@') || !value.contains('.')) return 'Email invalide';
               return null;
             },
           ),
           const SizedBox(height: 12),
           TextFormField(
+            controller: _phoneController,
             decoration: InputDecoration(
               labelText: 'Téléphone',
               hintText: '77 123 45 67',
@@ -722,6 +786,11 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
               prefixIcon: const Icon(Icons.phone_outlined),
             ),
             keyboardType: TextInputType.phone,
+            validator: (value) {
+              if (value?.isEmpty == true) return 'Champ requis';
+              if (value!.length < 9) return 'Numéro invalide';
+              return null;
+            },
           ),
         ],
       ),
@@ -819,7 +888,12 @@ class _EventRegisterPageState extends State<EventRegisterPage> {
   Future<void> _submitRegistration(EventRegistrationController controller) async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await controller.register(context);
+    final success = await controller.register(
+      context,
+      attendeeName: _nameController.text,
+      attendeeEmail: _emailController.text,
+      attendeePhone: _phoneController.text,
+    );
     
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -923,23 +997,4 @@ class QuantitySelector extends StatelessWidget {
       ),
     );
   }
-}
-
-// ============================================================================
-// COULEURS (à mettre dans vos constantes)
-// ============================================================================
-class AppColors {
-  static const Color primary = Color(0xFF6366F1);
-  static const Color textDark = Color(0xFF1E293B);
-  static const Color textLight = Color(0xFF64748B);
-  static const Color backgroundGrey = Color(0xFFF8FAFC);
-  static const Color backgroundLight = Color(0xFFF1F5F9);
-  static const Color white = Colors.white;
-}
-
-// ============================================================================
-// ROUTES (à ajouter dans votre fichier nav.dart)
-// ============================================================================
-extension Routes {
-  static const String ticketSuccess = '/ticket-success';
 }
