@@ -1,18 +1,17 @@
 // ============================================================================
 // FICHIER: lib/presentation/events/user_event_dashboard_page.dart
-// Version corrigée - Plus d'erreurs
+// VERSION COMPLÈTE CORRIGÉE
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:thix_id/models/event_item.dart';
 import 'package:thix_id/models/event_registration.dart';
 import 'package:thix_id/services/event_service.dart';
 
 // ============================================================================
-// CONSTANTES (remplace Routes)
+// CONSTANTES
 // ============================================================================
 class DashboardRoutes {
   static const String explore = '/events';
@@ -21,6 +20,15 @@ class DashboardRoutes {
   static String getTicketDetailsPath(String eventId, String registrationId) {
     return '/events/$eventId/ticket/$registrationId';
   }
+}
+
+// ============================================================================
+// COULEURS
+// ============================================================================
+class AppColors {
+  static const Color primary = Color(0xFF6366F1);
+  static const Color textDark = Color(0xFF1E293B);
+  static const Color textLight = Color(0xFF64748B);
 }
 
 // ============================================================================
@@ -148,17 +156,13 @@ class UserDashboardController extends ChangeNotifier {
 
   void _applyFilters() {
     _filteredTickets = _allTickets.where((ticket) {
-      // Filtre par statut
       if (ticket.status != _selectedFilter) return false;
 
-      // Filtre par recherche
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
         final titleMatch = ticket.event.title.toLowerCase().contains(query);
         final venueMatch = ticket.event.venue.toLowerCase().contains(query);
-        final codeMatch = ticket.registration.ticketCode
-            .toLowerCase()
-            .contains(query);
+        final codeMatch = ticket.registration.ticketCode.toLowerCase().contains(query);
         if (!titleMatch && !venueMatch && !codeMatch) return false;
       }
 
@@ -188,15 +192,6 @@ class UserDashboardController extends ChangeNotifier {
 }
 
 // ============================================================================
-// COULEURS
-// ============================================================================
-class AppColors {
-  static const Color primary = Color(0xFF6366F1);
-  static const Color textDark = Color(0xFF1E293B);
-  static const Color textLight = Color(0xFF64748B);
-}
-
-// ============================================================================
 // PAGE PRINCIPALE
 // ============================================================================
 class UserEventDashboardPage extends StatefulWidget {
@@ -214,10 +209,8 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
   @override
   void initState() {
     super.initState();
-    // Récupérer l'ID utilisateur depuis Supabase Auth
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
-      // Rediriger vers login si non connecté
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.go('/login');
       });
@@ -241,14 +234,10 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
 
   TicketStatus _getStatusFromTabIndex(int index) {
     switch (index) {
-      case 0:
-        return TicketStatus.upcoming;
-      case 1:
-        return TicketStatus.today;
-      case 2:
-        return TicketStatus.past;
-      default:
-        return TicketStatus.upcoming;
+      case 0: return TicketStatus.upcoming;
+      case 1: return TicketStatus.today;
+      case 2: return TicketStatus.past;
+      default: return TicketStatus.upcoming;
     }
   }
 
@@ -273,18 +262,9 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
             child: ListenableBuilder(
               listenable: _controller,
               builder: (context, _) {
-                if (_controller.isLoading) {
-                  return _buildLoadingState();
-                }
-
-                if (_controller.errorMessage != null) {
-                  return _buildErrorState();
-                }
-
-                if (_controller.displayedTickets.isEmpty) {
-                  return _buildEmptyState();
-                }
-
+                if (_controller.isLoading) return _buildLoadingState();
+                if (_controller.errorMessage != null) return _buildErrorState();
+                if (_controller.displayedTickets.isEmpty) return _buildEmptyState();
                 return _buildTicketList();
               },
             ),
@@ -303,16 +283,8 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
       backgroundColor: Colors.white,
       foregroundColor: AppColors.textDark,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          onPressed: () => _controller.refresh(),
-          tooltip: 'Actualiser',
-        ),
-        IconButton(
-          icon: const Icon(Icons.filter_alt_outlined),
-          onPressed: () => _showFilterDialog(),
-          tooltip: 'Filtrer',
-        ),
+        IconButton(icon: const Icon(Icons.refresh), onPressed: () => _controller.refresh()),
+        IconButton(icon: const Icon(Icons.filter_alt_outlined), onPressed: () => _showFilterDialog()),
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
@@ -330,26 +302,11 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
           color: Colors.white,
           child: Row(
             children: [
-              _buildStatCard(
-                'À venir',
-                _controller.upcomingCount,
-                TicketStatus.upcoming.color,
-                Icons.event_upcoming,
-              ),
+              _buildStatCard('À venir', _controller.upcomingCount, TicketStatus.upcoming.color),
               const SizedBox(width: 12),
-              _buildStatCard(
-                'Aujourd\'hui',
-                _controller.todayCount,
-                TicketStatus.today.color,
-                Icons.today,
-              ),
+              _buildStatCard('Aujourd\'hui', _controller.todayCount, TicketStatus.today.color),
               const SizedBox(width: 12),
-              _buildStatCard(
-                'Passés',
-                _controller.pastCount,
-                TicketStatus.past.color,
-                Icons.history,
-              ),
+              _buildStatCard('Passés', _controller.pastCount, TicketStatus.past.color),
             ],
           ),
         );
@@ -357,7 +314,7 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
     );
   }
 
-  Widget _buildStatCard(String label, int count, Color color, IconData icon) {
+  Widget _buildStatCard(String label, int count, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -367,20 +324,8 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 4),
-            Text(
-              count.toString(),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-            ),
+            Text(count.toString(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+            Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
           ],
         ),
       ),
@@ -398,24 +343,14 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
           suffixIcon: ListenableBuilder(
             listenable: _controller,
             builder: (context, _) {
-              if (_controller.searchQuery.isNotEmpty) {
-                return IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _controller.searchTickets('');
-                  },
-                );
-              }
-              return const SizedBox.shrink();
+              return _controller.searchQuery.isNotEmpty
+                  ? IconButton(icon: const Icon(Icons.clear), onPressed: () => _controller.searchTickets(''))
+                  : const SizedBox.shrink();
             },
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
           filled: true,
           fillColor: Colors.grey[100],
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         onChanged: (query) => _controller.searchTickets(query),
       ),
@@ -439,94 +374,22 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Chargement de vos billets...'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            _controller.errorMessage ?? 'Une erreur est survenue',
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => _controller.loadUserTickets(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('Réessayer'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildLoadingState() => const Center(child: CircularProgressIndicator());
+  Widget _buildErrorState() => Center(child: Text(_controller.errorMessage ?? 'Erreur'));
 
   Widget _buildEmptyState() {
-    String message;
-    String submessage;
-
-    switch (_controller.selectedFilter) {
-      case TicketStatus.upcoming:
-        message = 'Aucun billet à venir';
-        submessage = 'Réservez votre prochain événement';
-        break;
-      case TicketStatus.today:
-        message = 'Aucun événement aujourd\'hui';
-        submessage = 'Profitez pour découvrir nos prochains événements';
-        break;
-      case TicketStatus.past:
-        message = 'Aucun billet passé';
-        submessage = 'Vos historiques apparaîtront ici';
-        break;
-      default:
-        message = 'Aucun billet trouvé';
-        submessage = '';
-    }
-
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.confirmation_number_outlined,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.confirmation_number_outlined, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            submessage,
-            style: TextStyle(color: Colors.grey[600]),
-          ),
+          const Text('Aucun billet trouvé'),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
+          ElevatedButton(
             onPressed: () => context.push(DashboardRoutes.explore),
-            icon: const Icon(Icons.explore),
-            label: const Text('Découvrir des événements'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Découvrir des événements'),
           ),
         ],
       ),
@@ -535,14 +398,11 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
 
   Widget _buildTicketList() {
     return RefreshIndicator(
-      onRefresh: () async => _controller.loadUserTickets(),
+      onRefresh: () => _controller.loadUserTickets(),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _controller.displayedTickets.length,
-        itemBuilder: (context, index) {
-          final ticket = _controller.displayedTickets[index];
-          return _buildTicketCard(ticket);
-        },
+        itemBuilder: (context, index) => _buildTicketCard(_controller.displayedTickets[index]),
       ),
     );
   }
@@ -552,173 +412,71 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: () => _navigateToTicket(ticket),
-          borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
-              // En-tête avec statut
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: ticket.status.color.withOpacity(0.1),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
                 ),
                 child: Row(
                   children: [
                     Icon(ticket.status.icon, color: ticket.status.color, size: 16),
                     const SizedBox(width: 8),
-                    Text(
-                      ticket.status.label,
-                      style: TextStyle(
-                        color: ticket.status.color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text(ticket.status.label, style: TextStyle(color: ticket.status.color, fontSize: 12, fontWeight: FontWeight.w600)),
                     const Spacer(),
-                    Text(
-                      DateFormat('dd MMM yyyy').format(ticket.event.eventDate),
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
+                    Text(DateFormat('dd MMM yyyy').format(ticket.event.eventDate), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
               ),
-              
-              // Contenu principal
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    // Image ou placeholder
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: (ticket.event.coverImageUrl != null && ticket.event.coverImageUrl!.isNotEmpty)
-                          ? Image.network(
-                              ticket.event.coverImageUrl!,
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                            )
+                          ? Image.network(ticket.event.coverImageUrl!, width: 70, height: 70, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildPlaceholder())
                           : _buildPlaceholder(),
                     ),
                     const SizedBox(width: 16),
-                    
-                    // Infos
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            ticket.event.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          Text(ticket.event.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 2),
                           const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  ticket.event.venue,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                          Row(children: [Icon(Icons.location_on, size: 14, color: Colors.grey[500]), const SizedBox(width: 4), Expanded(child: Text(ticket.event.venue, style: TextStyle(fontSize: 12, color: Colors.grey[600]), maxLines: 1))]),
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.confirmation_number, size: 14, color: Colors.grey[500]),
-                              const SizedBox(width: 4),
-                              Text(
-                                ticket.registration.ticketCode.length > 12 
-                                    ? ticket.registration.ticketCode.substring(0, 12)
-                                    : ticket.registration.ticketCode,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontFamily: 'monospace',
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
+                          Row(children: [Icon(Icons.confirmation_number, size: 14, color: Colors.grey[500]), const SizedBox(width: 4), Text(ticket.registration.ticketCode.substring(0, 12), style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: Colors.grey[600]))]),
                         ],
                       ),
                     ),
-                    
-                    // Badge quantité
                     if (ticket.registration.quantity > 1)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'x${ticket.registration.quantity}',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
+                        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                        child: Text('x${ticket.registration.quantity}', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                       ),
                   ],
                 ),
               ),
-              
-              // Actions
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
-                ),
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey[200]!))),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () => _navigateToTicket(ticket),
-                        icon: const Icon(Icons.qr_code_scanner, size: 18),
-                        label: const Text('Voir billet'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                        ),
-                      ),
-                    ),
+                    Expanded(child: TextButton.icon(onPressed: () => _navigateToTicket(ticket), icon: const Icon(Icons.qr_code_scanner), label: const Text('Voir billet'), style: TextButton.styleFrom(foregroundColor: AppColors.primary))),
                     Container(width: 1, height: 30, color: Colors.grey[200]),
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () => _showTicketOptions(ticket),
-                        icon: const Icon(Icons.more_horiz, size: 18),
-                        label: const Text('Options'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey[600],
-                        ),
-                      ),
-                    ),
+                    Expanded(child: TextButton.icon(onPressed: () => _showTicketOptions(ticket), icon: const Icon(Icons.more_horiz), label: const Text('Options'), style: TextButton.styleFrom(foregroundColor: Colors.grey[600]))),
                   ],
                 ),
               ),
@@ -733,10 +491,7 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
     return Container(
       width: 70,
       height: 70,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
       child: const Icon(Icons.event, color: Colors.grey),
     );
   }
@@ -751,50 +506,24 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
   }
 
   void _navigateToTicket(UserTicketWithEvent ticket) {
-    context.push(
-      DashboardRoutes.getTicketDetailsPath(ticket.event.id, ticket.registration.id),
-    );
+    context.push(DashboardRoutes.getTicketDetailsPath(ticket.event.id, ticket.registration.id));
   }
 
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Filtrer par',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...TicketStatus.values.map((status) {
-              return ListTile(
-                leading: Icon(status.icon, color: status.color),
-                title: Text(status.label),
-                trailing: _controller.selectedFilter == status
-                    ? const Icon(Icons.check, color: AppColors.primary)
-                    : null,
-                onTap: () {
-                  _controller.filterByStatus(status);
-                  Navigator.pop(context);
-                },
-              );
-            }),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.clear_all),
-              title: const Text('Afficher tout'),
-              onTap: () {
-                _controller.filterByStatus(TicketStatus.upcoming);
-                Navigator.pop(context);
-              },
-            ),
+            const Padding(padding: EdgeInsets.all(16), child: Text('Filtrer par', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            ...TicketStatus.values.map((status) => ListTile(
+              leading: Icon(status.icon, color: status.color),
+              title: Text(status.label),
+              trailing: _controller.selectedFilter == status ? const Icon(Icons.check, color: AppColors.primary) : null,
+              onTap: () { _controller.filterByStatus(status); Navigator.pop(context); },
+            )),
           ],
         ),
       ),
@@ -804,48 +533,26 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
   void _showTicketOptions(UserTicketWithEvent ticket) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (ticket.isUpcoming) ...[
+            if (ticket.isUpcoming)
               ListTile(
                 leading: const Icon(Icons.cancel_outlined, color: Colors.red),
                 title: const Text('Annuler ma réservation'),
-                subtitle: const Text('Cette action est irréversible'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showCancelConfirmation(ticket);
-                },
+                onTap: () { Navigator.pop(context); _showCancelConfirmation(ticket); },
               ),
-              const Divider(),
-            ],
             ListTile(
               leading: const Icon(Icons.download_outlined),
               title: const Text('Télécharger le billet (PDF)'),
-              onTap: () {
-                Navigator.pop(context);
-                _downloadTicket(ticket);
-              },
+              onTap: () { Navigator.pop(context); _downloadTicket(); },
             ),
             ListTile(
               leading: const Icon(Icons.share_outlined),
               title: const Text('Partager le billet'),
-              onTap: () {
-                Navigator.pop(context);
-                _shareTicket(ticket);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_month_outlined),
-              title: const Text('Ajouter au calendrier'),
-              onTap: () {
-                Navigator.pop(context);
-                _addToCalendar(ticket);
-              },
+              onTap: () { Navigator.pop(context); _shareTicket(); },
             ),
           ],
         ),
@@ -858,30 +565,18 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Annuler la réservation'),
-        content: Text(
-          'Êtes-vous sûr de vouloir annuler votre billet pour "${ticket.event.title}" ? Cette action est irréversible.',
-        ),
+        content: Text('Annuler votre billet pour "${ticket.event.title}" ?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Non, garder'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Non')),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await _controller.cancelTicket(ticket.registration.id);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Réservation annulée'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Réservation annulée'), backgroundColor: Colors.orange));
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Oui, annuler'),
           ),
         ],
@@ -889,28 +584,6 @@ class _UserEventDashboardPageState extends State<UserEventDashboardPage>
     );
   }
 
-  void _downloadTicket(UserTicketWithEvent ticket) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Téléchargement en cours...'),
-      ),
-    );
-  }
-
-  void _shareTicket(UserTicketWithEvent ticket) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonctionnalité à venir'),
-      ),
-    );
-  }
-
-  void _addToCalendar(UserTicketWithEvent ticket) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Ajouté au calendrier'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
+  void _downloadTicket() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Téléchargement en cours...')));
+  void _shareTicket() => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fonctionnalité à venir')));
 }
