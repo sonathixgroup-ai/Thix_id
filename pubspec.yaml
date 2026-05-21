@@ -1,10 +1,10 @@
 name: thix_id
-description: "THIX ID is a robust digital identity platform designed for secure institutional and governmental use, offering comprehensive personal and enterprise profiles, multi-language support, and a suite of professional features."
+description: "THIX ID Platform"
 publish_to: "none"
 version: 1.0.0
 
 environment:
-  sdk: ^3.6.0
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -12,64 +12,19 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  
-  # Gestion des images et fichiers
-  image_picker: ^1.1.2
-  file_picker: ^6.1.1  # ← CHANGÉ : version stable, pas ">=8.1.2"
-  
-  # Base de données & Backend
-  supabase_flutter: ^2.8.0  # ← CHANGÉ : version plus récente
-  firebase_core: ^3.12.1  # ← CHANGÉ
-  firebase_auth: ^5.5.0  # ← CHANGÉ
-  cloud_firestore: ^5.6.0  # ← CHANGÉ
-  firebase_storage: ^12.4.0  # ← CHANGÉ
-  firebase_messaging: ^15.2.0  # ← CHANGÉ
-  
-  # Communications & Médias
-  agora_rtc_engine: ^6.6.0
-  flutter_webrtc: ^1.1.0
-  video_player: ^2.9.2
-  record: ^5.2.0
-  
-  # Sécurité, Matériel & Identité (NFC, QR, Barcodes)
-  nfc_manager: ^4.1.0
-  mobile_scanner: ^7.0.0
-  qr_flutter: ^4.1.0
-  barcode_widget: ^2.0.4
-  crypto: ^3.0.5
-  
-  # Localisation & Notifications
-  geolocator: ^13.0.4
-  permission_handler: ^12.0.0
-  flutter_local_notifications: ^18.0.0  # ← CHANGÉ: version stable
-  
-  # Utilitaires UI & Système
-  go_router: ^14.8.0  # ← CHANGÉ
+  supabase_flutter: ^2.8.0
+  go_router: ^14.8.0
   provider: ^6.1.2
   google_fonts: ^6.2.1
-  fl_chart: ^0.70.0  # ← CHANGÉ
-  printing: ^5.14.0
-  pdf: ^3.11.1
-  share_plus: ^10.1.4
-  url_launcher: ^6.3.1
-  path_provider: ^2.1.5
-  shared_preferences: ^2.5.1
-  http: ^1.3.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.14.3  # ← CHANGÉ
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
     - assets/icons/
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: assets/icons/dreamflow_icon.jpg
-  remove_alpha_ios: true
