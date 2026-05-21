@@ -1,8 +1,5 @@
 language: "fr"
 reviews:
-  path_filters:
-    - "lib/**/*.dart"
-    - "pubspec.yaml"
   high_level_summary: true
   poem: false
   review_status: true
