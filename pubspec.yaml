@@ -60,3 +60,4 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/icons/dreamflow_icon.jpg
   remove_alpha_ios: true
+  # TODO: Fix dependency conflicts
