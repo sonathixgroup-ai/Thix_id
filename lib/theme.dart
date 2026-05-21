@@ -390,6 +390,8 @@ ThemeData get lightTheme => ThemeData(
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
+      // ignore: deprecated_member_use
+      dividerColor: LightModeColors.divider,
       dividerTheme: const DividerThemeData(
         color: LightModeColors.divider,
         thickness: 1,
@@ -440,6 +442,8 @@ ThemeData get darkTheme => ThemeData(
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
+      // ignore: deprecated_member_use
+      dividerColor: DarkModeColors.divider,
       dividerTheme: const DividerThemeData(
         color: DarkModeColors.divider,
         thickness: 1,
@@ -528,9 +532,4 @@ TextTheme _buildTextTheme(Color textColor) {
       color: textColor,
     ),
   );
-}
-
-extension ThemeContextExtension on BuildContext {
-  ThemeData get theme => Theme.of(this);
-  Color get dividerColor => Theme.of(this).dividerTheme.color ?? Colors.grey;
 }
