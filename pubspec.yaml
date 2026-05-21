@@ -60,10 +60,7 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/icons/dreamflow_icon.jpg
   remove_alpha_ios: true
-  # TODO: Fix dependency conflicts
 
 dependency_overrides:
-  file_picker: 8.1.4
-
-dependency_overrides:
+  # Pin file_picker to 8.1.4 to resolve native Android conflict with agora_rtc_engine ^6.0.0
   file_picker: 8.1.4
