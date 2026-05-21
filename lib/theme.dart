@@ -529,3 +529,8 @@ TextTheme _buildTextTheme(Color textColor) {
     ),
   );
 }
+
+extension ThemeContextExtension on BuildContext {
+  ThemeData get theme => Theme.of(this);
+  Color get dividerColor => Theme.of(this).dividerTheme.color ?? Colors.grey;
+}

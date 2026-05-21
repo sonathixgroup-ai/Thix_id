@@ -64,3 +64,6 @@ flutter_launcher_icons:
 
 dependency_overrides:
   file_picker: 8.1.4
+
+dependency_overrides:
+  file_picker: 8.1.4
